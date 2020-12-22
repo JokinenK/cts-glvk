@@ -1,0 +1,26 @@
+#pragma once
+
+#include <stdint.h>
+#include <cts/typedefs/enums.h>
+#include <cts/typedefs/command_pool_create_flags.h>
+#include <cts/typedefs/descriptor_pool_create_flags.h>
+#include <cts/typedefs/descriptor_pool_size.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct CtsDescriptorPool* CtsDescriptorPool;
+
+typedef struct CtsDescriptorPoolCreateInfo {
+    CtsStructureType sType;
+    const void* next;
+    CtsDescriptorPoolCreateFlags flags;
+    uint32_t maxSets;
+    uint32_t poolSizeCount;
+    const CtsDescriptorPoolSize* poolSizes;
+} CtsDescriptorPoolCreateInfo;
+
+#ifdef __cplusplus
+}
+#endif

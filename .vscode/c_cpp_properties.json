@@ -1,0 +1,62 @@
+{
+    "env": {
+        "mingw64_path": "C:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64"
+    },
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "include",
+                "include/opengl",
+                "include/opengl/win32",
+                "src",
+                "src/opengl",
+                "src/opengl/win32",
+                "contrib/glad/include",
+                "contrib/googletest/googletest/include",
+                "${default}",
+                "${mingw64_path}/x86_64-w64-mingw32/include",
+                "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include",
+                "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++",
+                "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/tr1",
+                "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32"
+            ],
+            "defines": [
+                "${default}"
+            ],
+            "macFrameworkPath": [
+                "${default}"
+            ],
+            "compileCommands": "${default}",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${default}",
+                "path": [
+                    "include",
+                    "include/opengl",
+                    "include/opengl/win32",
+                    "src",
+                    "src/opengl",
+                    "src/opengl/win32",
+                    "src",
+                    "src/opengl",
+                    "src/opengl/win32",
+                    "contrib/glad/include",
+                    "contrib/googletest/googletest/include",
+                    "${default}",
+                    "${mingw64_path}/x86_64-w64-mingw32/include",
+                    "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include",
+                    "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++",
+                    "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/tr1",
+                    "${mingw64_path}/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32"
+                ]
+            },
+            "intelliSenseMode": "${default}",
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "compilerPath": "${default}",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}
