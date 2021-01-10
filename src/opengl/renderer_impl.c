@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <glad/glad.h>
 #include <cts/align.h>
 #include <cts/allocator.h>
@@ -11,14 +12,16 @@
 #include <cts/renderer_impl.h>
 #include <cts/renderer_proxy.h>
 #include <cts/type_mapper.h>
-#include <cts/os/semaphore.h>
-#include <cts/os/thread.h>
+#include <cts/semaphore.h>
+#include <cts/thread.h>
+#include <cts/time.h>
 #include <cts/typedefs/enums.h>
 #include <cts/typedefs/gl_enums.h>
 #include <cts/typedefs/gl_pipeline.h>
 #include <cts/typedefs/gl_rasterization_state_changes.h>
 #include <cts/typedefs/gl_depth_stencil_state_changes.h>
 #include <cts/typedefs/gl_color_blend_state_changes.h>
+#include <cts/commanddefs/signal_semaphores.h>
 #include <private/buffer_private.h>
 #include <private/command_buffer_private.h>
 #include <private/command_pool_private.h>
@@ -35,6 +38,7 @@
 #include <private/image_private.h>
 #include <private/instance_private.h>
 #include <private/surface_private.h>
+#include <private/queue_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +47,8 @@ extern "C" {
 #pragma region HelperMethodDeclarations
 
 static bool hasFlag(CtsFlags flags, CtsFlags flag);
+
+static bool waitSync(CtsFence pSync, uint64_t pTimeout);
 
 static CtsGlGraphicsPipeline* createGraphicsPipeline(
     const CtsGraphicsPipelineCreateInfo* pCreateInfo,
@@ -618,9 +624,93 @@ CtsResult ctsCreateFenceImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    fence->flags = 0;
+    fence->sync = NULL;
+    fence->status = (pCreateInfo->flags == CTS_FENCE_CREATE_SIGNALED_BIT)
+        ? GL_SIGNALED
+        : GL_UNSIGNALED;
+
     *pFence = fence;
     return CTS_SUCCESS;
+}
+
+CtsResult ctsResetFencesImpl(
+    CtsDevice pDevice,
+    uint32_t pFenceCount,
+    const CtsFence* pFences
+) {
+    for (uint32_t i = 0; i < pFenceCount; ++i) {
+        CtsFence fence = pFences[i];
+
+        if (glIsSync(fence->sync)) {
+            glDeleteSync(fence->sync);
+        }
+
+        fence->sync = NULL;
+        fence->status = GL_UNSIGNALED;
+    }
+
+    return CTS_SUCCESS;
+}
+
+CtsResult ctsInsertFenceImpl(
+    CtsDevice pDevice,
+    CtsFence pFence
+) {
+    (void) pDevice;
+
+    if (pFence != NULL && pFence->sync == NULL) {
+        pFence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        pFence->status = GL_UNSIGNALED;
+        return CTS_SUCCESS;
+    }
+    
+    return CTS_NOT_READY;
+}
+
+CtsResult vkGetFenceStatusImpl(
+    CtsDevice pDevice,
+    CtsFence pFence
+) {
+    (void) pDevice;
+
+    if (pFence->status == GL_UNSIGNALED && glIsSync(pFence->sync)) {
+        glGetSynciv(pFence->sync, GL_SYNC_STATUS, sizeof(GLint), NULL, &pFence->status);
+    }
+
+    return (pFence->status == GL_SIGNALED)
+        ? CTS_SUCCESS
+        : CTS_NOT_READY;
+}
+
+CtsResult vkWaitForFencesImpl(
+    CtsDevice pDevice,
+    uint32_t pFenceCount,
+    const CtsFence* pFences,
+    CtsBool32 pWaitAll,
+    uint64_t pTimeout
+) {
+    uint64_t begin = ctsGetCurrentTimeNs();
+    int64_t timeRemaining = pTimeout;
+    uint32_t signaledCount;
+    uint64_t timeoutPerFence;
+
+    do {
+        signaledCount = 0;
+        timeRemaining = pTimeout - (begin - ctsGetCurrentTimeNs());
+        timeoutPerFence = (uint64_t)timeRemaining / pFenceCount;
+
+        for (uint32_t i = 0; i < pFenceCount; ++i) {
+            if (waitSync(pFences[i], timeoutPerFence)) {
+                ++signaledCount;
+            }
+        }
+
+        if (signaledCount == pFenceCount || (!pWaitAll && signaledCount > 0)) {
+            return CTS_SUCCESS;
+        }
+    } while (timeRemaining > 0);
+
+    return CTS_TIMEOUT;
 }
 
 void ctsDestroyFenceImpl(
@@ -660,8 +750,12 @@ CtsResult ctsAllocateCommandBuffersImpl(
             break;
         }
 
+        commandBuffer->device = pDevice;
         commandBuffer->pool = pAllocateInfo->commandPool;
         commandBuffer->level = pAllocateInfo->level;
+        commandBuffer->root = NULL;
+        commandBuffer->current = NULL;
+
         pCommandBuffers[i] = commandBuffer;
     }
 
@@ -988,6 +1082,7 @@ CtsResult ctsBeginCommandBufferImpl(
     CtsCommandBuffer pCommandBuffer,
     const CtsCommandBufferBeginInfo* pBeginInfo
 ) {
+    return CTS_SUCCESS;
 }
 
 void ctsResetCommandBufferImpl(
@@ -1001,19 +1096,73 @@ void ctsEndCommandBufferImpl(
 ) {
 }
 
+// TODO: Move this to it's own file, like command_buffer.[h/c]
+void* ctsCommandBufferAllocateCommand(CtsCommandBuffer pCommandBuffer, CtsCommandType pCommandType, size_t pExtraLen) {
+    const CtsCommandMetadata* metadata = ctsGetCommandMetadata(pCommandType);
+    CtsCmdBase* cmd = ctsAllocation(
+        &pCommandBuffer->pool->bumpAllocator,
+        metadata->size + pExtraLen,
+        metadata->align,
+        CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND
+    );
+
+    cmd->type = pCommandType;
+    cmd->next = NULL;
+
+    if (pCommandBuffer->root == NULL) {
+        pCommandBuffer->root = cmd;
+    } else {
+        pCommandBuffer->current->next = cmd;
+    }
+    
+    pCommandBuffer->current = cmd;
+    return cmd;
+}
+
 CtsResult ctsQueueSubmitImpl(
     CtsQueue pQueue,
     uint32_t pSubmitCount,
     const CtsSubmitInfo* pSubmits,
     CtsFence pFence
 ) {
-    if (glIsSync(pFence->sync)) {
-    }
+    CtsQueueItem queueItem;
 
     for (uint32_t i = 0; i < pSubmitCount; ++i) {
-        // TODO: Submit queue
-        //pSubmits[i].
+        const CtsSubmitInfo* submit = &pSubmits[i];
+
+        // TODO: Handle waitDstStageMask
+        ctsWaitSemaphores(submit->waitSemaphoreCount, submit->waitSemaphores);
+
+        for (uint32_t j = 0; j < submit->commandBufferCount; ++j) {
+            CtsCommandBuffer commandBuffer = submit->commandBuffers[j];
+
+            if (submit->signalSemaphoreCount > 0) {
+                CtsSignalSemaphores* cmdSignalSemaphores = ctsCommandBufferAllocateCommand(
+                    commandBuffer,
+                    CTS_COMMAND_SIGNAL_SEMAPHORES,
+                    sizeof(CtsSemaphore) * submit->signalSemaphoreCount
+                );
+
+                CtsSemaphore* signalSemaphores = (void*)((char*)cmdSignalSemaphores + sizeof(CtsSignalSemaphores));
+                memcpy(signalSemaphores, submit->signalSemaphores, sizeof(CtsSemaphore) * submit->signalSemaphoreCount);
+
+                cmdSignalSemaphores->semaphoreCount = submit->signalSemaphoreCount;
+                cmdSignalSemaphores->semaphores = signalSemaphores;
+            }
+
+            queueItem.cmd = commandBuffer->root;
+            queueItem.semaphoreCount = 0;
+            queueItem.semaphores = NULL;
+
+            ctsQueuePush(pQueue, &queueItem);
+        }
     }
+
+    if (pFence != NULL) {
+        ctsInsertFenceImpl(pQueue->device, pFence);
+    }
+    
+    return CTS_SUCCESS;
 }
 
 void ctsCmdBeginQueryImpl(
@@ -1075,8 +1224,8 @@ void ctsCmdBindDescriptorSetsImpl(
                     CtsDescriptorBufferInfo* bufferInfo = &binding->bufferInfo[k];
                     CtsBuffer buffer = bufferInfo->buffer;
 
-                    GLsizei offset = buffer->offset + bufferInfo->offset;
-                    GLsizei size = (bufferInfo->range > buffer->size)
+                    size_t offset = buffer->offset + bufferInfo->offset;
+                    size_t size = (bufferInfo->range > buffer->size)
                         ? buffer->size
                         : bufferInfo->range;
 
@@ -1363,7 +1512,7 @@ void ctsCmdCopyImageToBufferImpl(
         void* bufferData = glMapBuffer(GL_COPY_WRITE_BUFFER, GL_WRITE_ONLY);
         size_t bufferOffset = (pDstBuffer->offset + region->bufferOffset);
         void* bufferPos = (char*)bufferData + pDstBuffer->offset;
-        GLsizei bufferSize = (pDstBuffer->size - bufferOffset);
+        size_t bufferSize = (pDstBuffer->size - bufferOffset);
 
         bool isOneDimensionalArray = (target == GL_TEXTURE_1D_ARRAY);
         bool isTwoDimensionalArray = (target == GL_TEXTURE_2D_ARRAY);
@@ -1388,7 +1537,7 @@ void ctsCmdCopyImageToBufferImpl(
                 : region->imageExtent.depth,
             pSrcImage->internalFormat,
             pSrcImage->type,
-            bufferSize,
+            (GLsizei)bufferSize,
             bufferPos
         );
 
@@ -1797,6 +1946,17 @@ void ctsCmdWriteTimestampImpl(
 
 static bool hasFlag(CtsFlags flags, CtsFlagBit flag) {
     return ((flags & flag) == flag);
+}
+
+static bool waitSync(CtsFence pFence, uint64_t pTimeout) {
+    if (pFence->status == GL_UNSIGNALED && glIsSync(pFence->sync)) {
+        GLenum result = glClientWaitSync(pFence->sync, 0, pTimeout);
+        pFence->status = (result == GL_CONDITION_SATISFIED || GL_ALREADY_SIGNALED)
+            ? GL_SIGNALED
+            : GL_UNSIGNALED;
+    }
+    
+    return (pFence->status == GL_SIGNALED);
 }
 
 static CtsGlGraphicsPipeline* createGraphicsPipeline(

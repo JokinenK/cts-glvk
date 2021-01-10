@@ -78,5 +78,6 @@
 #include <cts/commanddefs/map_memory.h>
 #include <cts/commanddefs/queue_submit.h>
 #include <cts/commanddefs/reset_command_buffer.h>
+#include <cts/commanddefs/signal_semaphores.h>
 #include <cts/commanddefs/unmap_memory.h>
 #include <cts/commanddefs/update_descriptor_sets.h>

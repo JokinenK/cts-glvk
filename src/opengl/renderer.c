@@ -10,7 +10,7 @@
 #include <cts/renderer_proxy.h>
 #include <cts/type_mapper.h>
 #include <cts/commanddefs/cmd_base.h>
-#include <cts/os/semaphore.h>
+#include <cts/semaphore.h>
 #include <private/instance_private.h>
 #include <private/buffer_private.h>
 #include <private/command_buffer_private.h>
@@ -24,11 +24,6 @@
 
 #pragma region PrivateTypeDefinitions
 
-typedef struct QueueItem {
-    const CtsCmdBase* cmd;
-    bool* finished;
-} QueueItem;
-
 static void* createCommand(
     CtsCommandBuffer pCommandBuffer,
     CtsCommandType pCommandType,
@@ -37,6 +32,7 @@ static void* createCommand(
 );
 
 static void workerDispatch(CtsDevice pDevice, const CtsCmdBase* pCmd, bool pWait);
+static bool waitForSurface(CtsDevice pDevice);
 static void workerEntry(void* pArgs);
 
 #pragma endregion
@@ -155,15 +151,11 @@ CtsResult ctsCreateDevice(
     CtsQueueCreateInfo queueCreateInfo;
     queueCreateInfo.device = device;
     queueCreateInfo.size = 32;
-    queueCreateInfo.objSize = sizeof(QueueItem);
     ctsCreateQueue(&queueCreateInfo, pAllocator, 1, &device->queue);
 
-    CtsMutexCreateInfo mutexCreateInfo;
-    ctsCreateMutexes(&mutexCreateInfo, pAllocator, 1, &device->mutex);
-
-    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
-    ctsCreateConditionVariables(&conditionVariableCreateInfo, pAllocator, 1, &device->queueConditionVariable);
-    ctsCreateConditionVariables(&conditionVariableCreateInfo, pAllocator, 1, &device->threadConditionVariable);
+    CtsSemaphoreCreateInfo semaphoreCreateInfo;
+    ctsCreateSemaphore(device, &semaphoreCreateInfo, pAllocator, &device->initSemaphore);
+    ctsCreateSemaphore(device, &semaphoreCreateInfo, pAllocator, &device->dispatchSemaphore);
 
     CtsThreadCreateInfo threadCreateInfo;
     threadCreateInfo.entryPoint = workerEntry;
@@ -195,14 +187,12 @@ void ctsDestroyDevice(
     if (pDevice) {
         pDevice->isRunning = false;
 
-        ctsConditionVariableWakeAll(pDevice->threadConditionVariable);
-        ctsConditionVariableWakeAll(pDevice->queueConditionVariable);
+        ctsSignalSemaphores(1, &pDevice->initSemaphore);
+        ctsSignalSemaphores(1, &pDevice->dispatchSemaphore);
         ctsDestroyThread(pDevice->thread, pAllocator);
 
-        ctsDestroyConditionVariable(pDevice->threadConditionVariable, pAllocator);
-        ctsDestroyConditionVariable(pDevice->queueConditionVariable, pAllocator);
-        ctsDestroyMutex(pDevice->mutex, pAllocator);
-
+        ctsDestroySemaphore(pDevice, pDevice->initSemaphore, pAllocator);
+        ctsDestroySemaphore(pDevice, pDevice->dispatchSemaphore, pAllocator);
         ctsDestroyQueue(pDevice->queue, pAllocator);
 
         ctsFree(pAllocator, pDevice);
@@ -1695,58 +1685,59 @@ static void* createCommand(
 static void workerDispatch(CtsDevice pDevice, const CtsCmdBase* pCmd, bool pWait) {
     bool finished = false;
 
-    QueueItem queueItem;
+    CtsQueueItem queueItem;
     queueItem.cmd = pCmd;
-    queueItem.finished = pWait ? &finished : NULL;
+    queueItem.semaphoreCount = pWait ? 1 : 0;
+    queueItem.semaphores = pWait ? &pDevice->dispatchSemaphore : NULL;
 
-    ctsMutexLock(pDevice->mutex);
-    ctsQueuePush(pDevice->queue, &queueItem, sizeof(queueItem));
-    ctsConditionVariableWakeAll(pDevice->threadConditionVariable);
+    ctsQueuePush(pDevice->queue, &queueItem);
 
-    while (pWait && !finished) {
-        ctsConditionVariableSleep(pDevice->queueConditionVariable, pDevice->mutex);
+    while (pWait) {
+        ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
     }
+}
 
-    ctsMutexUnlock(pDevice->mutex);
+static bool waitForSurface(CtsDevice pDevice) {
+    CtsPhysicalDevice physicalDevice = pDevice->physicalDevice;
+    CtsInstance instance = physicalDevice->instance;
+
+    ctsWaitSemaphores(1, &pDevice->initSemaphore);
+
+    if (instance->surface != NULL) {
+        ctsSurfaceMakeCurrent(instance->surface);
+        return true;
+    }
+    
+    return false;   
 }
 
 static void workerEntry(void* pArgs) {
     CtsDevice device = (CtsDevice) pArgs;
-    CtsPhysicalDevice physicalDevice = device->physicalDevice;
-    CtsInstance instance = physicalDevice->instance;
-    
-    QueueItem queueItem;
+    CtsQueueItem queueItem;
     const CtsCommandMetadata* commandMetadata;
+    const CtsCmdBase* cmd;
 
-    ctsMutexLock(device->mutex);
-
-    while (device->isRunning && instance->surface == NULL) {
-        ctsConditionVariableSleep(device->threadConditionVariable, device->mutex);
+    if (!waitForSurface(device)) {
+        return;
     }
 
-    ctsMutexUnlock(device->mutex);
-
-    ctsSurfaceMakeCurrent(instance->surface);
     while (device->isRunning) {
-        ctsMutexLock(device->mutex);
-
-        while (device->isRunning && !ctsQueuePop(device->queue, &queueItem, sizeof(queueItem))) {
-            ctsConditionVariableSleep(device->threadConditionVariable, device->mutex);
+        while (device->isRunning && !ctsQueuePop(device->queue, &queueItem)) {
+            ctsQueueWait(device->queue);
         }
-
-        ctsMutexUnlock(device->mutex);
 
         if (!device->isRunning) {
             break;
         }
 
-        commandMetadata = ctsGetCommandMetadata(queueItem.cmd->type);
-        commandMetadata->handler(queueItem.cmd);
-
-        if (queueItem.finished != NULL) {
-            *queueItem.finished = true;
-            ctsConditionVariableWakeAll(device->queueConditionVariable);
+        cmd = queueItem.cmd;
+        while (cmd != NULL) {
+            commandMetadata = ctsGetCommandMetadata(cmd->type);
+            commandMetadata->handler(cmd);
+            cmd = cmd->next;
         }
+
+        ctsSignalSemaphores(queueItem.semaphoreCount, queueItem.semaphores);
     }
 }
 

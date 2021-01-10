@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stddef.h>
 #include <cts/renderer_impl.h>
 #include <cts/renderer_proxy.h>
 #include <cts/commands.h>
@@ -13,6 +14,7 @@ static void handleUnmapMemory(const CtsCmdBase* pCmd);
 static void handleFreeMemory(const CtsCmdBase* pCmd);
 
 static void handleQueueSubmit(const CtsCmdBase* pCmd);
+static void handleSignalSemaphores(const CtsCmdBase* pCmd);
 
 static void handleAllocateCommandBuffers(const CtsCmdBase* pCmd);
 static void handleFreeCommandBuffers(const CtsCmdBase* pCmd);
@@ -165,6 +167,8 @@ static CtsCommandMetadata* createCommandMetadataLookup()
     lookup[CTS_COMMAND_FREE_MEMORY]                   = (CtsCommandMetadata) { .handler = handleFreeMemory,                 .size = sizeof(CtsFreeMemory),                 .align = alignof(CtsFreeMemory)                 };
 
     lookup[CTS_COMMAND_QUEUE_SUBMIT]                  = (CtsCommandMetadata) { .handler = handleQueueSubmit,                .size = sizeof(CtsQueueSubmit),                .align = alignof(CtsQueueSubmit)                };
+    lookup[CTS_COMMAND_SIGNAL_SEMAPHORES]             = (CtsCommandMetadata) { .handler = handleSignalSemaphores,           .size = sizeof(CtsSignalSemaphores),           .align = alignof(CtsSignalSemaphores)           };
+
 
     lookup[CTS_COMMAND_CMD_BEGIN_QUERY]               = (CtsCommandMetadata) { .handler = handleCmdBeginQuery,              .size = sizeof(CtsCmdBeginQuery),              .align = alignof(CtsCmdBeginQuery)              };
     lookup[CTS_COMMAND_CMD_BEGIN_RENDER_PASS]         = (CtsCommandMetadata) { .handler = handleCmdBeginRenderPass,         .size = sizeof(CtsCmdBeginRenderPass),         .align = alignof(CtsCmdBeginRenderPass)         };
@@ -238,6 +242,11 @@ static void handleFreeMemory(const CtsCmdBase* pCmd) {
 static void handleQueueSubmit(const CtsCmdBase* pCmd) {
     const CtsQueueSubmit* cmd = (const CtsQueueSubmit*) pCmd;
     *cmd->result = ctsQueueSubmitImpl(cmd->queue, cmd->submitCount, cmd->submits, cmd->fence);
+}
+
+static void handleSignalSemaphores(const CtsCmdBase* pCmd) {
+    const CtsSignalSemaphores* cmd = (const CtsSignalSemaphores*) pCmd;
+    ctsSignalSemaphores(cmd->semaphoreCount, cmd->semaphores);
 }
 
 static void handleAllocateCommandBuffers(const CtsCmdBase* pCmd) {

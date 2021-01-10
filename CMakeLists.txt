@@ -30,31 +30,27 @@ list(APPEND SOURCES
 
 if(MSVC)
   list(APPEND SOURCES
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/win32/condition_variable.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/win32/semaphore.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/win32/thread.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/win32/mutex.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/condition_variable.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/semaphore.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/thread.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
   )
 elseif(UNIX)
   list(APPEND SOURCES
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/posix/condition_variable.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/posix/semaphore.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/posix/thread.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/os/posix/mutex.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/condition_variable.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/semaphore.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/thread.c
+      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/mutex.c
   )
 endif(MSVC)
 
 if(WIN32)
   list(APPEND INCLUDE_PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/os/win32
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/os/win32
     ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
 )
 elseif(UNIX)
   list(APPEND INCLUDE_PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/os/posix
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/os/posix
     ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/posix
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix
 )

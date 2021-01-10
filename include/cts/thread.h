@@ -3,16 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <cts/allocator.h>
+#include <cts/typedefs/thread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct CtsThread* CtsThread;
-typedef struct CtsThreadCreateInfo {
-    void(*entryPoint)(void* pArgs);
-    void* args;
-} CtsThreadCreateInfo;
 
 bool ctsCreateThreads(
     const CtsThreadCreateInfo* pCreateInfo,

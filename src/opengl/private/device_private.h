@@ -5,9 +5,9 @@
 #include <cts/typedefs/physical_device.h>
 #include <cts/typedefs/queue.h>
 #include <cts/typedefs/gl_pipeline.h>
-#include <cts/os/thread.h>
-#include <cts/os/mutex.h>
-#include <cts/os/condition_variable.h>
+#include <cts/thread.h>
+#include <cts/mutex.h>
+#include <cts/condition_variable.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,10 +16,10 @@ extern "C" {
 struct CtsDevice {
     bool isRunning;
     CtsThread thread;
-    CtsMutex mutex;
     CtsQueue queue;
-    CtsConditionVariable threadConditionVariable;
-    CtsConditionVariable queueConditionVariable;
+
+    CtsSemaphore initSemaphore;
+    CtsSemaphore dispatchSemaphore;
 
     CtsPhysicalDevice physicalDevice;
     CtsFlags activeDynamicState;

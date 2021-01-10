@@ -2,26 +2,19 @@
 #include <windows.h>
 #include <string.h>
 #include <cts/allocator.h>
-#include <cts/os/thread.h>
+#include <cts/thread.h>
 #include <private/thread_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct ThreadArgs {
-    const CtsAllocationCallbacks* allocator;
-    void(*entryPoint)(void* pArgs);
-    void* args;
-};
-
 static DWORD WINAPI threadEntry(LPVOID pArgs)
 {
-    struct ThreadArgs threadArgs;
-    memcpy(&threadArgs, pArgs, sizeof(threadArgs));
-    ctsFree(threadArgs.allocator, pArgs);
+    CtsThreadCreateInfo createInfo;
+    memcpy(&createInfo, pArgs, sizeof(CtsThreadCreateInfo));
 
-    threadArgs.entryPoint(threadArgs.args);
+    createInfo.entryPoint(createInfo.args);
     return 0;
 }
 
@@ -43,25 +36,14 @@ bool ctsCreateThreads(
             return false;
         }
 
-        struct ThreadArgs* threadArgs = ctsAllocation(
-            pAllocator,
-            sizeof(struct ThreadArgs),
-            alignof(struct ThreadArgs),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
-
-        threadArgs->allocator = pAllocator;
-        threadArgs->entryPoint = pCreateInfo->entryPoint;
-        threadArgs->args = pCreateInfo->args;
-
         thread->joined = false;
         thread->detached = false;
         thread->thread = CreateThread(
-            NULL,        /* default security attributes */
-            0,           /* default stack size */    
-            threadEntry, /* thread function */
-            threadArgs,  /* parameter to thread function */
-            0,           /* default creation flags */ 
+            NULL,                 /* default security attributes */
+            0,                    /* default stack size */    
+            threadEntry,          /* thread function */
+            (LPVOID) pCreateInfo, /* parameter to thread function */
+            0,                    /* default creation flags */ 
             &thread->threadId
         );
 

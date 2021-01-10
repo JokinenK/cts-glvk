@@ -4,7 +4,7 @@
 #include <cts/typedefs/enums.h>
 #include <cts/typedefs/command_buffer.h>
 #include <cts/typedefs/pipeline_stage_flags.h>
-#include <cts/os/semaphore.h>
+#include <cts/semaphore.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,9 +17,9 @@ typedef struct CtsSubmitInfo {
     const CtsSemaphore* waitSemaphores;
     const CtsPipelineStageFlags* waitDstStageMask;
     uint32_t commandBufferCount;
-    const CtsCommandBuffer* pCommandBuffers;
+    const CtsCommandBuffer* commandBuffers;
     uint32_t signalSemaphoreCount;
-    const CtsSemaphore* pSignalSemaphores;
+    const CtsSemaphore* signalSemaphores;
 } CtsSubmitInfo;
 
 #ifdef __cplusplus

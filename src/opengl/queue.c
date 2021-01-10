@@ -26,13 +26,18 @@ bool ctsCreateQueue(
             queue->head = 0;
             queue->tail = 0;
             queue->size = pCreateInfo->size;
-            queue->objSize = pCreateInfo->objSize;
-            queue->buffer = ctsAllocation(
+            queue->data = ctsAllocation(
                 pAllocator,
-                sizeof(char) * (pCreateInfo->size * pCreateInfo->objSize),
+                sizeof(CtsQueueItem) * pCreateInfo->size,
                 alignof(char),
                 CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
             );
+
+            CtsMutexCreateInfo mutexCreateInfo;
+            ctsCreateMutexes(&mutexCreateInfo, pAllocator, 1, &queue->mutex);
+
+            CtsConditionVariableCreateInfo conditionVariableCreateInfo;
+            ctsCreateConditionVariables(&conditionVariableCreateInfo, pAllocator, 1, &queue->conditionVariable);
 
             pQueues[i] = queue;
         }
@@ -46,7 +51,10 @@ bool ctsDestroyQueue(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (pQueue) {
-        ctsFree(pAllocator, pQueue->buffer);
+        ctsConditionVariableWakeAll(pQueue->conditionVariable);
+        ctsDestroyConditionVariable(pQueue->conditionVariable, pAllocator);
+
+        ctsFree(pAllocator, pQueue->data);
         ctsFree(pAllocator, pQueue); 
        
         return true;
@@ -55,35 +63,43 @@ bool ctsDestroyQueue(
     return false;
 }
 
-bool ctsQueuePush(CtsQueue pQueue, void* pSrc, size_t pSrcLen) {
+bool ctsQueuePush(CtsQueue pQueue, CtsQueueItem* pQueueItem) {
+    ctsMutexLock(pQueue->mutex);
+
     if (((pQueue->head + 1) % pQueue->size) == pQueue->tail) {
+        ctsMutexUnlock(pQueue->mutex);
         return false;
     }
 
-    size_t offset = (pQueue->head * pQueue->objSize);
+    size_t idx = pQueue->head;
     pQueue->head = (pQueue->head + 1) % pQueue->size;
+    pQueue->data[idx] = *pQueueItem;
 
-    void* dst = (char*)pQueue->buffer + offset;
-    size_t dstLen = pQueue->objSize > pSrcLen ? pSrcLen : pQueue->objSize;
-
-    mempcpy(dst, pSrc, dstLen);
+    ctsMutexUnlock(pQueue->mutex);
+    ctsConditionVariableWakeAll(pQueue->conditionVariable);
     return true;
 }
 
-bool ctsQueuePop(CtsQueue pQueue, void* pDst, size_t pDstLen) {
+bool ctsQueuePop(CtsQueue pQueue, CtsQueueItem* pQueueItem) {
+    ctsMutexLock(pQueue->mutex);
+
     if (pQueue->tail == pQueue->head) {
+        ctsMutexUnlock(pQueue->mutex);
         return false;
     }
 
-    size_t offset = (pQueue->tail * pQueue->objSize);
+    size_t idx = pQueue->tail;
     pQueue->tail = (pQueue->tail + 1) % pQueue->size;
+    *pQueueItem = pQueue->data[idx];
 
-    void* src = (char*)pQueue->buffer + offset;
-    size_t srcLen = pQueue->objSize > pDstLen ? pDstLen : pQueue->objSize;
-
-    mempcpy(pDst, src, srcLen);
-    memset(src, 0, pQueue->objSize);
+    ctsMutexUnlock(pQueue->mutex);
     return true;
+}
+
+void ctsQueueWait(CtsQueue pQueue) {
+    while (pQueue->tail == pQueue->head) {
+      ctsConditionVariableSleep(pQueue->conditionVariable, pQueue->mutex);
+    }
 }
 
 #ifdef __cplusplus

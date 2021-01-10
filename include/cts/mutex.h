@@ -3,15 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <cts/allocator.h>
+#include <cts/typedefs/mutex.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct CtsMutex* CtsMutex;
-typedef struct CtsMutexCreateInfo {
-    char unused;
-} CtsMutexCreateInfo;
 
 bool ctsCreateMutexes(
     const CtsMutexCreateInfo* pCreateInfo,

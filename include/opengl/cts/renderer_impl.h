@@ -141,6 +141,25 @@ CtsResult ctsCreateFenceImpl(
     CtsFence* pFence
 );
 
+CtsResult ctsResetFencesImpl(
+    CtsDevice pDevice,
+    uint32_t pFenceCount,
+    const CtsFence* pFences
+);
+
+CtsResult vkGetFenceStatusImpl(
+    CtsDevice pDevice,
+    CtsFence pFence
+);
+
+CtsResult vkWaitForFencesImpl(
+    CtsDevice pDevice,
+    uint32_t pFenceCount,
+    const CtsFence* pFences,
+    CtsBool32 pWaitAll,
+    uint64_t pTimeout
+);
+
 void ctsDestroyFenceImpl(
     CtsDevice pDevice,
     CtsFence pFence,

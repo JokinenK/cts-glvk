@@ -5,6 +5,7 @@
 #include <cts/typedefs/attachment_description.h>
 #include <cts/typedefs/attachment_description_flags.h>
 #include <cts/typedefs/attachment_reference.h>
+#include <cts/typedefs/bool.h>
 #include <cts/typedefs/buffer_copy.h>
 #include <cts/typedefs/buffer_image_copy.h>
 #include <cts/typedefs/buffer_memory_barrier.h>
@@ -24,6 +25,7 @@
 #include <cts/typedefs/command_pool_create_flags.h>
 #include <cts/typedefs/command_pool.h>
 #include <cts/typedefs/component_mapping.h>
+#include <cts/typedefs/condition_variable.h>
 #include <cts/typedefs/dependency_flags.h>
 #include <cts/typedefs/descriptor_pool_create_flags.h>
 #include <cts/typedefs/descriptor_pool_size.h>
@@ -57,6 +59,7 @@
 #include <cts/typedefs/instance.h>
 #include <cts/typedefs/memory_allocate_info.h>
 #include <cts/typedefs/memory_barrier.h>
+#include <cts/typedefs/mutex.h>
 #include <cts/typedefs/offset.h>
 #include <cts/typedefs/physical_device.h>
 #include <cts/typedefs/pipeline_layout.h>
@@ -76,6 +79,7 @@
 #include <cts/typedefs/render_pass_create_flags.h>
 #include <cts/typedefs/render_pass.h>
 #include <cts/typedefs/sampler.h>
+#include <cts/typedefs/semaphore.h>
 #include <cts/typedefs/shader_module.h>
 #include <cts/typedefs/shader_stage_flags.h>
 #include <cts/typedefs/specialization_info.h>
@@ -87,5 +91,6 @@
 #include <cts/typedefs/subpass_description_flags.h>
 #include <cts/typedefs/subpass_description.h>
 #include <cts/typedefs/surface.h>
+#include <cts/typedefs/thread.h>
 #include <cts/typedefs/vertex_input.h>
 #include <cts/typedefs/viewport.h>

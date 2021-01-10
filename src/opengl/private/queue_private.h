@@ -2,28 +2,38 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <cts/commanddefs/cmd_base.h>
 #include <cts/typedefs/queue.h>
 #include <cts/typedefs/device.h>
 #include <cts/allocator.h>
+#include <cts/semaphore.h>
+#include <cts/mutex.h>
+#include <cts/condition_variable.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct CtsQueueCreateInfo {
+    CtsDevice device;
+    size_t size;
+} CtsQueueCreateInfo;
+
+typedef struct CtsQueueItem {
+    const CtsCmdBase* cmd;
+    uint32_t semaphoreCount;
+    CtsSemaphore* semaphores;
+} CtsQueueItem;
 
 struct CtsQueue {
     CtsDevice device;
     size_t head;
     size_t tail;
     size_t size;
-    size_t objSize;
-    void* buffer;
+    CtsQueueItem* data;
+    CtsMutex mutex;
+    CtsConditionVariable conditionVariable;
 };
-
-typedef struct CtsQueueCreateInfo {
-    CtsDevice device;
-    size_t size;
-    size_t objSize;
-} CtsQueueCreateInfo;
 
 bool ctsCreateQueue(
     const CtsQueueCreateInfo* pCreateInfo,
@@ -39,14 +49,16 @@ bool ctsDestroyQueue(
 
 bool ctsQueuePush(
     CtsQueue pQueue,
-    void* pSrc,
-    size_t pSrcLen
+    CtsQueueItem* pQueueItem
 );
 
 bool ctsQueuePop(
     CtsQueue pQueue,
-    void* pDst,
-    size_t pDstLen
+    CtsQueueItem* pQueueItem
+);
+
+void ctsQueueWait(
+    CtsQueue pQueue
 );
 
 #ifdef __cplusplus

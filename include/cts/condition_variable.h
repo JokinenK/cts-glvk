@@ -3,16 +3,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <cts/allocator.h>
-#include <cts/os/mutex.h>
+#include <cts/typedefs/mutex.h>
+#include <cts/typedefs/condition_variable.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct CtsConditionVariable* CtsConditionVariable;
-typedef struct CtsConditionVariableCreateInfo {
-    char unused;
-} CtsConditionVariableCreateInfo;
 
 bool ctsCreateConditionVariables(
     const CtsConditionVariableCreateInfo* pCreateInfo,

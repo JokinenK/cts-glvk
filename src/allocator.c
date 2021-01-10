@@ -9,9 +9,9 @@ void* ctsAllocation(
 ) {
     if (pAllocator) {
         return pAllocator->allocation(pAllocator->userData, pSize, pAlign, pScope);
+    } else {
+        return malloc(pSize);
     }
-
-    return malloc(pSize);
 }
 
 void* ctsReallocate(
@@ -23,9 +23,9 @@ void* ctsReallocate(
 ) {
     if (pAllocator) {
         return pAllocator->reallocation(pAllocator->userData, pOriginal, pSize, pAlign, pScope);
+    } else {
+        return realloc(pOriginal, pSize);
     }
-
-    return realloc(pOriginal, pSize);
 }
 
 void ctsFree(
@@ -33,10 +33,10 @@ void ctsFree(
     void* pMemory
 ) {
     if (pAllocator) {
-        return pAllocator->free(pAllocator->userData, pMemory);
+        pAllocator->free(pAllocator->userData, pMemory);
+    } else {
+        free(pMemory);
     }
-
-    free(pMemory);
 }
 
 void ctsInternalAllocation(
@@ -45,7 +45,7 @@ void ctsInternalAllocation(
     CtsSystemAllocationScope pScope
 ) {
     if (pAllocator) {
-        return pAllocator->internalAllocation(pAllocator->userData, pSize, pScope);
+        pAllocator->internalAllocation(pAllocator->userData, pSize, pScope);
     }
 }
 
@@ -55,6 +55,6 @@ void ctsInternalFree(
     CtsSystemAllocationScope pScope
 ) {
     if (pAllocator) {
-        return pAllocator->internalFree(pAllocator->userData, pSize, pScope);
+        pAllocator->internalFree(pAllocator->userData, pSize, pScope);
     }
 }

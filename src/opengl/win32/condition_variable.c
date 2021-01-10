@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <cts/os/condition_variable.h>
+#include <cts/condition_variable.h>
 #include <private/condition_variable_private.h>
 #include <private/mutex_private.h>
 
