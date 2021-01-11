@@ -147,12 +147,12 @@ CtsResult ctsResetFencesImpl(
     const CtsFence* pFences
 );
 
-CtsResult vkGetFenceStatusImpl(
+CtsResult ctsGetFenceStatusImpl(
     CtsDevice pDevice,
     CtsFence pFence
 );
 
-CtsResult vkWaitForFencesImpl(
+CtsResult ctsWaitForFencesImpl(
     CtsDevice pDevice,
     uint32_t pFenceCount,
     const CtsFence* pFences,

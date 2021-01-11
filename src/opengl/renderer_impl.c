@@ -624,10 +624,9 @@ CtsResult ctsCreateFenceImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    fence->sync = NULL;
-    fence->status = (pCreateInfo->flags == CTS_FENCE_CREATE_SIGNALED_BIT)
-        ? GL_SIGNALED
-        : GL_UNSIGNALED;
+    fence->sync = (pCreateInfo->flags == CTS_FENCE_CREATE_SIGNALED_BIT)
+        ? NULL
+        : glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
     *pFence = fence;
     return CTS_SUCCESS;
@@ -645,44 +644,31 @@ CtsResult ctsResetFencesImpl(
             glDeleteSync(fence->sync);
         }
 
-        fence->sync = NULL;
-        fence->status = GL_UNSIGNALED;
+        fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
     return CTS_SUCCESS;
 }
 
-CtsResult ctsInsertFenceImpl(
+CtsResult ctsGetFenceStatusImpl(
     CtsDevice pDevice,
     CtsFence pFence
 ) {
     (void) pDevice;
 
-    if (pFence != NULL && pFence->sync == NULL) {
-        pFence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        pFence->status = GL_UNSIGNALED;
+    if (!glIsSync(pFence->sync)) {
         return CTS_SUCCESS;
     }
-    
-    return CTS_NOT_READY;
-}
 
-CtsResult vkGetFenceStatusImpl(
-    CtsDevice pDevice,
-    CtsFence pFence
-) {
-    (void) pDevice;
+    GLint status;
+    glGetSynciv(pFence->sync, GL_SYNC_STATUS, sizeof(GLint), NULL, &status);
 
-    if (pFence->status == GL_UNSIGNALED && glIsSync(pFence->sync)) {
-        glGetSynciv(pFence->sync, GL_SYNC_STATUS, sizeof(GLint), NULL, &pFence->status);
-    }
-
-    return (pFence->status == GL_SIGNALED)
+    return (status == GL_SIGNALED)
         ? CTS_SUCCESS
         : CTS_NOT_READY;
 }
 
-CtsResult vkWaitForFencesImpl(
+CtsResult ctsWaitForFencesImpl(
     CtsDevice pDevice,
     uint32_t pFenceCount,
     const CtsFence* pFences,
@@ -1097,11 +1083,14 @@ void ctsEndCommandBufferImpl(
 }
 
 // TODO: Move this to it's own file, like command_buffer.[h/c]
-void* ctsCommandBufferAllocateCommand(CtsCommandBuffer pCommandBuffer, CtsCommandType pCommandType, size_t pExtraLen) {
+void* ctsCommandBufferAllocateCommand(
+    CtsCommandBuffer pCommandBuffer,
+    CtsCommandType pCommandType
+) {
     const CtsCommandMetadata* metadata = ctsGetCommandMetadata(pCommandType);
     CtsCmdBase* cmd = ctsAllocation(
         &pCommandBuffer->pool->bumpAllocator,
-        metadata->size + pExtraLen,
+        metadata->size,
         metadata->align,
         CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND
     );
@@ -1125,8 +1114,11 @@ CtsResult ctsQueueSubmitImpl(
     const CtsSubmitInfo* pSubmits,
     CtsFence pFence
 ) {
-    CtsQueueItem queueItem;
+    if (pFence != NULL) {
+        ctsWaitForFencesImpl(pQueue->device, 1, &pFence, true, UINT64_MAX);
+    }
 
+    CtsQueueItem queueItem;
     for (uint32_t i = 0; i < pSubmitCount; ++i) {
         const CtsSubmitInfo* submit = &pSubmits[i];
 
@@ -1139,15 +1131,11 @@ CtsResult ctsQueueSubmitImpl(
             if (submit->signalSemaphoreCount > 0) {
                 CtsSignalSemaphores* cmdSignalSemaphores = ctsCommandBufferAllocateCommand(
                     commandBuffer,
-                    CTS_COMMAND_SIGNAL_SEMAPHORES,
-                    sizeof(CtsSemaphore) * submit->signalSemaphoreCount
+                    CTS_COMMAND_SIGNAL_SEMAPHORES
                 );
 
-                CtsSemaphore* signalSemaphores = (void*)((char*)cmdSignalSemaphores + sizeof(CtsSignalSemaphores));
-                memcpy(signalSemaphores, submit->signalSemaphores, sizeof(CtsSemaphore) * submit->signalSemaphoreCount);
-
                 cmdSignalSemaphores->semaphoreCount = submit->signalSemaphoreCount;
-                cmdSignalSemaphores->semaphores = signalSemaphores;
+                cmdSignalSemaphores->semaphores = submit->signalSemaphoreCount;
             }
 
             queueItem.cmd = commandBuffer->root;
@@ -1157,11 +1145,7 @@ CtsResult ctsQueueSubmitImpl(
             ctsQueuePush(pQueue, &queueItem);
         }
     }
-
-    if (pFence != NULL) {
-        ctsInsertFenceImpl(pQueue->device, pFence);
-    }
-    
+   
     return CTS_SUCCESS;
 }
 
@@ -1949,14 +1933,14 @@ static bool hasFlag(CtsFlags flags, CtsFlagBit flag) {
 }
 
 static bool waitSync(CtsFence pFence, uint64_t pTimeout) {
-    if (pFence->status == GL_UNSIGNALED && glIsSync(pFence->sync)) {
-        GLenum result = glClientWaitSync(pFence->sync, 0, pTimeout);
-        pFence->status = (result == GL_CONDITION_SATISFIED || GL_ALREADY_SIGNALED)
-            ? GL_SIGNALED
-            : GL_UNSIGNALED;
+    if (!glIsSync(pFence->sync)) {
+        return true;
     }
-    
-    return (pFence->status == GL_SIGNALED);
+
+    GLenum result = glClientWaitSync(pFence->sync, 0, pTimeout);
+    return (result == GL_CONDITION_SATISFIED || GL_ALREADY_SIGNALED)
+        ? true
+        : false;
 }
 
 static CtsGlGraphicsPipeline* createGraphicsPipeline(

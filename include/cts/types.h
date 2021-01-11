@@ -53,6 +53,7 @@
 #include <cts/typedefs/image_resolve.h>
 #include <cts/typedefs/image_subresource_layers.h>
 #include <cts/typedefs/image_subresource_range.h>
+#include <cts/typedefs/image_usage_flags.h>
 #include <cts/typedefs/image_view.h>
 #include <cts/typedefs/image.h>
 #include <cts/typedefs/instance_create_flags.h>
@@ -65,6 +66,7 @@
 #include <cts/typedefs/pipeline_layout.h>
 #include <cts/typedefs/pipeline_stage_flags.h>
 #include <cts/typedefs/pipeline.h>
+#include <cts/typedefs/present_info.h>
 #include <cts/typedefs/push_constant_range.h>
 #include <cts/typedefs/query_control_flags.h>
 #include <cts/typedefs/query_pipeline_statistic_flags.h>
@@ -91,6 +93,7 @@
 #include <cts/typedefs/subpass_description_flags.h>
 #include <cts/typedefs/subpass_description.h>
 #include <cts/typedefs/surface.h>
+#include <cts/typedefs/swapchain.h>
 #include <cts/typedefs/thread.h>
 #include <cts/typedefs/vertex_input.h>
 #include <cts/typedefs/viewport.h>
