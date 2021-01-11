@@ -597,6 +597,8 @@ static void createColorBlendState(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
+    memcpy(pColorBlendState->blendConstants, pCreateInfo->blendConstants, sizeof(pCreateInfo->blendConstants));
+
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
         CtsGlPipelineColorBlendStateAttachment* target = &pColorBlendState->attachments[i];
         const CtsPipelineColorBlendAttachmentState* source = &pCreateInfo->attachments[i];
@@ -608,7 +610,6 @@ static void createColorBlendState(
         target->dstAlphaBlendFactor = parseBlendFunc(source->dstAlphaBlendFactor);
         target->alphaBlendOp        = parseBlendOperation(source->alphaBlendOp);
         target->colorWriteMask      = source->colorWriteMask;
-        memcpy(target->blendConstants, pCreateInfo->blendConstants, sizeof(pCreateInfo->blendConstants));
     }
 }
 

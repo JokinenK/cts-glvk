@@ -42,8 +42,8 @@ void ctsCmdBeginQueryImpl(
 
 void ctsCmdBeginRenderPassImpl(
     CtsCommandBuffer pCommandBuffer,
-    const CtsRenderPassBeginInfo* renderPassBegin,
-    CtsSubpassContents contents
+    const CtsRenderPassBeginInfo* pRenderPassBegin,
+    CtsSubpassContents pContents
 );
 
 void ctsCmdBindDescriptorSetsImpl(

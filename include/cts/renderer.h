@@ -13,6 +13,7 @@
 #include <cts/instance.h>
 #include <cts/pipeline_layout.h>
 #include <cts/pipeline.h>
+#include <cts/render_pass.h>
 #include <cts/semaphore.h>
 #include <cts/shader_module.h>
 #include <cts/swapchain.h>

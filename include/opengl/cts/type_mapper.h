@@ -59,6 +59,12 @@ void parseDepthStencilStateChanges(
     CtsGlDepthStencilStateChanges* pChanges
 );
 
+
+bool parseColorBlendStateBlendConstantChanged(
+    CtsGlPipelineColorBlendState* pLhs,
+    CtsGlPipelineColorBlendState* pRhs
+);
+
 void parseColorBlendStateChanges(
     const CtsGlPipelineColorBlendStateAttachment* pLhs, 
     const CtsGlPipelineColorBlendStateAttachment* pRhs, 

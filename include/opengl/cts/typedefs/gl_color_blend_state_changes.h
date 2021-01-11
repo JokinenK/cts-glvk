@@ -11,7 +11,6 @@ typedef struct CtsGlColorBlendStateChanges {
     bool colorWriteMaskChanged;
     bool blendFactorChanged;
     bool blendOpChanged;
-    bool blendConstantsChanged;
 } CtsGlColorBlendStateChanges;
 
 #ifdef __cplusplus

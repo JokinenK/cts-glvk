@@ -49,11 +49,13 @@
 #include <cts/commanddefs/cmd_wait_events.h>
 #include <cts/commanddefs/cmd_write_timestamp.h>
 #include <cts/commanddefs/create_fence.h>
+#include <cts/commanddefs/create_framebuffer.h>
 #include <cts/commanddefs/create_graphics_pipelines.h>
 #include <cts/commanddefs/create_image_view.h>
 #include <cts/commanddefs/create_image.h>
 #include <cts/commanddefs/create_sampler.h>
 #include <cts/commanddefs/destroy_fence.h>
+#include <cts/commanddefs/destroy_framebuffer.h>
 #include <cts/commanddefs/destroy_image_view.h>
 #include <cts/commanddefs/destroy_image.h>
 #include <cts/commanddefs/destroy_pipeline.h>

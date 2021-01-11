@@ -20,6 +20,9 @@ struct CtsDevice {
     CtsSemaphore initSemaphore;
     CtsSemaphore dispatchSemaphore;
 
+    CtsFramebuffer activeFramebuffer;
+    uint32_t activeSubpass;
+
     CtsPhysicalDevice physicalDevice;
     CtsFlags activeDynamicState;
     CtsBuffer activeIndexBuffer;

@@ -17,11 +17,13 @@
 #include <private/buffer_private.h>
 #include <private/device_memory_private.h>
 #include <private/device_private.h>
-#include <private/fence_private.h>
-#include <private/pipeline_private.h>
-#include <private/queue_private.h>
 #include <private/descriptor_set_private.h>
 #include <private/descriptor_set_layout_private.h>
+#include <private/fence_private.h>
+#include <private/framebuffer_private.h>
+#include <private/pipeline_private.h>
+#include <private/queue_private.h>
+#include <private/render_pass_private.h>
 #include <private/image_private.h>
 #include <private/image_view_private.h>
 #include <private/sampler_private.h>
@@ -31,6 +33,7 @@ extern "C" {
 #endif
 
 static bool hasFlag(CtsFlags flags, CtsFlags flag);
+static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint32_t pSubpassNumber);
 static void bindDynamicState(CtsDevice pDevice, CtsFlags pState);
 static void bindVertexInputState(CtsDevice pDevice, CtsGlPipelineVertexInputState* pState);
 static void bindInputAssemblyState(CtsDevice pDevice, CtsGlPipelineInputAssemblyState* pState);
@@ -169,6 +172,21 @@ void ctsCmdBeginQuery(
     cmd->flags = pFlags;
 }
 
+void ctsCmdEndQuery(
+    CtsCommandBuffer pCommandBuffer,
+    CtsQueryPool pQueryPool,
+    uint32_t pQuery
+) {
+    CtsCmdEndQuery* cmd = ctsCommandBufferAllocateCommand(
+        pCommandBuffer,
+        CTS_COMMAND_CMD_END_QUERY
+    );
+
+    cmd->commandBuffer = pCommandBuffer;
+    cmd->queryPool = pQueryPool;
+    cmd->query = pQuery;
+}
+
 void ctsCmdBeginRenderPass(
     CtsCommandBuffer pCommandBuffer,
     const CtsRenderPassBeginInfo* pRenderPassBegin,
@@ -182,6 +200,17 @@ void ctsCmdBeginRenderPass(
     cmd->commandBuffer = pCommandBuffer;
     cmd->renderPassBegin = pRenderPassBegin;
     cmd->contents = pContents;
+}
+
+void ctsCmdEndRenderPass(
+    CtsCommandBuffer pCommandBuffer
+) {
+    CtsCmdEndRenderPass* cmd = ctsCommandBufferAllocateCommand(
+        pCommandBuffer,
+        CTS_COMMAND_CMD_END_RENDER_PASS
+    );
+
+    cmd->commandBuffer = pCommandBuffer;
 }
 
 void ctsCmdBindDescriptorSets(
@@ -561,32 +590,6 @@ void ctsCmdDrawIndirect(
     cmd->offset = pOffset;
     cmd->drawCount = pDrawCount;
     cmd->stride = pStride;
-}
-
-void ctsCmdEndQuery(
-    CtsCommandBuffer pCommandBuffer,
-    CtsQueryPool pQueryPool,
-    uint32_t pQuery
-) {
-    CtsCmdEndQuery* cmd = ctsCommandBufferAllocateCommand(
-        pCommandBuffer,
-        CTS_COMMAND_CMD_END_QUERY
-    );
-
-    cmd->commandBuffer = pCommandBuffer;
-    cmd->queryPool = pQueryPool;
-    cmd->query = pQuery;
-}
-
-void ctsCmdEndRenderPass(
-    CtsCommandBuffer pCommandBuffer
-) {
-    CtsCmdEndRenderPass* cmd = ctsCommandBufferAllocateCommand(
-        pCommandBuffer,
-        CTS_COMMAND_CMD_END_RENDER_PASS
-    );
-
-    cmd->commandBuffer = pCommandBuffer;
 }
 
 void ctsCmdExecuteCommands(
@@ -1065,14 +1068,55 @@ void ctsCmdBeginQueryImpl(
     CtsQueryControlFlags pFlags
 ) {
     // TODO: Implement this
+    //glBeginQuery()
+}
+
+void ctsCmdEndQueryImpl(
+    CtsCommandBuffer pCommandBuffer,
+    CtsQueryPool pQueryPool,
+    uint32_t pQuery
+) {
+    //glEndQuery()
 }
 
 void ctsCmdBeginRenderPassImpl(
     CtsCommandBuffer pCommandBuffer,
-    const CtsRenderPassBeginInfo* renderPassBegin,
-    CtsSubpassContents contents
+    const CtsRenderPassBeginInfo* pRenderPassBegin,
+    CtsSubpassContents pContents
 ) {
-    // TODO: Implement this
+    (void) pRenderPassBegin->renderArea;
+    (void) pContents;
+
+    CtsDevice device = pCommandBuffer->device;
+    CtsFramebuffer framebuffer = pRenderPassBegin->framebuffer;
+
+    bindFramebuffer(device, framebuffer, 0);
+
+    uint32_t lastAttachment = (pRenderPassBegin->clearValueCount < framebuffer->attachmentCount)
+        ? pRenderPassBegin->clearValueCount
+        : framebuffer->attachmentCount;
+
+    for (uint32_t i = 0; i < lastAttachment; ++i) {
+        const CtsClearValue* clearValue = &pRenderPassBegin->clearValues[i];
+        const CtsAttachmentDescription* description = &pRenderPassBegin->renderPass->attachments[i];
+
+        if (description->format == CTS_FORMAT_DEPTH ||
+            description->format == CTS_FORMAT_DEPTHSTENCIL ||
+            description->format == CTS_FORMAT_DEPTH24STENCIL8
+        ) {
+            glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth,  clearValue->depthStencil.stencil);
+        } else {
+            glClearBufferfv(GL_COLOR, i, clearValue->color.float32);
+        }
+    }
+}
+
+void ctsCmdEndRenderPassImpl(
+    CtsCommandBuffer pCommandBuffer
+) {
+    CtsDevice device = pCommandBuffer->device;
+    device->activeFramebuffer = NULL;
+    device->activeSubpass = 0;
 }
 
 void ctsCmdBindDescriptorSetsImpl(
@@ -1451,6 +1495,7 @@ void ctsCmdDispatchImpl(
     uint32_t pGroupCountY,
     uint32_t pGroupCountZ
 ) {
+    glDispatchCompute(pGroupCountX, pGroupCountY, pGroupCountZ);
 }
 
 void ctsCmdDispatchIndirectImpl(
@@ -1458,6 +1503,8 @@ void ctsCmdDispatchIndirectImpl(
     CtsBuffer pBuffer,
     CtsDeviceSize pOffset
 ) {
+    glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, pBuffer->memory->handle);
+    glDispatchComputeIndirect((GLintptr) pBuffer->offset);
 }
 
 void ctsCmdDrawImpl(
@@ -1540,50 +1587,23 @@ void ctsCmdDrawIndirectImpl(
     );
 }
 
-void ctsCmdEndQueryImpl(
-    CtsCommandBuffer pCommandBuffer,
-    CtsQueryPool pQueryPool,
-    uint32_t pQuery
-) {
-}
-
-void ctsCmdEndRenderPassImpl(
-    CtsCommandBuffer pCommandBuffer
-) {
-}
-
 void ctsCmdExecuteCommandsImpl(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pCommandBufferCount,
     const CtsCommandBuffer* pCommandBuffers
 ) {
+    const CtsCommandMetadata* commandMetadata;
     for (uint32_t i = 0; i < pCommandBufferCount; ++i) {
         const CtsCommandBuffer commandBuffer = pCommandBuffers[i];
+
+        if (commandBuffer->state != CTS_COMMAND_BUFFER_STATE_EXECUTABLE) {
+            continue;
+        }
+
         const CtsCmdBase* next = commandBuffer->root;
-
         while (next != NULL) {
-            const CtsCommandMetadata* commandMetadata = ctsGetCommandMetadata(next->type);
-
-            size_t size = commandMetadata->size;
-            size_t align = commandMetadata->align;
-
-            CtsCmdBase* copy = ctsAllocation(
-                &commandBuffer->pool->bumpAllocator,
-                size,
-                align,
-                CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND
-            );
-
-            memcpy(copy, next, size);
-            copy->next = NULL;
-
-            // Move this to some helper method, called similarly from renderer.c
-            if (pCommandBuffer->root == NULL) {
-                pCommandBuffer->root = copy;
-            } else {
-                pCommandBuffer->current->next = copy;
-            }
-
+            commandMetadata = ctsGetCommandMetadata(next->type);
+            commandMetadata->handler(next);
             next = next->next;
         }
     }
@@ -1617,6 +1637,8 @@ void ctsCmdNextSubpassImpl(
     CtsCommandBuffer pCommandBuffer,
     CtsSubpassContents pContents
 ) {
+    CtsDevice device = pCommandBuffer->device;
+    bindFramebuffer(device, device->activeFramebuffer, device->activeSubpass + 1);
 }
 
 void ctsCmdPipelineBarrierImpl(
@@ -1827,6 +1849,63 @@ void ctsCmdWriteTimestampImpl(
 
 static bool hasFlag(CtsFlags flags, CtsFlagBit flag) {
     return ((flags & flag) == flag);
+}
+
+static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint32_t pSubpassNumber) {
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pFramebuffer->handle);
+    const CtsSubpassDescription* subpassDescription = &pFramebuffer->renderPass->subpasses[pSubpassNumber];
+
+    (void) subpassDescription->flags;
+    (void) subpassDescription->pipelineBindPoint;
+    (void) subpassDescription->resolveAttachments;
+    (void) subpassDescription->preserveAttachmentCount;
+    (void) subpassDescription->preserveAttachments;
+
+    for (uint32_t i = 0; i < pFramebuffer->attachmentCount; ++i) {
+        pFramebuffer->drawBuffers[i] = GL_NONE;
+    }
+
+    for (uint32_t i = 0; i < subpassDescription->inputAttachmentCount; ++i) {
+        const CtsAttachmentReference* inputAttachment = &subpassDescription->inputAttachments[i];
+        const CtsImageView imageView = pFramebuffer->attachments[inputAttachment->attachment];
+
+        glActiveTexture(GL_TEXTURE0 + inputAttachment->attachment);
+        glBindTexture(imageView->target, imageView->handle);
+    }
+
+    for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
+        const CtsAttachmentReference* colorAttachment = &subpassDescription->colorAttachments[i];
+        const CtsImageView imageView = pFramebuffer->attachments[colorAttachment->attachment];
+        GLenum buffer = GL_COLOR_ATTACHMENT0 + colorAttachment->attachment;
+
+        pFramebuffer->drawBuffers[colorAttachment->attachment] = buffer;
+        glFramebufferTexture2D(
+            GL_DRAW_FRAMEBUFFER,
+            buffer,
+            imageView->target,
+            imageView->handle,
+            0
+        );
+    }
+
+    if (subpassDescription->depthStencilAttachment != NULL) {
+        const CtsAttachmentReference* depthStencilAttachment = subpassDescription->depthStencilAttachment;
+        const CtsImageView imageView = pFramebuffer->attachments[depthStencilAttachment->attachment];
+        GLenum buffer = GL_DEPTH_STENCIL_ATTACHMENT;
+
+        pFramebuffer->drawBuffers[depthStencilAttachment->attachment] = buffer;
+        glFramebufferTexture2D(
+            GL_DRAW_FRAMEBUFFER,
+            buffer,
+            imageView->target,
+            imageView->handle,
+            0
+        );
+    }
+
+    glDrawBuffers(pFramebuffer->attachmentCount, pFramebuffer->drawBuffers);
+    pDevice->activeSubpass = pSubpassNumber;
+    pDevice->activeFramebuffer = pFramebuffer;
 }
 
 static void bindDynamicState(
@@ -2056,7 +2135,6 @@ static void bindDepthStencilState(
     }
 }
 
-
 static void bindColorBlendState(
     CtsDevice pDevice,
     CtsGlPipelineColorBlendState* pState
@@ -2065,54 +2143,59 @@ static void bindColorBlendState(
         return;
     }
 
-    // TODO: Figure out how to use per buffer blending
+    if (parseColorBlendStateBlendConstantChanged(pState, pDevice->activeColorBlendState) && 
+        !hasFlag(pDevice->activeDynamicState, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)
+    ) {
+        glBlendColor(
+            pState->blendConstants[0],
+            pState->blendConstants[1],
+            pState->blendConstants[2],
+            pState->blendConstants[3]
+        );
+    }
 
     CtsGlColorBlendStateChanges changes;
-    CtsGlPipelineColorBlendStateAttachment* attachmentState = &pState->attachments[0];
+    for (uint32_t i = 0; i < pState->attachmentCount; ++i) {
+        CtsGlPipelineColorBlendStateAttachment* attachmentState = &pState->attachments[i];
 
-    parseColorBlendStateChanges(attachmentState, &pDevice->activeColorBlendState->attachments[0], &changes);
-    pDevice->activeColorBlendState = pState;
+        parseColorBlendStateChanges(attachmentState, &pDevice->activeColorBlendState->attachments[i], &changes);
+        pDevice->activeColorBlendState = pState;
 
-    if (changes.blendEnableChanged) {
-        if (attachmentState->blendEnable) {
-            glEnable(GL_BLEND);
-        } else {
-            glDisable(GL_BLEND);
+        if (changes.blendEnableChanged) {
+            if (attachmentState->blendEnable) {
+                glEnablei(GL_BLEND, i);
+            } else {
+                glDisablei(GL_BLEND, i);
+            }
         }
-    }
 
-    if (changes.blendConstantsChanged && !hasFlag(pDevice->activeDynamicState, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)) {
-        glBlendColor(
-            attachmentState->blendConstants[0],
-            attachmentState->blendConstants[1],
-            attachmentState->blendConstants[2],
-            attachmentState->blendConstants[3]
-        );
-    }
+        if (changes.colorWriteMaskChanged) {
+            glColorMaski(
+                i,
+                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_R_BIT) == CTS_COLOR_COMPONENT_R_BIT,
+                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_G_BIT) == CTS_COLOR_COMPONENT_G_BIT,
+                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_B_BIT) == CTS_COLOR_COMPONENT_B_BIT,
+                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_A_BIT) == CTS_COLOR_COMPONENT_A_BIT
+            );
+        }
 
-    if (changes.colorWriteMaskChanged) {
-        glColorMask(
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_R_BIT) == CTS_COLOR_COMPONENT_R_BIT,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_G_BIT) == CTS_COLOR_COMPONENT_G_BIT,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_B_BIT) == CTS_COLOR_COMPONENT_B_BIT,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_A_BIT) == CTS_COLOR_COMPONENT_A_BIT
-        );
-    }
+        if (changes.blendFactorChanged) {
+            glBlendFuncSeparateiARB(
+                i,
+                attachmentState->srcColorBlendFactor,
+                attachmentState->dstColorBlendFactor,
+                attachmentState->srcAlphaBlendFactor,
+                attachmentState->dstAlphaBlendFactor
+            );
+        }
 
-    if (changes.blendFactorChanged) {
-        glBlendFuncSeparate(
-            attachmentState->srcColorBlendFactor,
-            attachmentState->dstColorBlendFactor,
-            attachmentState->srcAlphaBlendFactor,
-            attachmentState->dstAlphaBlendFactor
-        );
-    }
-
-    if (changes.blendOpChanged) {
-        glBlendEquationSeparate(
-            attachmentState->colorBlendOp,
-            attachmentState->alphaBlendOp
-        );
+        if (changes.blendOpChanged) {
+            glBlendEquationSeparateiARB(
+                i,
+                attachmentState->colorBlendOp,
+                attachmentState->alphaBlendOp
+            );
+        }
     }
 }
 

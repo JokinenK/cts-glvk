@@ -92,12 +92,12 @@ typedef struct CtsGlPipelineColorBlendStateAttachment {
     GLenum dstAlphaBlendFactor;
     GLenum alphaBlendOp;
     uint32_t colorWriteMask;
-    float blendConstants[4];
 } CtsGlPipelineColorBlendStateAttachment;
 
 typedef struct CtsGlPipelineColorBlendState {
     uint32_t attachmentCount;
     CtsGlPipelineColorBlendStateAttachment* attachments;
+    float blendConstants[4];
 } CtsGlPipelineColorBlendState;
 
 typedef struct CtsGlGraphicsPipeline {

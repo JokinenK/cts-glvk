@@ -6,6 +6,7 @@
 #include <private/descriptor_set_private.h>
 #include <private/device_memory_private.h>
 #include <private/fence_private.h>
+#include <private/framebuffer_private.h>
 #include <private/image_private.h>
 #include <private/image_view_private.h>
 #include <private/pipeline_private.h>
@@ -39,6 +40,9 @@ static void handleDestroyImage(const CtsCmdBase* pCmd);
 
 static void handleCreateSampler(const CtsCmdBase* pCmd);
 static void handleDestroySampler(const CtsCmdBase* pCmd);
+
+static void handleCreateFramebuffer(const CtsCmdBase* pCmd);
+static void handleDestroyFramebuffer(const CtsCmdBase* pCmd);
 
 static void handleCreateFence(const CtsCmdBase* pCmd);
 static void handleResetFences(const CtsCmdBase* pCmd);
@@ -126,6 +130,9 @@ static CtsCommandMetadata* createCommandMetadataLookup()
 
     lookup[CTS_COMMAND_CREATE_SAMPLER]                = (CtsCommandMetadata) { .handler = handleCreateSampler,              .size = sizeof(CtsCreateSampler),              .align = alignof(CtsCreateSampler)              };
     lookup[CTS_COMMAND_DESTROY_SAMPLER]               = (CtsCommandMetadata) { .handler = handleDestroySampler,             .size = sizeof(CtsDestroySampler),             .align = alignof(CtsDestroySampler)             };
+
+    lookup[CTS_COMMAND_CREATE_FRAMEBUFFER]            = (CtsCommandMetadata) { .handler = handleCreateFramebuffer,          .size = sizeof(CtsCreateFramebuffer),          .align = alignof(CtsCreateFramebuffer)          };
+    lookup[CTS_COMMAND_DESTROY_FRAMEBUFFER]           = (CtsCommandMetadata) { .handler = handleDestroyFramebuffer,         .size = sizeof(CtsDestroyFramebuffer),         .align = alignof(CtsDestroyFramebuffer)         };
 
     lookup[CTS_COMMAND_CREATE_FENCE]                  = (CtsCommandMetadata) { .handler = handleCreateFence,                .size = sizeof(CtsCreateFence),                .align = alignof(CtsCreateFence)                };
     lookup[CTS_COMMAND_RESET_FENCES]                  = (CtsCommandMetadata) { .handler = handleResetFences,                .size = sizeof(CtsResetFences),                .align = alignof(CtsResetFences)                };
@@ -279,9 +286,19 @@ static void handleDestroySampler(const CtsCmdBase* pCmd) {
     ctsDestroySamplerImpl(cmd->device, cmd->sampler, cmd->allocator);
 }
 
+static void handleCreateFramebuffer(const CtsCmdBase* pCmd) {
+    const CtsCreateFramebuffer* cmd = (const CtsCreateFramebuffer*) pCmd;
+    *cmd->result = ctsCreateFramebufferImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->framebuffer);
+}
+
+static void handleDestroyFramebuffer(const CtsCmdBase* pCmd) {
+    const CtsDestroyFramebuffer* cmd = (const CtsDestroyFramebuffer*) pCmd;
+    ctsDestroyFramebufferImpl(cmd->device, cmd->framebuffer, cmd->allocator);
+}
+
 static void handleCreateFence(const CtsCmdBase* pCmd) {
     const CtsCreateFence* cmd = (const CtsCreateFence*) pCmd;
-    ctsCreateFenceImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->fence);
+    *cmd->result = ctsCreateFenceImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->fence);
 }
 
 static void handleResetFences(const CtsCmdBase* pCmd) {

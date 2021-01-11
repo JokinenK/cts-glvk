@@ -476,6 +476,18 @@ void parseDepthStencilStateChanges(
     pChanges->backFaceWriteMaskChanged  = pLhs->backWriteMask  != pRhs->backWriteMask;
 }
 
+bool parseColorBlendStateBlendConstantChanged(
+    CtsGlPipelineColorBlendState* pLhs,
+    CtsGlPipelineColorBlendState* pRhs
+) {
+    return (
+        (fabsf(pLhs->blendConstants[0] - pRhs->blendConstants[0]) >= EPSILON) ||
+        (fabsf(pLhs->blendConstants[1] - pRhs->blendConstants[1]) >= EPSILON) ||
+        (fabsf(pLhs->blendConstants[2] - pRhs->blendConstants[2]) >= EPSILON) ||
+        (fabsf(pLhs->blendConstants[3] - pRhs->blendConstants[3]) >= EPSILON)
+    );
+}
+
 void parseColorBlendStateChanges(
     const CtsGlPipelineColorBlendStateAttachment* pLhs, 
     const CtsGlPipelineColorBlendStateAttachment* pRhs, 
@@ -494,11 +506,7 @@ void parseColorBlendStateChanges(
         pLhs->colorBlendOp != pRhs->colorBlendOp ||
         pLhs->alphaBlendOp != pRhs->alphaBlendOp;
 
-    pChanges->blendConstantsChanged =
-        (fabsf(pLhs->blendConstants[0] - pRhs->blendConstants[0]) >= EPSILON) ||
-        (fabsf(pLhs->blendConstants[1] - pRhs->blendConstants[1]) >= EPSILON) ||
-        (fabsf(pLhs->blendConstants[2] - pRhs->blendConstants[2]) >= EPSILON) ||
-        (fabsf(pLhs->blendConstants[3] - pRhs->blendConstants[3]) >= EPSILON);
+
 }
 
 CtsFlagBit parseDynamicStateFlagBits(const CtsPipelineDynamicStateCreateInfo* pCreateInfo) {
