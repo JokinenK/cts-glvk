@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <cts/types.h>
 #include <cts/commanddefs/cmd_base.h>
 
@@ -7,12 +8,13 @@
 extern "C" {
 #endif
 
-typedef struct CtsDestroyDescriptorPool {
+typedef struct CtsQueueFinish {
     CtsCmdBase base;
     CtsDevice device;
-    CtsDescriptorPool descriptorPool;
-    const CtsAllocationCallbacks* allocator;
-} CtsDestroyDescriptorPool;
+    uint32_t semaphoreCount;
+    const CtsSemaphore* semaphores;
+    CtsCommandBuffer commandBuffer;
+} CtsQueueFinish;
 
 #ifdef __cplusplus
 }

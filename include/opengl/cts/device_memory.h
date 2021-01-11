@@ -1,25 +1,19 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <cts/typedefs/device_size.h>
+#include <cts/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsDeviceMemory {
-    GLenum handle;
-    CtsDeviceSize size;
-};
-
-CtsResult ctsAllocateMemoryImpl(
+CtsResult ctsAllocateMemory(
     CtsDevice pDevice,
     const CtsMemoryAllocateInfo* pAllocateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDeviceMemory* pMemory
 );
 
-CtsResult ctsMapMemoryImpl(
+CtsResult ctsMapMemory(
     CtsDevice pDevice,
     CtsDeviceMemory pMemory,
     CtsDeviceSize pOffset,
@@ -28,12 +22,12 @@ CtsResult ctsMapMemoryImpl(
     void** pData
 );
 
-void ctsUnmapMemoryImpl(
+void ctsUnmapMemory(
     CtsDevice pDevice,
     CtsDeviceMemory pMemory
 );
 
-void ctsFreeMemoryImpl(
+void ctsFreeMemory(
     CtsDevice pDevice,
     CtsDeviceMemory pMemory,
     const CtsAllocationCallbacks* pAllocator

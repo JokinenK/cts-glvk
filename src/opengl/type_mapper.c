@@ -50,25 +50,16 @@ static const GLenum sPolygonModes[] = {
     GL_FILL
 };
 
-static const GLenum sWraps[] = {
-    GL_TEXTURE_WRAP_S,
-    GL_TEXTURE_WRAP_T,
-    GL_TEXTURE_WRAP_R
-};
-
-static const GLint sWrapTypes[] = {
+static const GLenum sSamplerAddressModes[] = {
     GL_REPEAT,
     GL_MIRRORED_REPEAT,
-    GL_CLAMP_TO_EDGE
+    GL_CLAMP_TO_EDGE,
+    GL_CLAMP_TO_BORDER
 };
 
 static const GLint sFilters[] = {
     GL_NEAREST,
-    GL_LINEAR,
-    GL_LINEAR_MIPMAP_NEAREST,
-    GL_LINEAR_MIPMAP_NEAREST,
-    GL_NEAREST_MIPMAP_LINEAR,
-    GL_LINEAR_MIPMAP_LINEAR
+    GL_LINEAR
 };
 
 static const CtsAttributeMapping sAttributeMappings[] = {
@@ -240,8 +231,7 @@ static_assert(COUNTOF(sStencilActions) == NUM_CTS_STENCIL_ACTIONS, "Assertion fa
 static_assert(COUNTOF(sCullModes) == NUM_CTS_CULL_MODES, "Assertion failure");
 static_assert(COUNTOF(sFrontFaces) == NUM_CTS_FRONT_FACES, "Assertion failure");
 static_assert(COUNTOF(sPolygonModes) == NUM_CTS_POLYGON_MODES, "Assertion failure");
-static_assert(COUNTOF(sWraps) == NUM_CTS_WRAPS, "Assertion failure");
-static_assert(COUNTOF(sWrapTypes) == NUM_CTS_WRAP_TYPES, "Assertion failure");
+static_assert(COUNTOF(sSamplerAddressModes) == NUM_CTS_SAMPLER_ADDRESS_MODES, "Assertion failure");
 static_assert(COUNTOF(sFilters) == NUM_CTS_FILTERS, "Assertion failure");
 static_assert(COUNTOF(sAttributeMappings) == NUM_CTS_ATTRIB_TYPES, "Assertion failure");
 static_assert(COUNTOF(sShaderTypes) == NUM_CTS_SHADER_TYPES, "Assertion failure");
@@ -281,14 +271,9 @@ const GLenum parsePolygonMode(CtsPolygonMode pValue)
     return sPolygonModes[pValue];
 }
 
-const GLenum parseWrap(CtsWrap pValue)
+const GLenum parseSamplerAddressMode(CtsSamplerAddressMode pValue)
 {
-    return sWraps[pValue];
-}
-
-const GLint parseWrapType(CtsWrapType pValue)
-{
-    return sWrapTypes[pValue];
+    return sSamplerAddressModes[pValue];
 }
 
 const GLenum parseFilter(CtsFilter pValue)
@@ -492,8 +477,8 @@ void parseDepthStencilStateChanges(
 }
 
 void parseColorBlendStateChanges(
-    const CtsGlPipelineColorBlendState* pLhs, 
-    const CtsGlPipelineColorBlendState* pRhs, 
+    const CtsGlPipelineColorBlendStateAttachment* pLhs, 
+    const CtsGlPipelineColorBlendStateAttachment* pRhs, 
     CtsGlColorBlendStateChanges* pChanges
 ) {
     pChanges->blendEnableChanged    = pLhs->blendEnable != pRhs->blendEnable;

@@ -8,6 +8,7 @@
 #include <cts/allocator.h>
 #include <cts/semaphore.h>
 #include <cts/mutex.h>
+#include <cts/thread.h>
 #include <cts/condition_variable.h>
 
 #ifdef __cplusplus
@@ -21,12 +22,12 @@ typedef struct CtsQueueCreateInfo {
 
 typedef struct CtsQueueItem {
     const CtsCmdBase* cmd;
-    uint32_t semaphoreCount;
-    CtsSemaphore* semaphores;
+    CtsSemaphore semaphore;
 } CtsQueueItem;
 
 struct CtsQueue {
     CtsDevice device;
+    CtsThread thread;
     size_t head;
     size_t tail;
     size_t size;
@@ -47,6 +48,12 @@ bool ctsDestroyQueue(
     const CtsAllocationCallbacks* pAllocator
 );
 
+void ctsQueueDispatch(
+    CtsQueue pQueue,
+    const CtsCmdBase* pCommand,
+    CtsSemaphore pSemaphore
+);
+
 bool ctsQueuePush(
     CtsQueue pQueue,
     CtsQueueItem* pQueueItem
@@ -55,10 +62,6 @@ bool ctsQueuePush(
 bool ctsQueuePop(
     CtsQueue pQueue,
     CtsQueueItem* pQueueItem
-);
-
-void ctsQueueWait(
-    CtsQueue pQueue
 );
 
 #ifdef __cplusplus

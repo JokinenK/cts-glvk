@@ -26,6 +26,27 @@ struct CtsDescriptorSet {
     CtsGlDescriptorSetLayoutBinding* bindings;
 };
 
+CtsResult ctsAllocateDescriptorSetsImpl(
+    CtsDevice pDevice,
+    const CtsDescriptorSetAllocateInfo* pAllocateInfo,
+    CtsDescriptorSet* pDescriptorSets
+);
+
+void ctsUpdateDescriptorSetsImpl(
+    CtsDevice pDevice,
+    uint32_t pDescriptorWriteCount,
+    const CtsWriteDescriptorSet* pDescriptorWrites,
+    uint32_t pDescriptorCopyCount,
+    const CtsCopyDescriptorSet* pDescriptorCopies
+);
+
+CtsResult ctsFreeDescriptorSetsImpl(
+    CtsDevice pDevice,
+    CtsDescriptorPool pDescriptorPool,
+    uint32_t pDescriptorSetCount,
+    const CtsDescriptorSet* pDescriptorSets
+);
+
 #ifdef __cplusplus
 }
 #endif

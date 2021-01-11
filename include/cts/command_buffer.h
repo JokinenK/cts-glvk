@@ -2,265 +2,60 @@
 
 #include <stdint.h>
 #include <cts/types.h>
+#include <cts/commanddefs/command_types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsAllocateMemoryImpl(
-    CtsDevice pDevice,
-    const CtsMemoryAllocateInfo* pAllocateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDeviceMemory* pMemory
-);
-
-CtsResult ctsMapMemoryImpl(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset,
-    CtsDeviceSize pSize,
-    CtsMemoryMapFlags pFlags,
-    void** pData
-);
-
-void ctsUnmapMemoryImpl(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory
-);
-
-void ctsFreeMemoryImpl(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateCommandPoolImpl(
-    CtsDevice pDevice,
-    const CtsCommandPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsCommandPool* pCommandPool
-);
-
-void ctsDestroyCommandPoolImpl(
-    CtsDevice pDevice,
-    CtsCommandPool pCommandPool,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateDescriptorPoolImpl(
-    CtsDevice pDevice,
-    const CtsDescriptorPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDescriptorPool* pDescriptorPool
-);
-
-void ctsDestroyDescriptorPoolImpl(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateDescriptorSetLayoutImpl(
-    CtsDevice pDevice,
-    const CtsDescriptorSetLayoutCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDescriptorSetLayout* pDescriptorSetLayout
-);
-
-void ctsDestroyDescriptorSetLayoutImpl(
-    CtsDevice pDevice,
-    CtsDescriptorSetLayout pDescriptorSetLayout,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreatePipelineLayoutImpl(
-    CtsDevice pDevice,
-    const CtsPipelineLayoutCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipelineLayout* pPipelineLayout
-);
-
-void ctsDestroyPipelineLayoutImpl(
-    CtsDevice pDevice,
-    CtsPipelineLayout pPipelineLayout,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateGraphicsPipelinesImpl(
-    CtsDevice pDevice,
-    CtsPipelineCache pPipelineCache,
-    uint32_t pCreateInfoCount,
-    const CtsGraphicsPipelineCreateInfo* pCreateInfos,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipeline* pPipelines
-);
-
-void ctsDestroyPipelineImpl(
-    CtsDevice pDevice,
-    CtsPipeline pPipeline,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateBufferImpl(
-    CtsDevice pDevice,
-    const CtsBufferCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsBuffer* pBuffer
-);
-
-CtsResult ctsBindBufferMemoryImpl(
-    CtsDevice pDevice,
-    CtsBuffer pBuffer, 
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset
-);
-
-void ctsDestroyBufferImpl(
-    CtsDevice pDevice,
-    CtsBuffer pBuffer,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateShaderModuleImpl(
-    CtsDevice pDevice,
-    const CtsShaderModuleCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsShaderModule* pShaderModule
-);
-
-void ctsDestroyShaderModuleImpl(
-    CtsDevice pDevice,
-    CtsShaderModule pShaderModule,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateFenceImpl(
-    CtsDevice pDevice,
-    const CtsFenceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFence* pFence
-);
-
-CtsResult ctsResetFencesImpl(
-    CtsDevice pDevice,
-    uint32_t pFenceCount,
-    const CtsFence* pFences
-);
-
-CtsResult ctsGetFenceStatusImpl(
-    CtsDevice pDevice,
-    CtsFence pFence
-);
-
-CtsResult ctsWaitForFencesImpl(
-    CtsDevice pDevice,
-    uint32_t pFenceCount,
-    const CtsFence* pFences,
-    CtsBool32 pWaitAll,
-    uint64_t pTimeout
-);
-
-void ctsDestroyFenceImpl(
-    CtsDevice pDevice,
-    CtsFence pFence,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsAllocateCommandBuffersImpl(
+CtsResult ctsAllocateCommandBuffers(
     CtsDevice pDevice,
     const CtsCommandBufferAllocateInfo* pAllocateInfo,
     CtsCommandBuffer* pCommandBuffers
 );
 
-void ctsFreeCommandBuffersImpl(
+void ctsFreeCommandBuffers(
     CtsDevice pDevice,
     CtsCommandPool pCommandPool,
     uint32_t pCommandBufferCount,
     const CtsCommandBuffer* pCommandBuffers
 );
 
-CtsResult ctsAllocateDescriptorSetsImpl(
-    CtsDevice pDevice,
-    const CtsDescriptorSetAllocateInfo* pAllocateInfo,
-    CtsDescriptorSet* pDescriptorSets
-);
-
-void ctsUpdateDescriptorSetsImpl(
-    CtsDevice pDevice,
-    uint32_t pDescriptorWriteCount,
-    const CtsWriteDescriptorSet* pDescriptorWrites,
-    uint32_t pDescriptorCopyCount,
-    const CtsCopyDescriptorSet* pDescriptorCopies
-);
-
-CtsResult ctsFreeDescriptorSetsImpl(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
-    uint32_t pDescriptorSetCount,
-    const CtsDescriptorSet* pDescriptorSets
-);
-
-CtsResult ctsCreateImageViewImpl(
-    CtsDevice pDevice,
-    const CtsImageViewCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImageView* pImageView
-);
-
-void ctsDestroyImageViewImpl(
-    CtsDevice pDevice,
-    CtsImageView pImageView,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreateImageImpl(
-    CtsDevice pDevice,
-    const CtsImageCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImage* pImage
-);
-
-void ctsDestroyImageImpl(
-    CtsDevice pDevice,
-    CtsImage pImage,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsBeginCommandBufferImpl(
+CtsResult ctsBeginCommandBuffer(
     CtsCommandBuffer pCommandBuffer,
     const CtsCommandBufferBeginInfo* pBeginInfo
 );
 
-void ctsResetCommandBufferImpl(
+CtsResult ctsResetCommandBuffer(
     CtsCommandBuffer pCommandBuffer,
     CtsCommandBufferResetFlags pFlags
 );
 
-void ctsEndCommandBufferImpl(
+CtsResult ctsEndCommandBuffer(
     CtsCommandBuffer pCommandBuffer
 );
 
-CtsResult ctsQueueSubmitImpl(
+CtsResult ctsQueueSubmit(
     CtsQueue pQueue,
     uint32_t pSubmitCount,
     const CtsSubmitInfo* pSubmits,
     CtsFence pFence
 );
 
-void ctsCmdBeginQueryImpl(
+void ctsCmdBeginQuery(
     CtsCommandBuffer pCommandBuffer,
     CtsQueryPool pQueryPool,
     uint32_t pQuery,
     CtsQueryControlFlags pFlags
 );
 
-void ctsCmdBeginRenderPassImpl(
+void ctsCmdBeginRenderPass(
     CtsCommandBuffer pCommandBuffer,
     const CtsRenderPassBeginInfo* renderPassBegin,
     CtsSubpassContents contents
 );
 
-void ctsCmdBindDescriptorSetsImpl(
+void ctsCmdBindDescriptorSets(
     CtsCommandBuffer pCommandBuffer,
     CtsPipelineBindPoint pPipelineBindPoint,
     CtsPipelineLayout pPipelineLayout,
@@ -271,20 +66,20 @@ void ctsCmdBindDescriptorSetsImpl(
     const uint32_t* pDynamicOffsets
 );
 
-void ctsCmdBindIndexBufferImpl(
+void ctsCmdBindIndexBuffer(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pBuffer,
     CtsDeviceSize pOffset,
     CtsIndexType pIndexType
 );
 
-void ctsCmdBindPipelineImpl(
+void ctsCmdBindPipeline(
     CtsCommandBuffer pCommandBuffer,
     CtsPipelineBindPoint pPipelineBindPoint,
     CtsPipeline pPipeline
 );
 
-void ctsCmdBindVertexBuffersImpl(
+void ctsCmdBindVertexBuffers(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pFirstBinding,
     uint32_t pBindingCount,
@@ -292,7 +87,7 @@ void ctsCmdBindVertexBuffersImpl(
     const CtsDeviceSize* pOffsets
 );
 
-void ctsCmdBlitImageImpl(
+void ctsCmdBlitImage(
     CtsCommandBuffer pCommandBuffer,
     CtsImage pSrcImage,
     CtsImageLayout pSrcImageLayout,
@@ -303,7 +98,7 @@ void ctsCmdBlitImageImpl(
     CtsFilter pFilter
 );
 
-void ctsCmdClearAttachmentsImpl(
+void ctsCmdClearAttachments(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pAttachmentCount,
     const CtsClearAttachment* pAttachments,
@@ -311,7 +106,7 @@ void ctsCmdClearAttachmentsImpl(
     const CtsClearRect* pRects
 );
 
-void ctsCmdClearColorImageImpl(
+void ctsCmdClearColorImage(
     CtsCommandBuffer pCommandBuffer,
     CtsImage pImage,
     CtsImageLayout pImageLayout,
@@ -320,7 +115,7 @@ void ctsCmdClearColorImageImpl(
     const CtsImageSubresourceRange* pRanges
 );
 
-void ctsCmdClearDepthStencilImageImpl(
+void ctsCmdClearDepthStencilImage(
     CtsCommandBuffer pCommandBuffer,
     CtsImage pImage,
     CtsImageLayout pImageLayout,
@@ -329,7 +124,7 @@ void ctsCmdClearDepthStencilImageImpl(
     const CtsImageSubresourceRange* pRanges
 );
 
-void ctsCmdCopyBufferImpl(
+void ctsCmdCopyBuffer(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pSrcBuffer,
     CtsBuffer pDstBuffer,
@@ -337,7 +132,7 @@ void ctsCmdCopyBufferImpl(
     const CtsBufferCopy* pRegions
 );
 
-void ctsCmdCopyBufferToImageImpl(
+void ctsCmdCopyBufferToImage(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pSrcBuffer,
     CtsImage pDstImage,
@@ -346,7 +141,7 @@ void ctsCmdCopyBufferToImageImpl(
     const CtsBufferImageCopy* pRegions
 );
 
-void ctsCmdCopyImageImpl(
+void ctsCmdCopyImage(
     CtsCommandBuffer pCommandBuffer,
     CtsImage pSrcImage,
     CtsImageLayout pSrcImageLayout,
@@ -356,7 +151,7 @@ void ctsCmdCopyImageImpl(
     const CtsImageCopy* pRegions
 );
 
-void ctsCmdCopyImageToBufferImpl(
+void ctsCmdCopyImageToBuffer(
     CtsCommandBuffer pCommandBuffer,
     CtsImage pSrcImage,
     CtsImageLayout pSrcImageLayout,
@@ -365,7 +160,7 @@ void ctsCmdCopyImageToBufferImpl(
     const CtsBufferImageCopy* pRegions
 );
 
-void ctsCmdCopyQueryPoolResultsImpl(
+void ctsCmdCopyQueryPoolResults(
     CtsCommandBuffer pCommandBuffer,
     CtsQueryPool pQueryPool,
     uint32_t pFirstQuery,
@@ -376,20 +171,20 @@ void ctsCmdCopyQueryPoolResultsImpl(
     CtsQueryResultFlags pFlags
 );
 
-void ctsCmdDispatchImpl(
+void ctsCmdDispatch(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pGroupCountX,
     uint32_t pGroupCountY,
     uint32_t pGroupCountZ
 );
 
-void ctsCmdDispatchIndirectImpl(
+void ctsCmdDispatchIndirect(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pBuffer,
     CtsDeviceSize pOffset
 );
 
-void ctsCmdDrawImpl(
+void ctsCmdDraw(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pVertexCount,
     uint32_t pInstanceCount,
@@ -397,7 +192,7 @@ void ctsCmdDrawImpl(
     uint32_t pFirstInstance
 );
 
-void ctsCmdDrawIndexedImpl(
+void ctsCmdDrawIndexed(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pIndexCount,
     uint32_t pInstanceCount,
@@ -406,7 +201,7 @@ void ctsCmdDrawIndexedImpl(
     uint32_t pFirstInstance
 );
 
-void ctsCmdDrawIndexedIndirectImpl(
+void ctsCmdDrawIndexedIndirect(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pBuffer,
     CtsDeviceSize pOffset,
@@ -414,7 +209,7 @@ void ctsCmdDrawIndexedIndirectImpl(
     uint32_t pStride
 );
 
-void ctsCmdDrawIndirectImpl(
+void ctsCmdDrawIndirect(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pBuffer,
     CtsDeviceSize pOffset,
@@ -422,23 +217,23 @@ void ctsCmdDrawIndirectImpl(
     uint32_t pStride
 );
 
-void ctsCmdEndQueryImpl(
+void ctsCmdEndQuery(
     CtsCommandBuffer pCommandBuffer,
     CtsQueryPool pQueryPool,
     uint32_t pQuery
 );
 
-void ctsCmdEndRenderPassImpl(
+void ctsCmdEndRenderPass(
     CtsCommandBuffer pCommandBuffer
 );
 
-void ctsCmdExecuteCommandsImpl(
+void ctsCmdExecuteCommands(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pCommandBufferCount,
     const CtsCommandBuffer* pCommandBuffers
 );
 
-void ctsCmdFillBufferImpl(
+void ctsCmdFillBuffer(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pDstBuffer,
     CtsDeviceSize pDstOffset,
@@ -446,12 +241,12 @@ void ctsCmdFillBufferImpl(
     uint32_t pData
 );
 
-void ctsCmdNextSubpassImpl(
+void ctsCmdNextSubpass(
     CtsCommandBuffer pCommandBuffer,
     CtsSubpassContents pContents
 );
 
-void ctsCmdPipelineBarrierImpl(
+void ctsCmdPipelineBarrier(
     CtsCommandBuffer pCommandBuffer,
     CtsPipelineStageFlags pSrcStageMask,
     CtsPipelineStageFlags pDstStageMask,
@@ -464,7 +259,7 @@ void ctsCmdPipelineBarrierImpl(
     const CtsImageMemoryBarrier* pImageMemoryBarriers
 );
 
-void ctsCmdPushConstantsImpl(
+void ctsCmdPushConstants(
     CtsCommandBuffer pCommandBuffer,
     CtsPipelineLayout pLayout,
     CtsShaderStageFlags pStageFlags,
@@ -473,20 +268,20 @@ void ctsCmdPushConstantsImpl(
     const void* pValues
 );
 
-void ctsCmdResetEventImpl(
+void ctsCmdResetEvent(
     CtsCommandBuffer pCommandBuffer,
     CtsEvent pEvent,
     CtsPipelineStageFlags pStageMask
 );
 
-void ctsCmdResetQueryPoolImpl(
+void ctsCmdResetQueryPool(
     CtsCommandBuffer pCommandBuffer,
     CtsQueryPool pQueryPool,
     uint32_t pFirstQuery,
     uint32_t pQueryCount
 );
 
-void ctsCmdResolveImageImpl(
+void ctsCmdResolveImage(
     CtsCommandBuffer pCommandBuffer,
     CtsImage pSrcImage,
     CtsImageLayout pSrcImageLayout,
@@ -496,73 +291,73 @@ void ctsCmdResolveImageImpl(
     const CtsImageResolve* pRegions
 );
 
-void ctsCmdSetBlendConstantsImpl(
+void ctsCmdSetBlendConstants(
     CtsCommandBuffer pCommandBuffer,
     const float pBlendConstants[4]
 );
 
-void ctsCmdSetDepthBiasImpl(
+void ctsCmdSetDepthBias(
     CtsCommandBuffer pCommandBuffer,
     float pDepthBiasConstantFactor,
     float pDepthBiasClamp,
     float pDepthBiasSlopeFactor
 );
 
-void ctsCmdSetDepthBoundsImpl(
+void ctsCmdSetDepthBounds(
     CtsCommandBuffer pCommandBuffer,
     float pMinDepthBounds,
     float pMaxDepthBounds
 );
 
-void ctsCmdSetDeviceMaskImpl(
+void ctsCmdSetDeviceMask(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pDeviceMask
 );
 
-void ctsCmdSetEventImpl(
+void ctsCmdSetEvent(
     CtsCommandBuffer pCommandBuffer,
     CtsEvent pEvent,
     CtsPipelineStageFlags pStageMask
 );
 
-void ctsCmdSetLineWidthImpl(
+void ctsCmdSetLineWidth(
     CtsCommandBuffer pCommandBuffer,
     float pLineWidth
 );
 
-void ctsCmdSetScissorImpl(
+void ctsCmdSetScissor(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pFirstScissor,
     uint32_t pScissorCount,
     const CtsRect2D* pScissors
 );
 
-void ctsCmdSetStencilCompareMaskImpl(
+void ctsCmdSetStencilCompareMask(
     CtsCommandBuffer pCommandBuffer,
     CtsStencilFaceFlags pFaceMask,
     uint32_t pCompareMask
 );
 
-void ctsCmdSetStencilReferenceImpl(
+void ctsCmdSetStencilReference(
     CtsCommandBuffer pCommandBuffer,
     CtsStencilFaceFlags pFaceMask,
     uint32_t pReference
 );
 
-void ctsCmdSetStencilWriteMaskImpl(
+void ctsCmdSetStencilWriteMask(
     CtsCommandBuffer pCommandBuffer,
     CtsStencilFaceFlags pFaceMask,
     uint32_t pWriteMask
 );
 
-void ctsCmdSetViewportImpl(
+void ctsCmdSetViewport(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pFirstViewport,
     uint32_t pViewportCount,
     const CtsViewport* pViewports
 );
 
-void ctsCmdUpdateBufferImpl(
+void ctsCmdUpdateBuffer(
     CtsCommandBuffer pCommandBuffer,
     CtsBuffer pDstBuffer,
     CtsDeviceSize pDstOffset,
@@ -570,7 +365,7 @@ void ctsCmdUpdateBufferImpl(
     const void* pData
 );
 
-void ctsCmdWaitEventsImpl(
+void ctsCmdWaitEvents(
     CtsCommandBuffer pCommandBuffer,
     uint32_t pEventCount,
     const CtsEvent* pEvents,
@@ -584,11 +379,16 @@ void ctsCmdWaitEventsImpl(
     const CtsImageMemoryBarrier* pImageMemoryBarriers
 );
 
-void ctsCmdWriteTimestampImpl(
+void ctsCmdWriteTimestamp(
     CtsCommandBuffer pCommandBuffer,
     CtsPipelineStageFlagBits pPipelineStage,
     CtsQueryPool pQueryPool,
     uint32_t pQuery
+);
+
+void* ctsCommandBufferAllocateCommand(
+    CtsCommandBuffer pCommandBuffer,
+    CtsCommandType pCommandType
 );
 
 #ifdef __cplusplus

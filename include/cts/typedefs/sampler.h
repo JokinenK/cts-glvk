@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <cts/typedefs/enums.h>
+#include <cts/typedefs/sampler_create_flags.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,12 +14,13 @@ typedef struct CtsSampler* CtsSampler;
 typedef struct CtsSamplerCreateInfo {
     CtsStructureType sType;
     const void* next;
+    CtsSamplerCreateFlags flags;
     CtsFilter magFilter;
     CtsFilter minFilter;
     CtsSamplerMipmapMode mipmapMode;
-    CtsWrapType addressModeU;
-    CtsWrapType addressModeV;
-    CtsWrapType addressModeW;
+    CtsSamplerAddressMode addressModeU;
+    CtsSamplerAddressMode addressModeV;
+    CtsSamplerAddressMode addressModeW;
     float mipLodBias;
     bool anisotropyEnable;
     float maxAnisotropy;

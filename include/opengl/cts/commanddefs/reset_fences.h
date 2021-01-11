@@ -7,12 +7,13 @@
 extern "C" {
 #endif
 
-typedef struct CtsDestroyShaderModule {
+typedef struct CtsResetFences {
     CtsCmdBase base;
     CtsDevice device;
-    CtsShaderModule shaderModule;
-    const CtsAllocationCallbacks* allocator;
-} CtsDestroyShaderModule;
+    uint32_t fenceCount;
+    const CtsFence* fences;
+    CtsResult* result;
+} CtsResetFences;
 
 #ifdef __cplusplus
 }

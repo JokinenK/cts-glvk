@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 #include <cts/types.h>
 #include <cts/commanddefs/cmd_base.h>
 
@@ -8,14 +7,14 @@
 extern "C" {
 #endif
 
-typedef struct CtsCreateDescriptorPool {
+typedef struct CtsCreateSampler {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsDescriptorPoolCreateInfo* createInfo;
+    const CtsSamplerCreateInfo* createInfo;
     const CtsAllocationCallbacks* allocator;
-    CtsDescriptorPool* descriptorPool;
+    CtsSampler* sampler;
     CtsResult* result;
-} CtsCreateDescriptorPool;
+} CtsCreateSampler;
 
 #ifdef __cplusplus
 }

@@ -7,14 +7,12 @@
 extern "C" {
 #endif
 
-typedef struct CtsCreateCommandPool {
+typedef struct CtsDestroySampler {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsCommandPoolCreateInfo* createInfo;
+    CtsSampler sampler;
     const CtsAllocationCallbacks* allocator;
-    CtsCommandPool* commandPool;
-    CtsResult* result;
-} CtsCreateCommandPool;
+} CtsDestroySampler;
 
 #ifdef __cplusplus
 }

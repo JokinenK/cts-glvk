@@ -12,6 +12,10 @@ struct CtsDescriptorPool {
     CtsAllocationCallbacks bumpAllocator;
 };
 
+CtsDescriptorSet ctsDescriptorPoolAllocateSet(
+    CtsDescriptorPool pDescriptorPool
+);
+
 #ifdef __cplusplus
 }
 #endif

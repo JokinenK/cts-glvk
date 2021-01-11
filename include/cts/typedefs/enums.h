@@ -29,10 +29,6 @@ typedef enum CtsResult {
 typedef enum CtsFilter {
     CTS_FILTER_NEAREST = 0,
     CTS_FILTER_LINEAR = 1,
-    CTS_FILTER_NEAREST_MIPMAP_NEAREST = 2,
-    CTS_FILTER_LINEAR_MIPMAP_NEAREST = 3,
-    CTS_FILTER_NEAREST_MIPMAP_LINEAR = 4,
-    CTS_FILTER_LINEAR_MIPMAP_LINEAR = 5,
 
     NUM_CTS_FILTERS
 } CtsFilter;
@@ -44,21 +40,14 @@ typedef enum CtsSamplerMipmapMode {
     NUM_CTS_SAMPLER_MIPMAP_MODES
 } CtsSamplerMipmapMode;
 
-typedef enum CtsWrap {
-    CTS_WRAP_S = 0,
-    CTS_WRAP_T = 1,
-    CTS_WRAP_R = 2,
+typedef enum CtsSamplerAddressMode  {
+    CTS_SAMPLER_ADDRESS_MODE_REPEAT = 0,
+    CTS_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1,
+    CTS_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2,
+    CTS_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3,
 
-    NUM_CTS_WRAPS
-} CtsWrap;
-
-typedef enum CtsWrapType {
-    CTS_WRAP_TYPE_REPEAT = 0,
-    CTS_WRAP_TYPE_MIRRORED_REPEAT = 1,
-    CTS_WRAP_TYPE_CLAMP_TO_EDGE = 2,
-
-    NUM_CTS_WRAP_TYPES
-} CtsWrapType;
+    NUM_CTS_SAMPLER_ADDRESS_MODES
+} CtsSamplerAddressMode;
 
 typedef enum CtsAttribType {
     CTS_ATTRIB_TYPE_INT8 = 0,
@@ -684,6 +673,16 @@ typedef enum CtsQueueFlagBits {
 typedef enum CtsFenceCreateFlagBits {
     CTS_FENCE_CREATE_SIGNALED_BIT = 0x00000001,
 } CtsFenceCreateFlagBits;
+
+typedef enum CtsCommandBufferState {
+    CTS_COMMAND_BUFFER_STATE_INITIAL = 0,
+    CTS_COMMAND_BUFFER_STATE_RECORDING = 1,
+    CTS_COMMAND_BUFFER_STATE_EXECUTABLE = 2,
+    CTS_COMMAND_BUFFER_STATE_PENDING = 3,
+    CTS_COMMAND_BUFFER_STATE_INVALID = 4,
+
+    NUM_CTS_COMMAND_BUFFER_STATES,
+} CtsCommandBufferState;
 
 #ifdef __cplusplus
 }

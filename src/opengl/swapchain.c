@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <cts/swapchain.h>
-#include <cts/renderer_impl.h>
 #include <cts/fullscreen_texture.h>
-#include <private/swapchain_private.h>
 #include <private/fence_private.h>
+#include <private/image_private.h>
+#include <private/swapchain_private.h>
+#include <private/surface_private.h>
 #include <private/queue_private.h>
 
 #ifdef __cplusplus
@@ -117,8 +118,6 @@ CtsResult ctsQueuePresent(
     CtsQueue pQueue,
     const CtsPresentInfo* pPresentInfo
 ) {
-    // TODO: Create async wrapper
-    // TODO: Set queue state
     ctsWaitSemaphores(pPresentInfo->waitSemaphoreCount, pPresentInfo->waitSemaphores);
 
     for (uint32_t i = 0; i < pPresentInfo->swapchainCount; ++i) {
@@ -131,9 +130,10 @@ CtsResult ctsQueuePresent(
         }
         
         ctsDrawFSTexture(pQueue->device, entry->image);
+        ctsSurfaceSwapBuffers(swapchain->surface);
 
         if (entry->semaphore != NULL) {
-            ctsSignalSemaphores(1, entry->semaphore);
+            ctsSignalSemaphores(1, &entry->semaphore);
         }
     }
 }

@@ -18,42 +18,57 @@ list(APPEND HEADERS
 )
 
 list(APPEND SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/renderer_impl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/renderer_proxy.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/renderer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/buffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_buffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_dispatcher.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_pool.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_pool.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_set_layout.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_set.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/device_memory.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fullscreen_texture.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image_view.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/instance.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline_layout.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/queue.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shader_module.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/swapchain.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bump_allocator_proxy.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bump_allocator.c
 )
 
 if(MSVC)
-  list(APPEND SOURCES
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/condition_variable.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/semaphore.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/thread.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
-  )
+    list(APPEND SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/semaphore.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/thread.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
+    )
 elseif(UNIX)
-  list(APPEND SOURCES
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/condition_variable.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/semaphore.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/thread.c
-      ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/mutex.c
-  )
+    list(APPEND SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/semaphore.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/thread.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/mutex.c
+    )
 endif(MSVC)
 
 if(WIN32)
-  list(APPEND INCLUDE_PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
-)
+    list(APPEND INCLUDE_PATHS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
+    )
 elseif(UNIX)
-  list(APPEND INCLUDE_PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/posix
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix
-)
+    list(APPEND INCLUDE_PATHS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/posix
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix
+    )
 endif(WIN32)
 
 list(APPEND INCLUDE_PATHS

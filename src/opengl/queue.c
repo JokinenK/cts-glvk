@@ -1,11 +1,19 @@
 #include <cts/align.h>
 #include <string.h>
 #include <cts/allocator.h>
+#include <cts/command_dispatcher.h>
+#include <private/device_private.h>
+#include <private/instance_private.h>
+#include <private/physical_device_private.h>
 #include <private/queue_private.h>
+#include <private/surface_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static bool waitForSurface(CtsQueue pQueue);
+static void workerEntry(void* pArgs);
 
 bool ctsCreateQueue(
     const CtsQueueCreateInfo* pCreateInfo,
@@ -39,6 +47,11 @@ bool ctsCreateQueue(
             CtsConditionVariableCreateInfo conditionVariableCreateInfo;
             ctsCreateConditionVariables(&conditionVariableCreateInfo, pAllocator, 1, &queue->conditionVariable);
 
+            CtsThreadCreateInfo threadCreateInfo;
+            threadCreateInfo.entryPoint = workerEntry;
+            threadCreateInfo.args = queue;
+            ctsCreateThreads(&threadCreateInfo, pAllocator, 1, &queue->thread);
+
             pQueues[i] = queue;
         }
     }
@@ -52,7 +65,9 @@ bool ctsDestroyQueue(
 ) {
     if (pQueue) {
         ctsConditionVariableWakeAll(pQueue->conditionVariable);
+        ctsDestroyThread(pQueue->thread, pAllocator);
         ctsDestroyConditionVariable(pQueue->conditionVariable, pAllocator);
+        ctsDestroyMutex(pQueue->mutex, pAllocator);
 
         ctsFree(pAllocator, pQueue->data);
         ctsFree(pAllocator, pQueue); 
@@ -61,6 +76,18 @@ bool ctsDestroyQueue(
     }
 
     return false;
+}
+
+void ctsQueueDispatch(
+    CtsQueue pQueue,
+    const CtsCmdBase* pCmd,
+    CtsSemaphore pSemaphore
+) {
+    CtsQueueItem queueItem;
+    queueItem.cmd = pCmd;
+    queueItem.semaphore = pSemaphore;
+
+    ctsQueuePush(pQueue, &queueItem);
 }
 
 bool ctsQueuePush(CtsQueue pQueue, CtsQueueItem* pQueueItem) {
@@ -96,9 +123,54 @@ bool ctsQueuePop(CtsQueue pQueue, CtsQueueItem* pQueueItem) {
     return true;
 }
 
-void ctsQueueWait(CtsQueue pQueue) {
-    while (pQueue->tail == pQueue->head) {
-      ctsConditionVariableSleep(pQueue->conditionVariable, pQueue->mutex);
+static bool waitForSurface(CtsQueue pQueue) {
+    CtsDevice device = pQueue->device;
+    CtsPhysicalDevice physicalDevice = device->physicalDevice;
+    CtsInstance instance = physicalDevice->instance;
+
+    while (device->isRunning && instance->surface == NULL) {
+        ctsConditionVariableSleep(pQueue->conditionVariable, pQueue->mutex);
+    }
+
+    if (instance->surface != NULL) {
+        ctsSurfaceMakeCurrent(instance->surface);
+        return true;
+    }
+    
+    return false;   
+}
+
+static void workerEntry(void* pArgs) {
+    CtsQueue queue = (CtsQueue) pArgs;
+    CtsDevice device = queue->device;
+
+    if (!waitForSurface(queue)) {
+        return;
+    }
+
+    CtsQueueItem queueItem;
+    const CtsCommandMetadata* commandMetadata;
+    const CtsCmdBase* cmd;
+
+    while (device->isRunning) {
+        while (device->isRunning && !ctsQueuePop(queue, &queueItem)) {
+            ctsConditionVariableSleep(queue->conditionVariable, queue->mutex);
+        }
+
+        if (!device->isRunning) {
+            break;
+        }
+
+        cmd = queueItem.cmd;
+        while (cmd != NULL) {
+            commandMetadata = ctsGetCommandMetadata(cmd->type);
+            commandMetadata->handler(cmd);
+            cmd = cmd->next;
+        }
+
+        if (queueItem.semaphore != NULL) {
+            ctsSignalSemaphores(1, &queueItem.semaphore);
+        }
     }
 }
 

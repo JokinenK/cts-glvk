@@ -38,9 +38,6 @@
                     "src",
                     "src/opengl",
                     "src/opengl/win32",
-                    "src",
-                    "src/opengl",
-                    "src/opengl/win32",
                     "contrib/glad/include",
                     "contrib/googletest/googletest/include",
                     "${default}",
@@ -54,8 +51,7 @@
             "intelliSenseMode": "${default}",
             "cStandard": "${default}",
             "cppStandard": "${default}",
-            "compilerPath": "${default}",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "compilerPath": "${default}"
         }
     ],
     "version": 4

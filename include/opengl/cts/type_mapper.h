@@ -28,8 +28,7 @@ const GLenum parseStencilAction(CtsStencilAction pValue);
 const GLenum parseCullMode(CtsCullMode pValue);
 const GLenum parseFrontFace(CtsFrontFace pValue);
 const GLenum parsePolygonMode(CtsPolygonMode pValue);
-const GLenum parseWrap(CtsWrap pValue);
-const GLint  parseWrapType(CtsWrapType pValue);
+const GLenum parseSamplerAddressMode(CtsSamplerAddressMode pValue);
 const GLenum parseFilter(CtsFilter pValue);
 const GLenum parseIndexType(CtsIndexType pValue);
 const GLenum parseShaderType(CtsShaderType pValue);
@@ -61,8 +60,8 @@ void parseDepthStencilStateChanges(
 );
 
 void parseColorBlendStateChanges(
-    const CtsGlPipelineColorBlendState* pLhs, 
-    const CtsGlPipelineColorBlendState* pRhs, 
+    const CtsGlPipelineColorBlendStateAttachment* pLhs, 
+    const CtsGlPipelineColorBlendStateAttachment* pRhs, 
     CtsGlColorBlendStateChanges* pChanges
 );
 

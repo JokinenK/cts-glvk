@@ -1,8 +1,16 @@
 #include <assert.h>
 #include <stddef.h>
-#include <cts/renderer_impl.h>
-#include <cts/renderer_proxy.h>
+#include <cts/command_dispatcher.h>
 #include <cts/commands.h>
+#include <private/command_buffer_private.h>
+#include <private/descriptor_set_private.h>
+#include <private/device_memory_private.h>
+#include <private/fence_private.h>
+#include <private/image_private.h>
+#include <private/image_view_private.h>
+#include <private/pipeline_private.h>
+#include <private/sampler_private.h>
+
 
 #pragma region StaticMethodDeclarations
 
@@ -14,27 +22,11 @@ static void handleUnmapMemory(const CtsCmdBase* pCmd);
 static void handleFreeMemory(const CtsCmdBase* pCmd);
 
 static void handleQueueSubmit(const CtsCmdBase* pCmd);
-static void handleSignalSemaphores(const CtsCmdBase* pCmd);
-
-static void handleAllocateCommandBuffers(const CtsCmdBase* pCmd);
-static void handleFreeCommandBuffers(const CtsCmdBase* pCmd);
+static void handleQueueFinish(const CtsCmdBase* pCmd);
 
 static void handleAllocateDescriptorSets(const CtsCmdBase* pCmd);
 static void handleUpdateDescriptorSets(const CtsCmdBase* pCmd);
 static void handleFreeDescriptorSets(const CtsCmdBase* pCmd);
-
-static void handleCreateBuffer(const CtsCmdBase* pCmd);
-static void handleBindBufferMemory(const CtsCmdBase* pCmd);
-static void handleDestroyBuffer(const CtsCmdBase* pCmd);
-
-static void handleCreateCommandPool(const CtsCmdBase* pCmd);
-static void handleDestroyCommandPool(const CtsCmdBase* pCmd);
-
-static void handleCreateDescriptorPool(const CtsCmdBase* pCmd);
-static void handleDestroyDescriptorPool(const CtsCmdBase* pCmd);
-
-static void handleCreateDescriptorSetLayout(const CtsCmdBase* pCmd);
-static void handleDestroyDescriptorSetLayout(const CtsCmdBase* pCmd);
 
 static void handleCreateGraphicsPipelines(const CtsCmdBase* pCmd);
 static void handleDestroyPipeline(const CtsCmdBase* pCmd);
@@ -45,13 +37,13 @@ static void handleDestroyImageView(const CtsCmdBase* pCmd);
 static void handleCreateImage(const CtsCmdBase* pCmd);
 static void handleDestroyImage(const CtsCmdBase* pCmd);
 
-static void handleCreatePipelineLayout(const CtsCmdBase* pCmd);
-static void handleDestroyPipelineLayout(const CtsCmdBase* pCmd);
-
-static void handleCreateShaderModule(const CtsCmdBase* pCmd);
-static void handleDestroyShaderModule(const CtsCmdBase* pCmd);
+static void handleCreateSampler(const CtsCmdBase* pCmd);
+static void handleDestroySampler(const CtsCmdBase* pCmd);
 
 static void handleCreateFence(const CtsCmdBase* pCmd);
+static void handleResetFences(const CtsCmdBase* pCmd);
+static void handleGetFenceStatus(const CtsCmdBase* pCmd);
+static void handleWaitForFences(const CtsCmdBase* pCmd);
 static void handleDestroyFence(const CtsCmdBase* pCmd);
 
 static void handleCmdBeginQuery(const CtsCmdBase* pCmd);
@@ -123,19 +115,6 @@ static CtsCommandMetadata* createCommandMetadataLookup()
 {
     static CtsCommandMetadata lookup[NUM_CTS_COMMANDS];
 
-    lookup[CTS_COMMAND_CREATE_BUFFER]                 = (CtsCommandMetadata) { .handler = handleCreateBuffer,               .size = sizeof(CtsCreateBuffer),               .align = alignof(CtsCreateBuffer)               };
-    lookup[CTS_COMMAND_BIND_BUFFER_MEMORY]            = (CtsCommandMetadata) { .handler = handleBindBufferMemory,           .size = sizeof(CtsBindBufferMemory),           .align = alignof(CtsBindBufferMemory)           };
-    lookup[CTS_COMMAND_DESTROY_BUFFER]                = (CtsCommandMetadata) { .handler = handleDestroyBuffer,              .size = sizeof(CtsDestroyBuffer),              .align = alignof(CtsDestroyBuffer)              };
-
-    lookup[CTS_COMMAND_CREATE_COMMAND_POOL]           = (CtsCommandMetadata) { .handler = handleCreateCommandPool,          .size = sizeof(CtsCreateCommandPool),          .align = alignof(CtsCreateCommandPool)          };
-    lookup[CTS_COMMAND_DESTROY_COMMAND_POOL]          = (CtsCommandMetadata) { .handler = handleDestroyCommandPool,         .size = sizeof(CtsDestroyCommandPool),         .align = alignof(CtsDestroyCommandPool)         };
-
-    lookup[CTS_COMMAND_CREATE_DESCRIPTOR_POOL]        = (CtsCommandMetadata) { .handler = handleCreateDescriptorPool,       .size = sizeof(CtsCreateDescriptorPool),       .align = alignof(CtsCreateDescriptorPool)       };
-    lookup[CTS_COMMAND_DESTROY_DESCRIPTOR_POOL]       = (CtsCommandMetadata) { .handler = handleDestroyDescriptorPool,      .size = sizeof(CtsDestroyDescriptorPool),      .align = alignof(CtsDestroyDescriptorPool)      };
-
-    lookup[CTS_COMMAND_CREATE_DESCRIPTOR_SET_LAYOUT]  = (CtsCommandMetadata) { .handler = handleCreateDescriptorSetLayout,  .size = sizeof(CtsCreateDescriptorSetLayout),  .align = alignof(CtsCreateDescriptorSetLayout)  };
-    lookup[CTS_COMMAND_DESTROY_DESCRIPTOR_SET_LAYOUT] = (CtsCommandMetadata) { .handler = handleDestroyDescriptorSetLayout, .size = sizeof(CtsDestroyDescriptorSetLayout), .align = alignof(CtsDestroyDescriptorSetLayout) };
-
     lookup[CTS_COMMAND_CREATE_GRAPHICS_PIPELINES]     = (CtsCommandMetadata) { .handler = handleCreateGraphicsPipelines,    .size = sizeof(CtsCreateGraphicsPipelines),    .align = alignof(CtsCreateGraphicsPipelines)    };
     lookup[CTS_COMMAND_DESTROY_PIPELINE]              = (CtsCommandMetadata) { .handler = handleDestroyPipeline,            .size = sizeof(CtsDestroyPipeline),            .align = alignof(CtsDestroyPipeline)            };
 
@@ -145,17 +124,14 @@ static CtsCommandMetadata* createCommandMetadataLookup()
     lookup[CTS_COMMAND_CREATE_IMAGE]                  = (CtsCommandMetadata) { .handler = handleCreateImage,                .size = sizeof(CtsCreateImage),                .align = alignof(CtsCreateImage)                };
     lookup[CTS_COMMAND_DESTROY_IMAGE]                 = (CtsCommandMetadata) { .handler = handleDestroyImage,               .size = sizeof(CtsDestroyImage),               .align = alignof(CtsDestroyImage)               };
 
-    lookup[CTS_COMMAND_CREATE_PIPELINE_LAYOUT]        = (CtsCommandMetadata) { .handler = handleCreatePipelineLayout,       .size = sizeof(CtsCreatePipelineLayout),       .align = alignof(CtsCreatePipelineLayout)       };
-    lookup[CTS_COMMAND_DESTROY_PIPELINE_LAYOUT]       = (CtsCommandMetadata) { .handler = handleDestroyPipelineLayout,      .size = sizeof(CtsDestroyPipelineLayout),      .align = alignof(CtsDestroyPipelineLayout)      };
+    lookup[CTS_COMMAND_CREATE_SAMPLER]                = (CtsCommandMetadata) { .handler = handleCreateSampler,              .size = sizeof(CtsCreateSampler),              .align = alignof(CtsCreateSampler)              };
+    lookup[CTS_COMMAND_DESTROY_SAMPLER]               = (CtsCommandMetadata) { .handler = handleDestroySampler,             .size = sizeof(CtsDestroySampler),             .align = alignof(CtsDestroySampler)             };
 
-    lookup[CTS_COMMAND_CREATE_SHADER_MODULE]          = (CtsCommandMetadata) { .handler = handleCreateShaderModule,         .size = sizeof(CtsCreateShaderModule),         .align = alignof(CtsCreateShaderModule)         };
-    lookup[CTS_COMMAND_DESTROY_SHADER_MODULE]         = (CtsCommandMetadata) { .handler = handleDestroyShaderModule,        .size = sizeof(CtsDestroyShaderModule),        .align = alignof(CtsDestroyShaderModule)        };
-
-    lookup[CTS_COMMAND_CREATE_FENCE]                  = (CtsCommandMetadata) { .handler = handleCreateFence,                .size = sizeof(CtsCreateFence),                .align = alignof(CtsDestroyFence)               };
-    lookup[CTS_COMMAND_DESTROY_FENCE]                 = (CtsCommandMetadata) { .handler = handleDestroyFence,               .size = sizeof(CtsDestroyShaderModule),        .align = alignof(CtsDestroyShaderModule)        };
-
-    lookup[CTS_COMMAND_ALLOCATE_COMMAND_BUFFERS]      = (CtsCommandMetadata) { .handler = handleAllocateCommandBuffers,     .size = sizeof(CtsAllocateCommandBuffers),     .align = alignof(CtsAllocateCommandBuffers)     };
-    lookup[CTS_COMMAND_FREE_COMMAND_BUFFERS]          = (CtsCommandMetadata) { .handler = handleFreeCommandBuffers,         .size = sizeof(CtsFreeCommandBuffers),         .align = alignof(CtsFreeCommandBuffers)         };
+    lookup[CTS_COMMAND_CREATE_FENCE]                  = (CtsCommandMetadata) { .handler = handleCreateFence,                .size = sizeof(CtsCreateFence),                .align = alignof(CtsCreateFence)                };
+    lookup[CTS_COMMAND_RESET_FENCES]                  = (CtsCommandMetadata) { .handler = handleResetFences,                .size = sizeof(CtsResetFences),                .align = alignof(CtsResetFences)                };
+    lookup[CTS_COMMAND_GET_FENCE_STATUS]              = (CtsCommandMetadata) { .handler = handleGetFenceStatus,             .size = sizeof(CtsGetFenceStatus),             .align = alignof(CtsGetFenceStatus)             };
+    lookup[CTS_COMMAND_WAIT_FOR_FENCES]               = (CtsCommandMetadata) { .handler = handleWaitForFences,              .size = sizeof(CtsWaitForFences),              .align = alignof(CtsWaitForFences)              };
+    lookup[CTS_COMMAND_DESTROY_FENCE]                 = (CtsCommandMetadata) { .handler = handleDestroyFence,               .size = sizeof(CtsDestroyFence),               .align = alignof(CtsDestroyFence)               };
 
     lookup[CTS_COMMAND_ALLOCATE_DESCRIPTOR_SETS]      = (CtsCommandMetadata) { .handler = handleAllocateDescriptorSets,     .size = sizeof(CtsAllocateDescriptorSets),     .align = alignof(CtsAllocateDescriptorSets)     };
     lookup[CTS_COMMAND_UPDATE_DESCRIPTOR_SETS]        = (CtsCommandMetadata) { .handler = handleUpdateDescriptorSets,       .size = sizeof(CtsUpdateDescriptorSets),       .align = alignof(CtsUpdateDescriptorSets)       };
@@ -167,8 +143,7 @@ static CtsCommandMetadata* createCommandMetadataLookup()
     lookup[CTS_COMMAND_FREE_MEMORY]                   = (CtsCommandMetadata) { .handler = handleFreeMemory,                 .size = sizeof(CtsFreeMemory),                 .align = alignof(CtsFreeMemory)                 };
 
     lookup[CTS_COMMAND_QUEUE_SUBMIT]                  = (CtsCommandMetadata) { .handler = handleQueueSubmit,                .size = sizeof(CtsQueueSubmit),                .align = alignof(CtsQueueSubmit)                };
-    lookup[CTS_COMMAND_SIGNAL_SEMAPHORES]             = (CtsCommandMetadata) { .handler = handleSignalSemaphores,           .size = sizeof(CtsSignalSemaphores),           .align = alignof(CtsSignalSemaphores)           };
-
+    lookup[CTS_COMMAND_QUEUE_FINISH]                  = (CtsCommandMetadata) { .handler = handleQueueFinish,                .size = sizeof(CtsQueueFinish),                .align = alignof(CtsQueueFinish)                };
 
     lookup[CTS_COMMAND_CMD_BEGIN_QUERY]               = (CtsCommandMetadata) { .handler = handleCmdBeginQuery,              .size = sizeof(CtsCmdBeginQuery),              .align = alignof(CtsCmdBeginQuery)              };
     lookup[CTS_COMMAND_CMD_BEGIN_RENDER_PASS]         = (CtsCommandMetadata) { .handler = handleCmdBeginRenderPass,         .size = sizeof(CtsCmdBeginRenderPass),         .align = alignof(CtsCmdBeginRenderPass)         };
@@ -244,19 +219,9 @@ static void handleQueueSubmit(const CtsCmdBase* pCmd) {
     *cmd->result = ctsQueueSubmitImpl(cmd->queue, cmd->submitCount, cmd->submits, cmd->fence);
 }
 
-static void handleSignalSemaphores(const CtsCmdBase* pCmd) {
-    const CtsSignalSemaphores* cmd = (const CtsSignalSemaphores*) pCmd;
+static void handleQueueFinish(const CtsCmdBase* pCmd) {
+    const CtsQueueFinish* cmd = (const CtsQueueFinish*) pCmd;
     ctsSignalSemaphores(cmd->semaphoreCount, cmd->semaphores);
-}
-
-static void handleAllocateCommandBuffers(const CtsCmdBase* pCmd) {
-    const CtsAllocateCommandBuffers* cmd = (const CtsAllocateCommandBuffers*) pCmd;
-    *cmd->result = ctsAllocateCommandBuffersImpl(cmd->device, cmd->allocateInfo, cmd->commandBuffers);
-}
-
-static void handleFreeCommandBuffers(const CtsCmdBase* pCmd) {
-    const CtsFreeCommandBuffers* cmd = (const CtsFreeCommandBuffers*) pCmd;
-    ctsFreeCommandBuffersImpl(cmd->device, cmd->commandPool, cmd->commandBufferCount, cmd->commandBuffers);
 }
 
 static void handleAllocateDescriptorSets(const CtsCmdBase* pCmd) {
@@ -272,51 +237,6 @@ static void handleUpdateDescriptorSets(const CtsCmdBase* pCmd) {
 static void handleFreeDescriptorSets(const CtsCmdBase* pCmd) {
     const CtsFreeDescriptorSets* cmd = (const CtsFreeDescriptorSets*) pCmd;
     ctsFreeDescriptorSetsImpl(cmd->device,  cmd->descriptorPool, cmd->descriptorSetCount, cmd->descriptorSets);
-}
-
-static void handleCreateBuffer(const CtsCmdBase* pCmd) {
-    const CtsCreateBuffer* cmd = (const CtsCreateBuffer*) pCmd;
-    *cmd->result = ctsCreateBufferImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->buffer);
-}
-
-static void handleBindBufferMemory(const CtsCmdBase* pCmd) {
-    const CtsBindBufferMemory* cmd = (const CtsBindBufferMemory*) pCmd;
-    *cmd->result = ctsBindBufferMemoryImpl(cmd->device, cmd->buffer, cmd->memory, cmd->offset);
-}
-
-static void handleDestroyBuffer(const CtsCmdBase* pCmd) {
-    const CtsDestroyBuffer* cmd = (const CtsDestroyBuffer*) pCmd;
-    ctsDestroyBufferImpl(cmd->device, cmd->buffer, cmd->allocator);
-}
-
-static void handleCreateCommandPool(const CtsCmdBase* pCmd) {
-    const CtsCreateCommandPool* cmd = (const CtsCreateCommandPool*) pCmd;
-    *cmd->result = ctsCreateCommandPoolImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->commandPool);
-}
-
-static void handleDestroyCommandPool(const CtsCmdBase* pCmd) {
-    const CtsDestroyCommandPool* cmd = (const CtsDestroyCommandPool*) pCmd;
-    ctsDestroyCommandPoolImpl(cmd->device, cmd->commandPool, cmd->allocator);
-}
-
-static void handleCreateDescriptorPool(const CtsCmdBase* pCmd) {
-    const CtsCreateDescriptorPool* cmd = (const CtsCreateDescriptorPool*) pCmd;
-    *cmd->result = ctsCreateDescriptorPoolImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->descriptorPool);
-}
-
-static void handleDestroyDescriptorPool(const CtsCmdBase* pCmd) {
-    const CtsDestroyDescriptorPool* cmd = (const CtsDestroyDescriptorPool*) pCmd;
-    ctsDestroyDescriptorPoolImpl(cmd->device, cmd->descriptorPool, cmd->allocator);
-}
-
-static void handleCreateDescriptorSetLayout(const CtsCmdBase* pCmd) {
-    const CtsCreateDescriptorSetLayout* cmd = (const CtsCreateDescriptorSetLayout*) pCmd;
-    *cmd->result = ctsCreateDescriptorSetLayoutImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->descriptorSetLayout);
-}
-
-static void handleDestroyDescriptorSetLayout(const CtsCmdBase* pCmd) {
-    const CtsDestroyDescriptorSetLayout* cmd = (const CtsDestroyDescriptorSetLayout*) pCmd;
-    ctsDestroyDescriptorSetLayoutImpl(cmd->device, cmd->descriptorSetLayout, cmd->allocator);
 }
 
 static void handleCreateGraphicsPipelines(const CtsCmdBase* pCmd) {
@@ -349,29 +269,34 @@ static void handleDestroyImage(const CtsCmdBase* pCmd) {
     ctsDestroyImageImpl(cmd->device, cmd->image, cmd->allocator);
 }
 
-static void handleCreatePipelineLayout(const CtsCmdBase* pCmd) {
-    const CtsCreatePipelineLayout* cmd = (const CtsCreatePipelineLayout*) pCmd;
-    *cmd->result = ctsCreatePipelineLayoutImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->pipelineLayout);
+static void handleCreateSampler(const CtsCmdBase* pCmd) {
+    const CtsCreateSampler* cmd = (const CtsCreateSampler*) pCmd;
+    *cmd->result = ctsCreateSamplerImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->sampler);
 }
 
-static void handleDestroyPipelineLayout(const CtsCmdBase* pCmd) {
-    const CtsDestroyPipelineLayout* cmd = (const CtsDestroyPipelineLayout*) pCmd;
-    ctsDestroyPipelineLayoutImpl(cmd->device, cmd->pipelineLayout, cmd->allocator);
-}
-
-static void handleCreateShaderModule(const CtsCmdBase* pCmd) {
-    const CtsCreateShaderModule* cmd = (const CtsCreateShaderModule*) pCmd;
-    *cmd->result = ctsCreateShaderModuleImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->shaderModule);
-}
-
-static void handleDestroyShaderModule(const CtsCmdBase* pCmd) {
-    const CtsDestroyShaderModule* cmd = (const CtsDestroyShaderModule*) pCmd;
-    ctsDestroyShaderModuleImpl(cmd->device, cmd->shaderModule, cmd->allocator);
+static void handleDestroySampler(const CtsCmdBase* pCmd) {
+    const CtsDestroySampler* cmd = (const CtsDestroySampler*) pCmd;
+    ctsDestroySamplerImpl(cmd->device, cmd->sampler, cmd->allocator);
 }
 
 static void handleCreateFence(const CtsCmdBase* pCmd) {
     const CtsCreateFence* cmd = (const CtsCreateFence*) pCmd;
     ctsCreateFenceImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->fence);
+}
+
+static void handleResetFences(const CtsCmdBase* pCmd) {
+    const CtsResetFences* cmd = (const CtsResetFences*) pCmd;
+    *cmd->result = ctsResetFencesImpl(cmd->device, cmd->fenceCount, cmd->fences);
+}
+
+static void handleGetFenceStatus(const CtsCmdBase* pCmd) {
+    const CtsGetFenceStatus* cmd = (const CtsGetFenceStatus*) pCmd;
+    *cmd->result = ctsGetFenceStatusImpl(cmd->device, cmd->fence);
+}
+
+static void handleWaitForFences(const CtsCmdBase* pCmd) {
+    const CtsWaitForFences* cmd = (const CtsWaitForFences*) pCmd;
+    *cmd->result = ctsWaitForFencesImpl(cmd->device, cmd->fenceCount, cmd->fences, cmd->waitAll, cmd->timeout);
 }
 
 static void handleDestroyFence(const CtsCmdBase* pCmd) {

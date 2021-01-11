@@ -7,14 +7,15 @@
 extern "C" {
 #endif
 
-typedef struct CtsCreateShaderModule {
+typedef struct CtsWaitForFences {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsShaderModuleCreateInfo* createInfo;
-    const CtsAllocationCallbacks* allocator;
-    CtsShaderModule* shaderModule;
+    uint32_t fenceCount;
+    const CtsFence* fences;
+    CtsBool32 waitAll;
+    uint64_t timeout;
     CtsResult* result;
-} CtsCreateShaderModule;
+} CtsWaitForFences;
 
 #ifdef __cplusplus
 }

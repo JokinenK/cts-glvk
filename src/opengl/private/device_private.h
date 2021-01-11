@@ -15,7 +15,6 @@ extern "C" {
 
 struct CtsDevice {
     bool isRunning;
-    CtsThread thread;
     CtsQueue queue;
 
     CtsSemaphore initSemaphore;

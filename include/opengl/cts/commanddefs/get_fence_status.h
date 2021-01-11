@@ -7,12 +7,12 @@
 extern "C" {
 #endif
 
-typedef struct CtsDestroyDescriptorSetLayout {
+typedef struct CtsGetFenceStatus {
     CtsCmdBase base;
     CtsDevice device;
-    CtsDescriptorSetLayout descriptorSetLayout;
-    const CtsAllocationCallbacks* allocator;
-} CtsDestroyDescriptorSetLayout;
+    CtsFence fence;
+    CtsResult* result;
+} CtsGetFenceStatus;
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,6 @@
-#include <cts/align.h> 
 #include <pthread.h> 
-#include <cts/os/mutex.h>
+#include <cts/align.h> 
+#include <cts/mutex.h>
 #include <private/mutex_private.h>
 
 #ifdef __cplusplus

@@ -83,7 +83,7 @@ typedef struct CtsGlPipelineDepthStencilState {
     uint32_t backReference;
 } CtsGlPipelineDepthStencilState;
 
-typedef struct CtsGlPipelineColorBlendState {
+typedef struct CtsGlPipelineColorBlendStateAttachment {
     bool blendEnable;
     GLenum srcColorBlendFactor;
     GLenum dstColorBlendFactor;
@@ -93,6 +93,11 @@ typedef struct CtsGlPipelineColorBlendState {
     GLenum alphaBlendOp;
     uint32_t colorWriteMask;
     float blendConstants[4];
+} CtsGlPipelineColorBlendStateAttachment;
+
+typedef struct CtsGlPipelineColorBlendState {
+    uint32_t attachmentCount;
+    CtsGlPipelineColorBlendStateAttachment* attachments;
 } CtsGlPipelineColorBlendState;
 
 typedef struct CtsGlGraphicsPipeline {

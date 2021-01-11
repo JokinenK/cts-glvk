@@ -1,35 +1,30 @@
 #pragma once
 
-#include <stdbool.h>
-#include <glad/glad.h>
+#include <cts/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsFence {
-    GLsync sync;
-};
-
-CtsResult ctsCreateFenceImpl(
+CtsResult ctsCreateFence(
     CtsDevice pDevice,
     const CtsFenceCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFence* pFence
 );
 
-CtsResult ctsResetFencesImpl(
+CtsResult ctsResetFences(
     CtsDevice pDevice,
     uint32_t pFenceCount,
     const CtsFence* pFences
 );
 
-CtsResult ctsGetFenceStatusImpl(
+CtsResult ctsGetFenceStatus(
     CtsDevice pDevice,
     CtsFence pFence
 );
 
-CtsResult ctsWaitForFencesImpl(
+CtsResult ctsWaitForFences(
     CtsDevice pDevice,
     uint32_t pFenceCount,
     const CtsFence* pFences,
@@ -37,7 +32,7 @@ CtsResult ctsWaitForFencesImpl(
     uint64_t pTimeout
 );
 
-void ctsDestroyFenceImpl(
+void ctsDestroyFence(
     CtsDevice pDevice,
     CtsFence pFence,
     const CtsAllocationCallbacks* pAllocator
