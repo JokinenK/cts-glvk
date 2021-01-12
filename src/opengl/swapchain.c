@@ -46,6 +46,11 @@ CtsResult ctsCreateSwapchain(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
+    if (swapchain->entries == NULL) {
+        ctsDestroySwapchain(pDevice, swapchain, pAllocator);
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
     CtsImageCreateInfo imageCreateInfo;
     imageCreateInfo.sType = CTS_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.next = NULL;
@@ -68,7 +73,9 @@ CtsResult ctsCreateSwapchain(
     }
 
     ctsInitFSTextureHelper();
-    *pSwapchain = swapchain;   
+    *pSwapchain = swapchain;
+
+    return CTS_SUCCESS;
 }
 
 CtsResult ctsGetSwapchainImages(
@@ -86,6 +93,8 @@ CtsResult ctsGetSwapchainImages(
             pSwapchainImages[i] = pSwapchain->entries[i].image;
         }
     }
+
+    return CTS_SUCCESS;
 }
 
 CtsResult ctsAcquireNextImage(
@@ -136,6 +145,8 @@ CtsResult ctsQueuePresent(
             ctsSignalSemaphores(1, &entry->semaphore);
         }
     }
+
+    return CTS_SUCCESS;
 }
 
 void ctsDestroySwapchain(
@@ -147,7 +158,9 @@ void ctsDestroySwapchain(
     
     if (pSwapchain != NULL) {
         for (uint32_t i = 0; i < pSwapchain->entryCount; ++i) {
-            ctsDestroyImageImpl(pDevice, pSwapchain->entries[i].image, pAllocator);
+            if (pSwapchain->entries[i].image != NULL) {
+                ctsDestroyImageImpl(pDevice, pSwapchain->entries[i].image, pAllocator);
+            }
         }
 
         ctsFree(pAllocator, pSwapchain->entries);

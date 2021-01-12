@@ -322,7 +322,7 @@ static void createShader(
         stage->name = createInfo->name;
         stage->handle = glCreateShader(parseShaderType(createInfo->stage));
         const char* source = createInfo->module->code;
-        const int sourceLen = createInfo->module->codeSize;
+        const int sourceLen = (const int)createInfo->module->codeSize;
 
         glShaderSource(stage->handle, 1, &source, &sourceLen);
         glCompileShader(stage->handle);

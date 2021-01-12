@@ -80,6 +80,8 @@ CtsResult ctsAllocateCommandBuffers(
     for (; i < pAllocateInfo->commandBufferCount; ++i) {
         pCommandBuffers[i] = NULL;
     }
+
+    return result;
 }
 
 void ctsFreeCommandBuffers(
@@ -111,6 +113,8 @@ CtsResult ctsBeginCommandBuffer(
         pCommandBuffer->current = NULL;
         pCommandBuffer->state = CTS_COMMAND_BUFFER_STATE_RECORDING;
     }
+
+    return CTS_SUCCESS;
 }
 
 CtsResult ctsResetCommandBuffer(
@@ -122,6 +126,8 @@ CtsResult ctsResetCommandBuffer(
         pCommandBuffer->current = NULL;
         pCommandBuffer->state = CTS_COMMAND_BUFFER_STATE_RECORDING;
     }
+
+    return CTS_SUCCESS;
 }
 
 CtsResult ctsEndCommandBuffer(
@@ -130,6 +136,8 @@ CtsResult ctsEndCommandBuffer(
     if (pCommandBuffer->state == CTS_COMMAND_BUFFER_STATE_RECORDING) {
         pCommandBuffer->state = CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
     }
+
+    return CTS_SUCCESS;
 }
 
 CtsResult ctsQueueSubmit(
@@ -1052,9 +1060,9 @@ void ctsQueueFinishImpl(
 ) {
     if (pCommandBuffer->state == CTS_COMMAND_BUFFER_STATE_PENDING) {
         if (pCommandBuffer->flags & CTS_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) {
-            pCommandBuffer->state == CTS_COMMAND_BUFFER_STATE_INVALID;
+            pCommandBuffer->state = CTS_COMMAND_BUFFER_STATE_INVALID;
         } else {
-            pCommandBuffer->state == CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
+            pCommandBuffer->state = CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
         }
 
         ctsSignalSemaphores(pSemaphoreCount, pSemaphores);

@@ -98,6 +98,8 @@ CtsResult ctsDrawFSTexture(
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+    return CTS_SUCCESS;
 }
 
 void ctsCleanupFSTextureHelper() {

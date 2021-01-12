@@ -19,7 +19,7 @@ static CtsCommandMetadata* gCommandMetadata = NULL;
 static size_t gMaxCommandSize = 0;
 static size_t gMaxCommandAlign = 0;
 
-#pragma end region
+#pragma endregion
 
 #pragma region StaticMethodDeclarations
 
