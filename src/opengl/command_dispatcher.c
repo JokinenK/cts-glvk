@@ -13,9 +13,18 @@
 #include <private/sampler_private.h>
 
 
+#pragma region StaticVariableDefinitions
+
+static CtsCommandMetadata* gCommandMetadata = NULL;
+static size_t gMaxCommandSize = 0;
+static size_t gMaxCommandAlign = 0;
+
+#pragma end region
+
 #pragma region StaticMethodDeclarations
 
-static CtsCommandMetadata* createCommandMetadataLookup();
+static void initCommandMetadata();
+static CtsCommandMetadata* createCommandMetadata();
 
 static void handleAllocateMemory(const CtsCmdBase* pCmd);
 static void handleMapMemory(const CtsCmdBase* pCmd);
@@ -100,22 +109,54 @@ static void handleCmdWriteTimestamp(const CtsCmdBase* pCmd);
 #pragma region PublicMethodBodies
 
 const CtsCommandMetadata* ctsGetCommandMetadata(CtsCommandType pCommandType) {
-    static CtsCommandMetadata* commandMetadataLookup = NULL;
+    initCommandMetadata();
 
-    if (commandMetadataLookup == NULL) {
-        commandMetadataLookup = createCommandMetadataLookup();
-    }
-
-    CtsCommandMetadata* result = &commandMetadataLookup[pCommandType];
+    CtsCommandMetadata* result = &gCommandMetadata[pCommandType];
     assert(result->handler != NULL);
-
     return result;
+}
+
+const size_t ctsGetMaxCommandSize() {
+    initCommandMetadata();
+
+    assert(gMaxCommandSize > 0);
+    return gMaxCommandSize;
+}
+
+const size_t ctsGetMaxCommandAlign() {
+    initCommandMetadata();
+
+    assert(gMaxCommandAlign > 0);
+    return gMaxCommandAlign;
 }
 
 #pragma endregion
 #pragma region StaticMethodDeclarations
 
-static CtsCommandMetadata* createCommandMetadataLookup()
+static void initCommandMetadata()
+{
+    if (gCommandMetadata == NULL) {
+        CtsCommandMetadata* commandMetadata = createCommandMetadata();
+        size_t maxCommandSize = 0;
+        size_t maxCommandAlign = 0;
+
+        for (uint32_t i = 0; i < NUM_CTS_COMMANDS; ++i) {
+            if (commandMetadata[i].size > maxCommandSize) {
+                maxCommandSize = commandMetadata[i].size;
+            } 
+
+            if (commandMetadata[i].align > maxCommandAlign) {
+                maxCommandAlign = commandMetadata[i].align;
+            }
+        }
+
+        gCommandMetadata = commandMetadata;
+        gMaxCommandSize = maxCommandSize;
+        gMaxCommandAlign = maxCommandAlign;
+    }
+}
+
+static CtsCommandMetadata* createCommandMetadata()
 {
     static CtsCommandMetadata lookup[NUM_CTS_COMMANDS];
 
