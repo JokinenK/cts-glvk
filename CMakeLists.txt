@@ -34,6 +34,7 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/instance.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline_layout.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/query_pool.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/render_pass.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shader_module.c
