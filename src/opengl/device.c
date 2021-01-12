@@ -40,7 +40,7 @@ CtsResult ctsCreateDevice(
     CtsQueueCreateInfo queueCreateInfo;
     queueCreateInfo.device = device;
     queueCreateInfo.size = 32;
-    ctsCreateQueue(&queueCreateInfo, pAllocator, 1, &device->queue);
+    ctsCreateQueue(&queueCreateInfo, pAllocator, &device->queue);
 
     CtsSemaphoreCreateInfo semaphoreCreateInfo;
     ctsCreateSemaphore(device, &semaphoreCreateInfo, pAllocator, &device->initSemaphore);

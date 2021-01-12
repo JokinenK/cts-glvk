@@ -18,46 +18,38 @@ static void* threadEntry(void* pArgs)
     return NULL;
 }
 
-bool ctsCreateThreads(
+CtsResult ctsCreateThread(
     const CtsThreadCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pThreadCount,
-    CtsThread* pThreads
+    CtsThread* pThread
 ) {
-    for (uint32_t i = 0; i < pThreadCount; ++i) {
-        CtsThread thread = ctsAllocation(
-            pAllocator,
-            sizeof(struct CtsThread),
-            alignof(struct CtsThread),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
+    CtsThread thread = ctsAllocation(
+        pAllocator,
+        sizeof(struct CtsThread),
+        alignof(struct CtsThread),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
 
-        if (!thread) {
-            return false;
-        }
-
-        thread->joined = false;
-        thread->detached = false;
-        pthread_create(&thread->thread, NULL, threadEntry, pCreateInfo); 
-        
-        pThreads[i] = thread;
-        
+    if (!thread) {
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    return true;
+    thread->joined = false;
+    thread->detached = false;
+    pthread_create(&thread->thread, NULL, threadEntry, pCreateInfo); 
+    
+    *pThread = thread;
+    return CTS_SUCCESS;
 }
 
-bool ctsDestroyThread(
+void ctsDestroyThread(
     CtsThread pThread,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pThread) {
+    if (pThread != NULL) {
         ctsThreadJoin(pThread);
         ctsFree(pAllocator, pThread);
-        return true; 
     }
-
-    return false;
 }
 
 bool ctsThreadJoinable(CtsThread pThread)

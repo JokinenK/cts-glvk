@@ -15,51 +15,49 @@ extern "C" {
 static bool waitForSurface(CtsQueue pQueue);
 static void workerEntry(void* pArgs);
 
-bool ctsCreateQueue(
+CtsResult ctsCreateQueue(
     const CtsQueueCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pQueueCount,
-    CtsQueue* pQueues
+    CtsQueue* pQueue
 ) {
-    for (uint32_t i = 0; i < pQueueCount; ++i) {
-        CtsQueue queue = ctsAllocation(
-            pAllocator,
-            sizeof(struct CtsQueue),
-            alignof(struct CtsQueue),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
+    CtsQueue queue = ctsAllocation(
+        pAllocator,
+        sizeof(struct CtsQueue),
+        alignof(struct CtsQueue),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
 
-        if (queue) {
-            queue->device = pCreateInfo->device;
-            queue->head = 0;
-            queue->tail = 0;
-            queue->size = pCreateInfo->size;
-            queue->data = ctsAllocation(
-                pAllocator,
-                sizeof(CtsQueueItem) * pCreateInfo->size,
-                alignof(char),
-                CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-            );
-
-            CtsMutexCreateInfo mutexCreateInfo;
-            ctsCreateMutexes(&mutexCreateInfo, pAllocator, 1, &queue->mutex);
-
-            CtsConditionVariableCreateInfo conditionVariableCreateInfo;
-            ctsCreateConditionVariables(&conditionVariableCreateInfo, pAllocator, 1, &queue->conditionVariable);
-
-            CtsThreadCreateInfo threadCreateInfo;
-            threadCreateInfo.entryPoint = workerEntry;
-            threadCreateInfo.args = queue;
-            ctsCreateThreads(&threadCreateInfo, pAllocator, 1, &queue->thread);
-
-            pQueues[i] = queue;
-        }
+    if (queue == NULL) {
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    return true;
+    queue->device = pCreateInfo->device;
+    queue->head = 0;
+    queue->tail = 0;
+    queue->size = pCreateInfo->size;
+    queue->data = ctsAllocation(
+        pAllocator,
+        sizeof(CtsQueueItem) * pCreateInfo->size,
+        alignof(char),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
+
+    CtsMutexCreateInfo mutexCreateInfo;
+    ctsCreateMutexes(&mutexCreateInfo, pAllocator, 1, &queue->mutex);
+
+    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
+    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &queue->conditionVariable);
+
+    CtsThreadCreateInfo threadCreateInfo;
+    threadCreateInfo.entryPoint = workerEntry;
+    threadCreateInfo.args = queue;
+    ctsCreateThread(&threadCreateInfo, pAllocator, &queue->thread);
+
+    *pQueue = queue;
+    return CTS_SUCCESS;
 }
 
-bool ctsDestroyQueue(
+void ctsDestroyQueue(
     CtsQueue pQueue,
     const CtsAllocationCallbacks* pAllocator
 ) {
@@ -71,11 +69,7 @@ bool ctsDestroyQueue(
 
         ctsFree(pAllocator, pQueue->data);
         ctsFree(pAllocator, pQueue); 
-       
-        return true;
     }
-
-    return false;
 }
 
 void ctsQueueDispatch(

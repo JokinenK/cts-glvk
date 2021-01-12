@@ -3,20 +3,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <cts/allocator.h>
+#include <cts/typedefs/enums.h>
 #include <cts/typedefs/thread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-bool ctsCreateThreads(
+CtsResult ctsCreateThread(
     const CtsThreadCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pThreadCount,
-    CtsThread* pThreads
+    CtsThread* pThread
 );
 
-bool ctsDestroyThread(
+void ctsDestroyThread(
     CtsThread pThread,
     const CtsAllocationCallbacks* pAllocator
 );

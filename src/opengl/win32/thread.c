@@ -18,52 +18,45 @@ static DWORD WINAPI threadEntry(LPVOID pArgs)
     return 0;
 }
 
-bool ctsCreateThreads(
+CtsResult ctsCreateThread(
     const CtsThreadCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pThreadCount,
-    CtsThread* pThreads
+    CtsThread* pThread
 ) {
-    for (uint32_t i = 0; i < pThreadCount; ++i) {
-        CtsThread thread = ctsAllocation(
-            pAllocator,
-            sizeof(struct CtsThread),
-            alignof(struct CtsThread),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
+    CtsThread thread = ctsAllocation(
+        pAllocator,
+        sizeof(struct CtsThread),
+        alignof(struct CtsThread),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
 
-        if (!thread) {
-            return false;
-        }
-
-        thread->joined = false;
-        thread->detached = false;
-        thread->thread = CreateThread(
-            NULL,                 /* default security attributes */
-            0,                    /* default stack size */    
-            threadEntry,          /* thread function */
-            (LPVOID) pCreateInfo, /* parameter to thread function */
-            0,                    /* default creation flags */ 
-            &thread->threadId
-        );
-
-        pThreads[i] = thread;
+    if (!thread) {
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    return true;
+    thread->joined = false;
+    thread->detached = false;
+    thread->thread = CreateThread(
+        NULL,                 /* default security attributes */
+        0,                    /* default stack size */    
+        threadEntry,          /* thread function */
+        (LPVOID) pCreateInfo, /* parameter to thread function */
+        0,                    /* default creation flags */ 
+        &thread->threadId
+    );
+
+    *pThread = thread;
+    return CTS_SUCCESS;
 }
 
-bool ctsDestroyThread(
+void ctsDestroyThread(
     CtsThread pThread,
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (pThread) {
         ctsThreadJoin(pThread);
         ctsFree(pAllocator, pThread);
-        return true;
     }
-
-    return false;
 }
 
 bool ctsThreadJoinable(CtsThread pThread)

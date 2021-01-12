@@ -1,4 +1,4 @@
-#include <windows.h>
+#include <pthread.h>
 #include <cts/condition_variable.h>
 #include <private/condition_variable_private.h>
 #include <private/mutex_private.h>
@@ -23,7 +23,7 @@ CtsResult ctsCreateConditionVariables(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    InitializeConditionVariable(&conditionVariable->conditionVariable);
+    pthread_cond_init(&conditionVariable->conditionVariable, NULL);
     *pConditionVariable = conditionVariable;
 
     return CTS_SUCCESS;
@@ -43,10 +43,9 @@ void ctsConditionVariableSleep(
     CtsMutex pMutex
 ) {
     if (pConditionVariable != NULL && pMutex != NULL) {
-        SleepConditionVariableCS(
+        pthread_cond_wait(
             &pConditionVariable->conditionVariable,
-            &pMutex->criticalSection,
-            INFINITE
+            &pMutex->mutex
         );
     }
 }
@@ -54,13 +53,13 @@ void ctsConditionVariableSleep(
 void ctsConditionVariableWake(
     CtsConditionVariable pConditionVariable
 ) {
-    WakeConditionVariable(&pConditionVariable->conditionVariable);
+    pthread_cond_signal(&pConditionVariable->conditionVariable);
 }
 
 void ctsConditionVariableWakeAll(
     CtsConditionVariable pConditionVariable
 ) {
-    WakeAllConditionVariable(&pConditionVariable->conditionVariable);
+    pthread_cond_broadcast(&pConditionVariable->conditionVariable);
 }
 
 #ifdef __cplusplus

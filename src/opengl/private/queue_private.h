@@ -36,14 +36,13 @@ struct CtsQueue {
     CtsConditionVariable conditionVariable;
 };
 
-bool ctsCreateQueue(
+CtsResult ctsCreateQueue(
     const CtsQueueCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pQueueCount,
-    CtsQueue* pQueues
+    CtsQueue* pQueue
 );
 
-bool ctsDestroyQueue(
+void ctsDestroyQueue(
     CtsQueue pQueue,
     const CtsAllocationCallbacks* pAllocator
 );

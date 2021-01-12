@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <cts/allocator.h>
+#include <cts/typedefs/enums.h>
 #include <cts/typedefs/mutex.h>
 #include <cts/typedefs/condition_variable.h>
 
@@ -10,14 +11,13 @@
 extern "C" {
 #endif
 
-bool ctsCreateConditionVariables(
+CtsResult ctsCreateConditionVariable(
     const CtsConditionVariableCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pConditionVariableCount,
-    CtsConditionVariable* pConditionVariables
+    CtsConditionVariable* pConditionVariable
 );
 
-bool ctsDestroyConditionVariable(
+void ctsDestroyConditionVariable(
     CtsConditionVariable pConditionVariable,
     const CtsAllocationCallbacks* pAllocator
 );
