@@ -41,8 +41,8 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/swapchain.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/allocator.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/bump_allocator_proxy.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/bump_allocator.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/linear_allocator.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pool_allocator.c
 )
 
 if(MSVC)

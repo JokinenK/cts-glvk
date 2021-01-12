@@ -1,15 +1,15 @@
 #pragma once
 
 #include <cts/allocator.h>
-#include <cts/bump_allocator.h>
+#include <cts/linear_allocator.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct CtsDescriptorPool {
-    CtsBumpAllocator bumpAllocatorInstance;
-    CtsAllocationCallbacks bumpAllocator;
+    CtsLinearAllocator linearAllocatorInstance;
+    CtsAllocationCallbacks linearAllocator;
 };
 
 CtsDescriptorSet ctsDescriptorPoolAllocateSet(

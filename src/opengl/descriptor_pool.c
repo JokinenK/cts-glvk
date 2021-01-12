@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <cts/descriptor_pool.h>
-#include <cts/bump_allocator_proxy.h>
 #include <private/descriptor_pool_private.h>
 #include <private/descriptor_set_private.h>
 
@@ -28,11 +27,11 @@ CtsResult ctsCreateDescriptorPool(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    CtsBumpAllocatorCreateInfo bumpAllocatorCreateInfo;
-    bumpAllocatorCreateInfo.allocator = pAllocator;
-    bumpAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
-    ctsCreateBumpAllocator(&descriptorPool->bumpAllocatorInstance, &bumpAllocatorCreateInfo);
-    ctsInitBumpAllocatorProxy(descriptorPool->bumpAllocatorInstance, &descriptorPool->bumpAllocator);
+    CtsLinearAllocatorCreateInfo linearAllocatorCreateInfo;
+    linearAllocatorCreateInfo.allocator = pAllocator;
+    linearAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
+    ctsCreateLinearAllocator(&descriptorPool->linearAllocatorInstance, &linearAllocatorCreateInfo);
+    ctsGetLinearAllocatorCallbacks(descriptorPool->linearAllocatorInstance, &descriptorPool->linearAllocator);
 
     *pDescriptorPool = descriptorPool;
     return CTS_SUCCESS;
@@ -52,7 +51,7 @@ CtsDescriptorSet ctsDescriptorPoolAllocateSet(
     CtsDescriptorPool pDescriptorPool
 ) {
     return ctsAllocation(
-        &pDescriptorPool->bumpAllocator,
+        &pDescriptorPool->linearAllocator,
         sizeof(struct CtsDescriptorSet),
         alignof(struct CtsDescriptorSet),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT

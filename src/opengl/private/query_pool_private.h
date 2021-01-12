@@ -1,14 +1,14 @@
 #pragma once
 
-#include <cts/bump_allocator.h>
+#include <cts/pool_allocator.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct CtsQueryPool {
-    CtsBumpAllocator bumpAllocatorInstance;
-    CtsAllocationCallbacks bumpAllocator;
+    CtsPoolAllocator poolAllocatorInstance;
+    CtsAllocationCallbacks poolAllocator;
 };
 
 #ifdef __cplusplus

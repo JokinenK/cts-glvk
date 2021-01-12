@@ -98,7 +98,7 @@ CtsResult ctsAllocateDescriptorSetsImpl(
 
         descriptorSet->bindingCount = setLayout->bindingCount;
         descriptorSet->bindings = ctsAllocation(
-            &pAllocateInfo->descriptorPool->bumpAllocator,
+            &pAllocateInfo->descriptorPool->linearAllocator,
             sizeof(CtsGlDescriptorSetLayoutBinding) * descriptorSet->bindingCount,
             alignof(CtsGlDescriptorSetLayoutBinding),
             CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
@@ -119,21 +119,21 @@ CtsResult ctsAllocateDescriptorSetsImpl(
 
             if (target->type == CTS_GL_DESCRIPTOR_TYPE_IMAGE_INFO) {
                 target->imageInfo = ctsAllocation(
-                    &pAllocateInfo->descriptorPool->bumpAllocator,
+                    &pAllocateInfo->descriptorPool->linearAllocator,
                     sizeof(CtsDescriptorImageInfo) * target->descriptorCount,
                     alignof(CtsDescriptorImageInfo),
                     CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
                 );
             } else if (target->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_INFO) {
                 target->bufferInfo = ctsAllocation(
-                    &pAllocateInfo->descriptorPool->bumpAllocator,
+                    &pAllocateInfo->descriptorPool->linearAllocator,
                     sizeof(CtsDescriptorBufferInfo) * target->descriptorCount,
                     alignof(CtsDescriptorBufferInfo),
                     CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
                 );
             } else if (target->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_VIEW) {
                 target->texelBufferView = ctsAllocation(
-                    &pAllocateInfo->descriptorPool->bumpAllocator,
+                    &pAllocateInfo->descriptorPool->linearAllocator,
                     sizeof(CtsBufferView) * target->descriptorCount,
                     alignof(CtsBufferView),
                     CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
@@ -202,20 +202,20 @@ CtsResult ctsFreeDescriptorSetsImpl(
             CtsGlDescriptorSetLayoutBinding* binding = &descriptorSet->bindings[j];
 
             if (binding->imageInfo != NULL) {
-                ctsFree(&pDescriptorPool->bumpAllocator, binding->imageInfo);
+                ctsFree(&pDescriptorPool->linearAllocator, binding->imageInfo);
             }
 
             if (binding->bufferInfo != NULL) {
-                ctsFree(&pDescriptorPool->bumpAllocator, binding->bufferInfo);
+                ctsFree(&pDescriptorPool->linearAllocator, binding->bufferInfo);
             }
 
             if (binding->texelBufferView != NULL) {
-                ctsFree(&pDescriptorPool->bumpAllocator, binding->texelBufferView);
+                ctsFree(&pDescriptorPool->linearAllocator, binding->texelBufferView);
             }
         }
 
-        ctsFree(&pDescriptorPool->bumpAllocator, descriptorSet->bindings);
-        ctsFree(&pDescriptorPool->bumpAllocator, pDescriptorSets[i]);
+        ctsFree(&pDescriptorPool->linearAllocator, descriptorSet->bindings);
+        ctsFree(&pDescriptorPool->linearAllocator, pDescriptorSets[i]);
     }
 
     return CTS_SUCCESS;

@@ -52,7 +52,7 @@ CtsResult ctsAllocateCommandBuffers(
     CtsResult result = CTS_SUCCESS;
     uint32_t i = 0;
 
-    const CtsAllocationCallbacks* allocator = &pAllocateInfo->commandPool->bumpAllocator;
+    const CtsAllocationCallbacks* allocator = &pAllocateInfo->commandPool->poolAllocator;
 
     for (; i < pAllocateInfo->commandBufferCount; ++i) {
         CtsCommandBuffer commandBuffer = ctsAllocation(
@@ -90,7 +90,7 @@ void ctsFreeCommandBuffers(
     uint32_t pCommandBufferCount,
     const CtsCommandBuffer* pCommandBuffers
 ) {
-    const CtsAllocationCallbacks* allocator = &pCommandPool->bumpAllocator;
+    const CtsAllocationCallbacks* allocator = &pCommandPool->poolAllocator;
 
     for (uint32_t i = 0; i < pCommandBufferCount; ++i) {
         CtsCommandBuffer commandBuffer = pCommandBuffers[i];
@@ -992,7 +992,7 @@ void* ctsCommandBufferAllocateCommand(
 
     const CtsCommandMetadata* metadata = ctsGetCommandMetadata(pCommandType);
     CtsCmdBase* cmd = ctsAllocation(
-        &pCommandBuffer->pool->bumpAllocator,
+        &pCommandBuffer->pool->poolAllocator,
         metadata->size,
         metadata->align,
         CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND

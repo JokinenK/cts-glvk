@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <cts/align.h>
 #include <cts/allocator.h>
-#include <cts/bump_allocator_proxy.h>
 #include <cts/command_pool.h>
+#include <cts/command_dispatcher.h>
 #include <private/command_pool_private.h>
 
 #ifdef __cplusplus
@@ -26,11 +26,12 @@ CtsResult ctsCreateCommandPool(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    CtsBumpAllocatorCreateInfo bumpAllocatorCreateInfo;
-    bumpAllocatorCreateInfo.allocator = pAllocator;
-    bumpAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
-    ctsCreateBumpAllocator(&commandPool->bumpAllocatorInstance, &bumpAllocatorCreateInfo);
-    ctsInitBumpAllocatorProxy(commandPool->bumpAllocatorInstance, &commandPool->bumpAllocator);
+    CtsPoolAllocatorCreateInfo poolAllocatorCreateInfo;
+    poolAllocatorCreateInfo.allocator = pAllocator;
+    poolAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
+    poolAllocatorCreateInfo.blockSize = ctsGetMaxCommandSize();
+    ctsCreatePoolAllocator(&commandPool->poolAllocatorInstance, &poolAllocatorCreateInfo);
+    ctsGetPoolAllocatorCallbacks(commandPool->poolAllocatorInstance, &commandPool->poolAllocator);
 
     *pCommandPool = commandPool;
     return CTS_SUCCESS;
@@ -42,7 +43,7 @@ void ctsDestroyCommandPool(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (pCommandPool != NULL) {
-        ctsDestroyBumpAllocator(pCommandPool->bumpAllocatorInstance);
+        ctsDestroyPoolAllocator(pCommandPool->poolAllocatorInstance);
         ctsFree(pAllocator, pCommandPool);
     }
 }
