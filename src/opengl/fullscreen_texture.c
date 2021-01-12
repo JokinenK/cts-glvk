@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <glad/glad.h>
 #include <cts/fullscreen_texture.h>
+#include <cts/typedefs/gl_shader.h>
+#include <cts/typedefs/gl_pipeline.h>
+#include <private/device_private.h>
+#include <private/framebuffer_private.h>
 #include <private/image_private.h>
+#include <private/pipeline_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +44,7 @@ struct ShaderData {
     const char* source;
     const int sourceLen;
 } gShaderModules[SHADER_MODULE_COUNT] = {
-    { GL_INVALID_ENUM, GL_VERTEX_SHADER, gVsShaderSource, sizeof(gVsShaderSource) },
+    { GL_INVALID_ENUM, GL_VERTEX_SHADER,   gVsShaderSource, sizeof(gVsShaderSource) },
     { GL_INVALID_ENUM, GL_FRAGMENT_SHADER, gFsShaderSource, sizeof(gFsShaderSource) },
 };
 
@@ -88,16 +93,25 @@ CtsResult ctsDrawFSTexture(
     CtsDevice pDevice,
     CtsImage pImage
 ) {
+    GLuint prevProgram = (pDevice->activeGraphicsPipeline != NULL)
+        ? pDevice->activeGraphicsPipeline->shader.handle
+        : 0u;
+
+    GLuint prevFramebuffer = (pDevice->activeFramebuffer != NULL)
+        ? pDevice->activeFramebuffer->handle
+        : 0u;
+
+    GLenum prevTextureTarget = pDevice->activeTextures[0].target;
+    GLint prevTextureHandle = pDevice->activeTextures[0].handle;
+
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glUseProgram(gShaderProgram);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, pImage->handle);
     glDrawArrays(GL_POINT, 0, 4);
-    
-    // TODO: Restore state
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glUseProgram(0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glUseProgram(prevProgram);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFramebuffer);
+    glBindTexture(prevTextureTarget, prevTextureHandle);
 
     return CTS_SUCCESS;
 }

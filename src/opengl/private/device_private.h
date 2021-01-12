@@ -13,6 +13,11 @@
 extern "C" {
 #endif
 
+typedef struct CtsTextureBinding {
+    GLenum target;
+    GLuint handle;
+} CtsTextureBinding;
+
 struct CtsDevice {
     bool isRunning;
     CtsQueue queue;
@@ -20,8 +25,10 @@ struct CtsDevice {
     CtsSemaphore initSemaphore;
     CtsSemaphore dispatchSemaphore;
 
+    CtsGlGraphicsPipeline* activeGraphicsPipeline;
     CtsFramebuffer activeFramebuffer;
     uint32_t activeSubpass;
+    CtsTextureBinding activeTextures[32];
 
     CtsPhysicalDevice physicalDevice;
     CtsFlags activeDynamicState;

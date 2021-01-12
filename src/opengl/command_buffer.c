@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 static bool hasFlag(CtsFlags flags, CtsFlags flag);
+static void bindTexture(CtsDevice pDevice, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsTextureBinding* pPrevious);
 static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint32_t pSubpassNumber);
 static void bindDynamicState(CtsDevice pDevice, CtsFlags pState);
 static void bindVertexInputState(CtsDevice pDevice, CtsGlPipelineVertexInputState* pState);
@@ -1142,6 +1143,8 @@ void ctsCmdBindDescriptorSetsImpl(
     (void) dynamicOffsetCount;
     (void) pDynamicOffsets;
 
+    CtsDevice device = pCommandBuffer->device;
+
     for (uint32_t i = pFirstSet; i < pDescriptorSetCount; ++i) {
         const CtsDescriptorSet descriptorSet = pDescriptorSets[i];
 
@@ -1153,8 +1156,7 @@ void ctsCmdBindDescriptorSetsImpl(
                     CtsDescriptorImageInfo* imageInfo = &binding->imageInfo[k];
                     CtsImageView imageView = imageInfo->imageView;
                     
-                    glActiveTexture(GL_TEXTURE0 + binding->binding + k);
-                    glBindTexture(imageView->target, imageView->handle);
+                    bindTexture(device, binding->binding + k, imageView->target, imageView->handle, NULL);
                     glBindSampler(binding->binding, imageInfo->sampler->handle);
                 } else if (binding->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_INFO) {
                     CtsDescriptorBufferInfo* bufferInfo = &binding->bufferInfo[k];
@@ -1195,9 +1197,8 @@ void ctsCmdBindPipelineImpl(
 ) {
     CtsDevice device = pCommandBuffer->device;
 
-    CtsPipeline pipeline = pPipeline;
-    if (pipeline->bindPoint == CTS_PIPELINE_BIND_POINT_GRAPHICS) {
-        CtsGlGraphicsPipeline* graphicsPipeline = pipeline->graphics;
+    if (pPipeline->bindPoint == CTS_PIPELINE_BIND_POINT_GRAPHICS) {
+        CtsGlGraphicsPipeline* graphicsPipeline = pPipeline->graphics;
         
         bindDynamicState(device, graphicsPipeline->dynamicState);
         bindVertexInputState(device, &graphicsPipeline->vertexInputState);
@@ -1208,6 +1209,8 @@ void ctsCmdBindPipelineImpl(
         bindMultisampleState(device, &graphicsPipeline->multisampleState);
         bindDepthStencilState(device, &graphicsPipeline->depthStencilState);
         bindColorBlendState(device, &graphicsPipeline->colorBlendState);
+
+        device->activeGraphicsPipeline = graphicsPipeline;
     }
 }
 
@@ -1317,9 +1320,12 @@ void ctsCmdCopyBufferToImageImpl(
 ) {
     (void) pDstImageLayout;
 
+    CtsDevice device = pCommandBuffer->device;
     GLenum target = pDstImage->target;
+ 
+    CtsTextureBinding previous;
+    bindTexture(device, 0, target, pDstImage->handle, &previous);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pSrcBuffer->memory->handle);
-    glBindTexture(target, pDstImage->handle);
     
     for (uint32_t i = 0; i < pRegionCount; ++i) {
         const CtsBufferImageCopy* region = &pRegions[i];
@@ -1384,7 +1390,7 @@ void ctsCmdCopyBufferToImageImpl(
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     }
 
-    glBindTexture(target, 0);
+    bindTexture(device, 0, previous.target, previous.handle, NULL);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
@@ -1434,8 +1440,11 @@ void ctsCmdCopyImageToBufferImpl(
     (void) pSrcImageLayout;
 
     GLenum target = pSrcImage->target;
+    CtsDevice device = pCommandBuffer->device;
+
+    CtsTextureBinding previous;
+    bindTexture(device, 0, target, pSrcImage->handle, &previous);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pDstBuffer->memory->handle);
-    glBindTexture(target, pSrcImage->handle);
     
     for (uint32_t i = 0; i < pRegionCount; ++i) {
         const CtsBufferImageCopy* region = &pRegions[i];
@@ -1481,7 +1490,7 @@ void ctsCmdCopyImageToBufferImpl(
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
     }
 
-    glBindTexture(target, 0);
+    bindTexture(device, 0, previous.target, previous.handle, NULL);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
@@ -1859,6 +1868,21 @@ static bool hasFlag(CtsFlags flags, CtsFlagBit flag) {
     return ((flags & flag) == flag);
 }
 
+static void bindTexture(CtsDevice pDevice, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsTextureBinding* pPrevious) {
+    glActiveTexture(GL_TEXTURE0 + pSlot);
+    glBindTexture(pTarget, pHandle);
+
+    CtsTextureBinding* data = &pDevice->activeTextures[pSlot];
+
+    if (pPrevious != NULL) {
+        pPrevious->target = data->target;
+        pPrevious->handle = data->handle;
+    }
+
+    data->handle = pHandle;
+    data->target = pTarget;
+}
+
 static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint32_t pSubpassNumber) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pFramebuffer->handle);
     const CtsSubpassDescription* subpassDescription = &pFramebuffer->renderPass->subpasses[pSubpassNumber];
@@ -1877,8 +1901,7 @@ static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint
         const CtsAttachmentReference* inputAttachment = &subpassDescription->inputAttachments[i];
         const CtsImageView imageView = pFramebuffer->attachments[inputAttachment->attachment];
 
-        glActiveTexture(GL_TEXTURE0 + inputAttachment->attachment);
-        glBindTexture(imageView->target, imageView->handle);
+        bindTexture(pDevice, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
     }
 
     for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
