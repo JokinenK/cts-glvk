@@ -12,10 +12,11 @@
 extern "C" {
 #endif
 
-typedef struct CtsTextureFormatPair {
+typedef struct CtsFormatData {
     GLenum format;
-    GLint internalFormat;
-} CtsFormatPair;
+    GLenum type;
+    GLenum internalFormat;
+} CtsFormatData;
 
 typedef struct CtsAttributeInfo {
     GLenum type;
@@ -43,7 +44,7 @@ const GLenum parseRenderTargetBind(CtsRenderTargetBind pValue);
 
 const CtsFlags parseDynamicStateFlag(CtsDynamicState pValue);
 const CtsAttribType parseCtsAttribType(GLenum pType);
-const CtsFormatPair parseFormatPair(CtsFormat pValue);
+const CtsFormatData parseFormat(CtsFormat pValue);
 const CtsAttributeMapping parseAttributeMapping(CtsAttribType pValue);
 const CtsGlDescriptorType parseDescriptorType(CtsDescriptorType pValue);
 
@@ -58,7 +59,6 @@ void parseDepthStencilStateChanges(
     const CtsGlPipelineDepthStencilState* pRhs, 
     CtsGlDepthStencilStateChanges* pChanges
 );
-
 
 bool parseColorBlendStateBlendConstantChanged(
     CtsGlPipelineColorBlendState* pLhs,

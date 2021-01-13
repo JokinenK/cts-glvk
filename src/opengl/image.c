@@ -69,24 +69,22 @@ CtsResult ctsCreateImageImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    const CtsImageCreateInfo* createInfo = pCreateInfo;
+    (void) pCreateInfo->mipLevels;
+    (void) pCreateInfo->arrayLayers;
+    (void) pCreateInfo->samples;
+    //(void) pCreateInfo->tiling;
+    //(void) pCreateInfo->sharingMode;
+    (void) pCreateInfo->queueFamilyIndexCount;
+    (void) pCreateInfo->queueFamilyIndices;
+    //(void) pCreateInfo->initialLayout;
 
-    (void) createInfo->mipLevels;
-    (void) createInfo->arrayLayers;
-    (void) createInfo->samples;
-    //(void) createInfo->tiling;
-    (void) createInfo->usage;
-    //(void) createInfo->sharingMode;
-    (void) createInfo->queueFamilyIndexCount;
-    (void) createInfo->queueFamilyIndices;
-    //(void) createInfo->initialLayout;
-
-    CtsFormatPair formatPair = parseFormatPair(createInfo->imageFormat);
+    CtsFormatData formatData = parseFormat(pCreateInfo->imageFormat);
 
     glGenTextures(1, &image->handle);
-    image->imageType = createInfo->imageType;
-    image->target = parseImageType(createInfo->imageType);
-    image->internalFormat = formatPair.internalFormat;
+    image->imageType = pCreateInfo->imageType;
+    image->target = parseImageType(pCreateInfo->imageType);
+    image->internalFormat = formatData.internalFormat;
+    image->imageUsage = pCreateInfo->usage;
     glBindTexture(image->target, image->handle);
 
     // TODO: Support mip levels
@@ -94,36 +92,36 @@ CtsResult ctsCreateImageImpl(
         glTexImage1D(
             image->target,
             0,
-            image->internalFormat,
-            createInfo->extent.width,
+            formatData.internalFormat,
+            pCreateInfo->extent.width,
             0,
-            formatPair.format,
-            GL_RGBA,
+            formatData.format,
+            formatData.type,
             NULL
         );
     } else if (image->imageType == CTS_IMAGE_TYPE_2D) {
         glTexImage2D(
             image->target,
             0,
-            image->internalFormat,
-            createInfo->extent.width,
-            createInfo->extent.height,
+            formatData.internalFormat,
+            pCreateInfo->extent.width,
+            pCreateInfo->extent.height,
             0,
-            formatPair.format,
-            GL_RGBA,
+            formatData.format,
+            formatData.type,
             NULL
         );
     } else if (image->imageType == CTS_IMAGE_TYPE_3D) {
         glTexImage3D(
             image->target,
             0,
-            image->internalFormat,
-            createInfo->extent.width,
-            createInfo->extent.height,
-            createInfo->extent.depth,
+            formatData.internalFormat,
+            pCreateInfo->extent.width,
+            pCreateInfo->extent.height,
+            pCreateInfo->extent.depth,
             0,
-            formatPair.format,
-            GL_RGBA,
+            formatData.format,
+            formatData.type,
             NULL
         );
     }

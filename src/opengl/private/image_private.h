@@ -13,6 +13,7 @@ struct CtsImage {
     GLenum type;
     GLenum target;
     CtsImageType imageType;
+    CtsImageUsageFlags imageUsage;
 };
 
 CtsResult ctsCreateImageImpl(

@@ -70,8 +70,7 @@ CtsResult ctsCreateImageViewImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    CtsFormatPair formatPair = parseFormatPair(pCreateInfo->format);
-    (void) pCreateInfo->viewType;
+    CtsFormatData formatData = parseFormat(pCreateInfo->format);
     (void) pCreateInfo->components;
 
     glGenTextures(1, &imageView->handle);
@@ -79,12 +78,15 @@ CtsResult ctsCreateImageViewImpl(
         imageView->handle,
         pCreateInfo->image->target,
         pCreateInfo->image->handle,
-        formatPair.internalFormat,
+        formatData.internalFormat,
         pCreateInfo->subresourceRange.baseMipLevel,
         pCreateInfo->subresourceRange.levelCount,
         pCreateInfo->subresourceRange.baseArrayLayer,
         pCreateInfo->subresourceRange.layerCount
     );
+
+    imageView->imageUsage = pCreateInfo->image->imageUsage;
+    imageView->viewType = pCreateInfo->viewType;
 
     *pImageView = imageView;
     return CTS_SUCCESS;

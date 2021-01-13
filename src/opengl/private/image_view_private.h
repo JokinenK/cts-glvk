@@ -12,6 +12,7 @@ struct CtsImageView {
     GLenum handle;
 
     CtsImageViewType viewType;
+    CtsImageUsageFlags imageUsage;
 };
 
 CtsResult ctsCreateImageViewImpl(

@@ -1109,9 +1109,13 @@ void ctsCmdBeginRenderPassImpl(
         const CtsClearValue* clearValue = &pRenderPassBegin->clearValues[i];
         const CtsAttachmentDescription* description = &pRenderPassBegin->renderPass->attachments[i];
 
-        if (description->format == CTS_FORMAT_DEPTH ||
-            description->format == CTS_FORMAT_DEPTHSTENCIL ||
-            description->format == CTS_FORMAT_DEPTH24STENCIL8
+        if (description->format == CTS_FORMAT_D16_UNORM ||
+            description->format == CTS_FORMAT_D32_SFLOAT
+        ) {
+            glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
+        } else if (
+            description->format == CTS_FORMAT_D24_UNORM_S8_UINT ||
+            description->format == CTS_FORMAT_D32_SFLOAT_S8_UINT
         ) {
             glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth,  clearValue->depthStencil.stencil);
         } else {

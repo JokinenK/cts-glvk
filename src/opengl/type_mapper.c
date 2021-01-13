@@ -111,16 +111,90 @@ static GLenum sImageTypes[] = {
     GL_TEXTURE_3D
 };
 
-static const CtsFormatPair sImageFormats[] = {
-    { GL_RED,             GL_RED },              // Red
-    { GL_RG,              GL_RG },               // RG
-    { GL_RGB,             GL_RGB },              // RGB
-    { GL_RGBA,            GL_RGBA },             // RGBA
-    { GL_BGR,             GL_RGB },              // BGR
-    { GL_BGRA,            GL_RGBA },             // BGRA
-    { GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT },  // Depth
-    { GL_DEPTH_STENCIL,   GL_DEPTH_STENCIL },    // DepthStencil
-    { GL_DEPTH_STENCIL,   GL_DEPTH24_STENCIL8 }, // Depth24Stencil8
+static const CtsFormatData sFormats[] = {
+    { GL_INVALID_ENUM,    GL_INVALID_ENUM,                   GL_INVALID_ENUM       }, // CTS_FORMAT_UNDEFINED
+      
+    { GL_RGBA,            GL_UNSIGNED_SHORT_4_4_4_4,         GL_RGBA4              }, // CTS_FORMAT_R4G4B4A4_UNORM_PACK16
+    { GL_BGRA,            GL_UNSIGNED_SHORT_4_4_4_4,         GL_RGBA4              }, // CTS_FORMAT_B4G4R4A4_UNORM_PACK16
+                  
+    { GL_RGBA,            GL_UNSIGNED_SHORT_5_5_5_1,         GL_RGB5_A1            }, // CTS_FORMAT_R5G5B5A1_UNORM_PACK16
+    { GL_BGRA,            GL_UNSIGNED_SHORT_5_5_5_1,         GL_RGB5_A1            }, // CTS_FORMAT_B5G5R5A1_UNORM_PACK16
+                  
+    { GL_RED,             GL_UNSIGNED_BYTE,                  GL_R8                 }, // CTS_FORMAT_R8_UNORM
+    { GL_RED,             GL_BYTE,                           GL_R8_SNORM           }, // CTS_FORMAT_R8_SNORM 
+    { GL_RED_INTEGER,     GL_UNSIGNED_BYTE,                  GL_R8UI               }, // CTS_FORMAT_R8_UINT 
+    { GL_RED_INTEGER,     GL_BYTE,                           GL_R8I                }, // CTS_FORMAT_R8_SINT 
+                  
+    { GL_RG,              GL_UNSIGNED_BYTE,                  GL_RG8                }, // CTS_FORMAT_R8G8_UNORM 
+    { GL_RG,              GL_BYTE,                           GL_RG8_SNORM          }, // CTS_FORMAT_R8G8_SNORM 
+    { GL_RG_INTEGER,      GL_UNSIGNED_BYTE,                  GL_RG8UI              }, // CTS_FORMAT_R8G8_UINT 
+    { GL_RG_INTEGER,      GL_BYTE,                           GL_RG8I               }, // CTS_FORMAT_R8G8_SINT 
+            
+    { GL_RGB,             GL_UNSIGNED_BYTE,                  GL_RGB8               }, // CTS_FORMAT_R8G8B8_UNORM 
+    { GL_RGB,             GL_BYTE,                           GL_RGB8_SNORM         }, // CTS_FORMAT_R8G8B8_SNORM 
+    { GL_RGB_INTEGER,     GL_UNSIGNED_BYTE,                  GL_RGB8UI             }, // CTS_FORMAT_R8G8B8_UINT 
+    { GL_RGB_INTEGER,     GL_BYTE,                           GL_RGB8I              }, // CTS_FORMAT_R8G8B8_SINT 
+                  
+    { GL_BGR,             GL_UNSIGNED_BYTE,                  GL_RGB8               }, // CTS_FORMAT_B8G8R8_UNORM 
+    { GL_BGR,             GL_BYTE,                           GL_RGB8_SNORM         }, // CTS_FORMAT_B8G8R8_SNORM 
+    { GL_BGR_INTEGER,     GL_UNSIGNED_BYTE,                  GL_RGB8UI             }, // CTS_FORMAT_B8G8R8_UINT 
+    { GL_BGR_INTEGER,     GL_BYTE,                           GL_RGB8I              }, // CTS_FORMAT_B8G8R8_SINT 
+                 
+    { GL_RGBA,            GL_UNSIGNED_BYTE,                  GL_RGBA8              }, // CTS_FORMAT_R8G8B8A8_UNORM 
+    { GL_RGBA,            GL_BYTE,                           GL_RGBA8_SNORM        }, // CTS_FORMAT_R8G8B8A8_SNORM 
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_BYTE,                  GL_RGBA8UI            }, // CTS_FORMAT_R8G8B8A8_UINT 
+    { GL_RGBA_INTEGER,    GL_BYTE,                           GL_RGBA8I             }, // CTS_FORMAT_R8G8B8A8_SINT 
+                 
+    { GL_BGRA,            GL_UNSIGNED_BYTE,                  GL_RGBA8              }, // CTS_FORMAT_B8G8R8A8_UNORM 
+    { GL_BGRA,            GL_BYTE,                           GL_RGBA8_SNORM        }, // CTS_FORMAT_B8G8R8A8_SNORM 
+    { GL_BGRA_INTEGER,    GL_UNSIGNED_BYTE,                  GL_RGBA8UI            }, // CTS_FORMAT_B8G8R8A8_UINT 
+    { GL_BGRA_INTEGER,    GL_BYTE,                           GL_RGBA8I             }, // CTS_FORMAT_B8G8R8A8_SINT 
+          
+    { GL_RED,             GL_UNSIGNED_SHORT,                 GL_R16                }, // CTS_FORMAT_R16_UNORM 
+    { GL_RED,             GL_SHORT,                          GL_R16_SNORM          }, // CTS_FORMAT_R16_SNORM 
+    { GL_RED_INTEGER,     GL_UNSIGNED_SHORT,                 GL_R16UI              }, // CTS_FORMAT_R16_UINT 
+    { GL_RED_INTEGER,     GL_SHORT,                          GL_R16I               }, // CTS_FORMAT_R16_SINT 
+    { GL_RED,             GL_FLOAT,                          GL_R16F               }, // CTS_FORMAT_R16_SFLOAT 
+                           
+    { GL_RG,              GL_UNSIGNED_SHORT,                 GL_RG16               }, // CTS_FORMAT_R16G16_UNORM 
+    { GL_RG,              GL_SHORT,                          GL_RG16_SNORM         }, // CTS_FORMAT_R16G16_SNORM 
+    { GL_RG_INTEGER,      GL_UNSIGNED_SHORT,                 GL_RG16UI             }, // CTS_FORMAT_R16G16_UINT 
+    { GL_RG_INTEGER,      GL_SHORT,                          GL_RG16I              }, // CTS_FORMAT_R16G16_SINT 
+    { GL_RG,              GL_FLOAT,                          GL_RG16F              }, // CTS_FORMAT_R16G16_SFLOAT 
+                          
+    { GL_RGB,             GL_UNSIGNED_SHORT,                 GL_RGB16              }, // CTS_FORMAT_R16G16B16_UNORM 
+    { GL_RGB,             GL_SHORT,                          GL_RGB16_SNORM        }, // CTS_FORMAT_R16G16B16_SNORM 
+    { GL_RGB_INTEGER,     GL_UNSIGNED_SHORT,                 GL_RGB16UI            }, // CTS_FORMAT_R16G16B16_UINT 
+    { GL_RGB_INTEGER,     GL_SHORT,                          GL_RGB16I             }, // CTS_FORMAT_R16G16B16_SINT 
+    { GL_RGB,             GL_FLOAT,                          GL_RGB16F             }, // CTS_FORMAT_R16G16B16_SFLOAT 
+                         
+    { GL_RGBA,            GL_UNSIGNED_SHORT,                 GL_RGBA16             }, // CTS_FORMAT_R16G16B16A16_UNORM 
+    { GL_RGBA,            GL_SHORT,                          GL_RGBA16_SNORM       }, // CTS_FORMAT_R16G16B16A16_SNORM 
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_SHORT,                 GL_RGBA16UI           }, // CTS_FORMAT_R16G16B16A16_UINT 
+    { GL_RGBA_INTEGER,    GL_SHORT,                          GL_RGBA16I            }, // CTS_FORMAT_R16G16B16A16_SINT 
+    { GL_RGBA,            GL_HALF_FLOAT,                     GL_RGBA16F            }, // CTS_FORMAT_R16G16B16A16_SFLOAT 
+                       
+    { GL_RED_INTEGER,     GL_UNSIGNED_INT,                   GL_R32UI              }, // CTS_FORMAT_R32_UINT 
+    { GL_RED_INTEGER,     GL_INT,                            GL_R32I               }, // CTS_FORMAT_R32_SINT 
+    { GL_RED,             GL_FLOAT,                          GL_R32F               }, // CTS_FORMAT_R32_SFLOAT
+                                
+    { GL_RG_INTEGER,      GL_UNSIGNED_INT,                   GL_RG32UI             }, // CTS_FORMAT_R32G32_UINT
+    { GL_RG_INTEGER,      GL_INT,                            GL_RG32I              }, // CTS_FORMAT_R32G32_SINT
+    { GL_RG,              GL_FLOAT,                          GL_RG32F              }, // CTS_FORMAT_R32G32_SFLOAT
+                                 
+    { GL_RGB_INTEGER,     GL_UNSIGNED_INT,                   GL_RGB32UI            }, // CTS_FORMAT_R32G32B32_UINT
+    { GL_RGB_INTEGER,     GL_INT,                            GL_RGB32I             }, // CTS_FORMAT_R32G32B32_SINT
+    { GL_RGB,             GL_FLOAT,                          GL_RGB32F             }, // CTS_FORMAT_R32G32B32_SFLOAT
+                               
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_INT,                   GL_RGBA32UI           }, // CTS_FORMAT_R32G32B32A32_UINT
+    { GL_RGBA_INTEGER,    GL_INT,                            GL_RGBA32I            }, // CTS_FORMAT_R32G32B32A32_SINT
+    { GL_RGBA,            GL_FLOAT,                          GL_RGBA32F            }, // CTS_FORMAT_R32G32B32A32_SFLOAT
+                
+    { GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT,                 GL_DEPTH_COMPONENT16  }, // CTS_FORMAT_D16_UNORM
+    { GL_DEPTH_COMPONENT, GL_FLOAT,                          GL_DEPTH_COMPONENT32F }, // CTS_FORMAT_D32_SFLOAT
+
+    { GL_DEPTH_STENCIL,   GL_UNSIGNED_INT_24_8,              GL_DEPTH24_STENCIL8   }, // CTS_FORMAT_D24_UNORM_S8_UINT
+    { GL_DEPTH_STENCIL,   GL_FLOAT_32_UNSIGNED_INT_24_8_REV, GL_DEPTH32F_STENCIL8  }, // CTS_FORMAT_D32_SFLOAT_S8_UINT
 };
 
 static GLenum sPrimitiveTypes[] = {
@@ -236,7 +310,7 @@ static_assert(COUNTOF(sFilters) == NUM_CTS_FILTERS, "Assertion failure");
 static_assert(COUNTOF(sAttributeMappings) == NUM_CTS_ATTRIB_TYPES, "Assertion failure");
 static_assert(COUNTOF(sShaderTypes) == NUM_CTS_SHADER_TYPES, "Assertion failure");
 static_assert(COUNTOF(sImageTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
-static_assert(COUNTOF(sImageFormats) == NUM_CTS_IMAGE_FORMATS, "Assertion failure");
+static_assert(COUNTOF(sFormats) == NUM_CTS_FORMATS, "Assertion failure");
 static_assert(COUNTOF(sPrimitiveTypes) == NUM_CTS_PRIMITIVE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sBufferUsages) == NUM_CTS_BUFFER_USAGES, "Assertion failure");
 static_assert(COUNTOF(sBufferTypes) == NUM_CTS_BUFFER_TYPES, "Assertion failure");
@@ -336,9 +410,9 @@ const CtsFlags parseDynamicStateFlag(CtsDynamicState pValue)
     return sDynamicStates[pValue];
 }
 
-const CtsFormatPair parseFormatPair(CtsFormat pValue)
+const CtsFormatData parseFormat(CtsFormat pValue)
 {
-    return sImageFormats[pValue];
+    return sFormats[pValue];
 }
 
 const CtsAttributeMapping parseAttributeMapping(CtsAttribType pValue)
