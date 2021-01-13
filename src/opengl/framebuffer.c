@@ -90,23 +90,38 @@ CtsResult ctsCreateFramebufferImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    framebuffer->drawBuffers = ctsAllocation(
-        pAllocator,
-        sizeof(GLenum) * pCreateInfo->attachmentCount,
-        alignof(GLenum),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-    );
-
-    if (framebuffer->drawBuffers == NULL) {
-        ctsDestroyFramebufferImpl(pDevice, framebuffer, pAllocator);
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
-    }
-
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->handle);
+    
+    uint32_t colorAttachmentCount = 0;
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
-        framebuffer->attachments[i] = pCreateInfo->attachments[i];
+        CtsImageView attachment = pCreateInfo->attachments[i];
+
+        if (attachment->imageUsage & CTS_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
+            GLenum buffer = GL_COLOR_ATTACHMENT0 + colorAttachmentCount++;
+            glFramebufferTexture2D(
+                GL_DRAW_FRAMEBUFFER,
+                buffer,
+                attachment->target,
+                attachment->handle,
+                0
+            );
+        } else if (attachment->imageUsage & CTS_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+            GLenum buffer = GL_DEPTH_STENCIL_ATTACHMENT;
+            glFramebufferTexture2D(
+                GL_DRAW_FRAMEBUFFER,
+                buffer,
+                attachment->target,
+                attachment->handle,
+                0
+            );
+        }
+
+        framebuffer->attachments[i] = attachment;
     }
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     *pFramebuffer = framebuffer;
+
     return CTS_SUCCESS;
 }
 
@@ -121,7 +136,6 @@ void ctsDestroyFramebufferImpl(
         glDeleteFramebuffers(1, &pFramebuffer->handle);
 
         ctsFree(pAllocator, pFramebuffer->attachments);
-        ctsFree(pAllocator, pFramebuffer->drawBuffers);
         ctsFree(pAllocator, pFramebuffer);
     }
 }

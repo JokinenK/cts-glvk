@@ -25,9 +25,10 @@ struct CtsDevice {
     CtsSemaphore initSemaphore;
     CtsSemaphore dispatchSemaphore;
 
-    CtsGlGraphicsPipeline* activeGraphicsPipeline;
+    const CtsGlGraphicsPipeline* activeGraphicsPipeline;
     CtsFramebuffer activeFramebuffer;
-    uint32_t activeSubpass;
+    uint32_t activeSubpassNumber;
+    const CtsSubpassDescription* activeSubpass;
     CtsTextureBinding activeTextures[32];
 
     CtsPhysicalDevice physicalDevice;

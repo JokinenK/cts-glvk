@@ -7,9 +7,18 @@
 extern "C" {
 #endif
 
+typedef struct CtsGlDescriptorSetLayoutBinding {
+    uint32_t binding;
+    CtsDescriptorType descriptorType;
+    uint32_t descriptorCount;
+    uint32_t descriptorOffset;
+    CtsShaderStageFlags stageFlags;
+    const CtsSampler* immutableSamplers;
+} CtsGlDescriptorSetLayoutBinding;
+
 struct CtsDescriptorSetLayout {
     uint32_t bindingCount;
-    CtsDescriptorSetLayoutBinding* bindings;
+    CtsGlDescriptorSetLayoutBinding* bindings;
 };
 
 #ifdef __cplusplus

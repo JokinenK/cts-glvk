@@ -1,9 +1,11 @@
+#include <assert.h>
 #include <stddef.h>
 #include <cts/descriptor_set.h>
 #include <cts/commands.h>
 #include <cts/type_mapper.h>
 #include <private/device_private.h>
 #include <private/descriptor_pool_private.h>
+#include <private/descriptor_private.h>
 #include <private/descriptor_set_layout_private.h>
 #include <private/descriptor_set_private.h>
 #include <private/queue_private.h>
@@ -11,6 +13,33 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static void writeImageView(
+    CtsDevice pDevice,
+    CtsDescriptorSet pDescriptorSet, 
+    CtsDescriptorType pDescriptorType, 
+    const CtsDescriptorImageInfo* pDescriptorImageInfo, 
+    uint32_t pBinding, 
+    uint32_t pElement
+);
+
+static void writeBufferView(
+    CtsDevice pDevice,
+    CtsDescriptorSet pDescriptorSet, 
+    CtsDescriptorType pDescriptorType, 
+    CtsBufferView pBufferView, 
+    uint32_t pBinding, 
+    uint32_t pElement
+);
+
+static void writeBuffer(
+    CtsDevice pDevice,
+    CtsDescriptorSet pDescriptorSet, 
+    CtsDescriptorType pDescriptorType, 
+    const CtsDescriptorBufferInfo* pDescriptorBufferInfo, 
+    uint32_t pBinding, 
+    uint32_t pElement
+);
 
 CtsResult ctsAllocateDescriptorSets(
     CtsDevice pDevice,
@@ -94,51 +123,26 @@ CtsResult ctsAllocateDescriptorSetsImpl(
             break;
         }
 
-        const CtsDescriptorSetLayout setLayout = pAllocateInfo->setLayouts[i];
+        CtsDescriptorSetLayout layout = pAllocateInfo->setLayouts[i];
+        
+        uint32_t descriptorCount = 0;
+        for (uint32_t j = 0; j < layout->bindingCount; ++j) {
+            const CtsGlDescriptorSetLayoutBinding* binding = &layout->bindings[j];
+            descriptorCount += binding->descriptorCount;
+        }
 
-        descriptorSet->bindingCount = setLayout->bindingCount;
-        descriptorSet->bindings = ctsAllocation(
+        descriptorSet->layout = layout;
+        descriptorSet->descriptorCount = descriptorCount;
+        descriptorSet->descriptors = ctsAllocation(
             &pAllocateInfo->descriptorPool->linearAllocator,
-            sizeof(CtsGlDescriptorSetLayoutBinding) * descriptorSet->bindingCount,
-            alignof(CtsGlDescriptorSetLayoutBinding),
+            sizeof(struct CtsDescriptor) * descriptorCount,
+            alignof(struct CtsDescriptor),
             CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
-        for (uint32_t j = 0; j < descriptorSet->bindingCount; ++j) {
-            CtsDescriptorSetLayoutBinding* source = &setLayout->bindings[j];
-            CtsGlDescriptorSetLayoutBinding* target = &descriptorSet->bindings[j];
-            
-            target->stageFlags = source->stageFlags;
-            target->binding = source->binding;
-            target->descriptorCount = source->descriptorCount;
-            target->descriptorType = source->descriptorType;
-            target->type = parseDescriptorType(source->descriptorType);
-            target->imageInfo = NULL;
-            target->bufferInfo = NULL;
-            target->texelBufferView = NULL;
-
-            if (target->type == CTS_GL_DESCRIPTOR_TYPE_IMAGE_INFO) {
-                target->imageInfo = ctsAllocation(
-                    &pAllocateInfo->descriptorPool->linearAllocator,
-                    sizeof(CtsDescriptorImageInfo) * target->descriptorCount,
-                    alignof(CtsDescriptorImageInfo),
-                    CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-                );
-            } else if (target->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_INFO) {
-                target->bufferInfo = ctsAllocation(
-                    &pAllocateInfo->descriptorPool->linearAllocator,
-                    sizeof(CtsDescriptorBufferInfo) * target->descriptorCount,
-                    alignof(CtsDescriptorBufferInfo),
-                    CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-                );
-            } else if (target->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_VIEW) {
-                target->texelBufferView = ctsAllocation(
-                    &pAllocateInfo->descriptorPool->linearAllocator,
-                    sizeof(CtsBufferView) * target->descriptorCount,
-                    alignof(CtsBufferView),
-                    CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-                );
-            }
+        if (descriptorSet->descriptors == NULL) {
+            result = CTS_ERROR_OUT_OF_HOST_MEMORY;
+            break;
         }
 
         pDescriptorSets[i] = descriptorSet;
@@ -158,34 +162,85 @@ void ctsUpdateDescriptorSetsImpl(
     uint32_t pDescriptorCopyCount,
     const CtsCopyDescriptorSet* pDescriptorCopies
 ) {
-    (void) pDevice;
-
     for (uint32_t i = 0; i < pDescriptorWriteCount; ++i) {
-        const CtsWriteDescriptorSet* source = &pDescriptorWrites[i];
-        CtsDescriptorSet target = source->dstSet;
-        CtsGlDescriptorSetLayoutBinding* binding = &target->bindings[source->dstBinding];
+        const CtsWriteDescriptorSet* write = &pDescriptorWrites[i];
+        CtsDescriptorSet target = write->dstSet;
+        CtsGlDescriptorSetLayoutBinding* binding = &target->layout->bindings[write->dstBinding];
+        uint32_t offset = 0;
 
-        if (false) {
-            // Dynamic type is not supported as for now
-            binding->type = parseDescriptorType(source->descriptorType);
-        }
+        switch (write->descriptorType) {
+            case CTS_DESCRIPTOR_TYPE_SAMPLER:
+            case CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+            case CTS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+            case CTS_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+            case CTS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+                for (uint32_t j = 0; j < write->descriptorCount; j++) {
+                    offset = binding->descriptorOffset + write->dstArrayElement + j;
+                    writeImageView(
+                        pDevice,
+                        target,
+                        write->descriptorType,
+                        &write->imageInfo[j],
+                        write->dstBinding,
+                        offset
+                    );
+                }
+                break;
 
-        for (uint32_t j = 0; j < binding->descriptorCount; ++j) {
-            uint32_t idx = source->dstArrayElement + j;
+            case CTS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+            case CTS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+                for (uint32_t j = 0; j < write->descriptorCount; j++) {
+                    offset = binding->descriptorOffset + write->dstArrayElement + j;
+                    writeBufferView(
+                        pDevice,
+                        target,
+                        write->descriptorType,
+                        write->texelBufferView[j],
+                        write->dstBinding,
+                        offset
+                    );
+                }
+                break;
 
-            if (binding->type == CTS_GL_DESCRIPTOR_TYPE_IMAGE_INFO) {
-                binding->imageInfo[idx] = source->imageInfo[j];
-            } else if (binding->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_INFO) {
-                binding->bufferInfo[idx] = source->bufferInfo[j];
-            } else if (binding->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_VIEW) {
-                binding->texelBufferView[idx] = source->texelBufferView[j];
-            }
+            case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+            case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+            case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+            case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+                for (uint32_t j = 0; j < write->descriptorCount; j++) {
+                    offset = binding->descriptorOffset + write->dstArrayElement + j;
+                    writeBuffer(
+                        pDevice,
+                        target,
+                        write->descriptorType,
+                        &write->bufferInfo[j],
+                        write->dstBinding,
+                        offset
+                    );
+                }
+                break;
+
+            default:
+                break;
         }
     }
 
     for (uint32_t i = 0; i < pDescriptorCopyCount; ++i) {
-        // TODO: Handle copy case
         const CtsCopyDescriptorSet* descriptorSet = &pDescriptorCopies[i];
+
+        CtsDescriptorSet src = descriptorSet->srcSet;
+        CtsDescriptorSet dst = descriptorSet->dstSet;
+
+        CtsGlDescriptorSetLayoutBinding* srcBinding = &src->layout->bindings[descriptorSet->srcBinding];
+        CtsGlDescriptorSetLayoutBinding* dstBinding = &dst->layout->bindings[descriptorSet->dstBinding];
+
+        uint32_t srcOffset = 0;
+        uint32_t dstOffset = 0;
+
+        for (uint32_t j = 0; j < descriptorSet->descriptorCount; ++j) {
+            srcOffset = srcBinding->descriptorOffset + descriptorSet->srcArrayElement + j;
+            dstOffset = dstBinding->descriptorOffset + descriptorSet->dstArrayElement + j;
+            dst->descriptors[dstOffset] = src->descriptors[srcOffset];
+        }
     }
 }
 
@@ -196,29 +251,103 @@ CtsResult ctsFreeDescriptorSetsImpl(
     const CtsDescriptorSet* pDescriptorSets
 ) {
     for (uint32_t i = 0; pDescriptorSetCount; ++i) {
-        CtsDescriptorSet descriptorSet = pDescriptorSets[i];
-
-        for (uint32_t j = 0; j < descriptorSet->bindingCount; ++j) {
-            CtsGlDescriptorSetLayoutBinding* binding = &descriptorSet->bindings[j];
-
-            if (binding->imageInfo != NULL) {
-                ctsFree(&pDescriptorPool->linearAllocator, binding->imageInfo);
-            }
-
-            if (binding->bufferInfo != NULL) {
-                ctsFree(&pDescriptorPool->linearAllocator, binding->bufferInfo);
-            }
-
-            if (binding->texelBufferView != NULL) {
-                ctsFree(&pDescriptorPool->linearAllocator, binding->texelBufferView);
-            }
-        }
-
-        ctsFree(&pDescriptorPool->linearAllocator, descriptorSet->bindings);
         ctsFree(&pDescriptorPool->linearAllocator, pDescriptorSets[i]);
     }
 
     return CTS_SUCCESS;
+}
+
+static void writeImageView(
+    CtsDevice pDevice,
+    CtsDescriptorSet pDescriptorSet, 
+    CtsDescriptorType pDescriptorType, 
+    const CtsDescriptorImageInfo* pDescriptorImageInfo, 
+    uint32_t pBinding, 
+    uint32_t pElement
+) {
+    const CtsGlDescriptorSetLayoutBinding* bindLayout = &pDescriptorSet->layout->bindings[pBinding];
+    CtsDescriptor descriptor = pDescriptorSet->descriptors[pElement];
+
+    assert(pDescriptorType == bindLayout->descriptorType || pDescriptorType == CTS_DESCRIPTOR_TYPE_SAMPLER);
+
+    CtsImageView imageView = NULL;
+    CtsSampler sampler = NULL;
+
+    switch (pDescriptorType) {
+        case CTS_DESCRIPTOR_TYPE_SAMPLER: {
+            sampler = bindLayout->immutableSamplers
+                ? bindLayout->immutableSamplers[pElement]
+                : pDescriptorImageInfo->sampler;
+        } break;
+
+        case CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
+            imageView = pDescriptorImageInfo->imageView;
+            sampler = bindLayout->immutableSamplers
+                ? bindLayout->immutableSamplers[pElement]
+                : pDescriptorImageInfo->sampler;
+        } break;
+
+        case CTS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+        case CTS_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        case CTS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
+            imageView = pDescriptorImageInfo->imageView;
+        } break;
+
+        default: {
+            /* Unreachable */
+        } break;
+    }
+    
+    descriptor->type = pDescriptorType;
+    descriptor->imageViewContainer.imageView = imageView;
+    descriptor->imageViewContainer.sampler = sampler;
+}
+
+
+static void writeBufferView(
+    CtsDevice pDevice,
+    CtsDescriptorSet pDescriptorSet, 
+    CtsDescriptorType pDescriptorType, 
+    CtsBufferView pBufferView, 
+    uint32_t pBinding, 
+    uint32_t pElement
+) {
+    const CtsGlDescriptorSetLayoutBinding* bindLayout = &pDescriptorSet->layout->bindings[pBinding];
+    CtsDescriptor descriptor = pDescriptorSet->descriptors[pElement];
+
+    assert(pDescriptorType == bindLayout->descriptorType);
+
+    descriptor->type = pDescriptorType;
+    descriptor->bufferViewContainer.bufferView = pBufferView;
+}
+
+static void writeBuffer(
+    CtsDevice pDevice,
+    CtsDescriptorSet pDescriptorSet, 
+    CtsDescriptorType pDescriptorType, 
+    const CtsDescriptorBufferInfo* pDescriptorBufferInfo, 
+    uint32_t pBinding, 
+    uint32_t pElement
+) {
+    const CtsGlDescriptorSetLayoutBinding* bindLayout = &pDescriptorSet->layout->bindings[pBinding];
+    CtsDescriptor descriptor = pDescriptorSet->descriptors[pElement];
+
+    assert(pDescriptorType == bindLayout->descriptorType);
+
+    CtsBuffer buffer = NULL;
+    size_t offset = 0;
+    size_t range = 0;
+
+    if (pDescriptorBufferInfo != NULL) {
+        buffer = pDescriptorBufferInfo->buffer;
+        offset = pDescriptorBufferInfo->offset;
+        range = pDescriptorBufferInfo->range;
+    }
+
+    descriptor->type = pDescriptorType;
+    descriptor->bufferContainer.buffer = buffer;
+    descriptor->bufferContainer.offset = offset;
+    descriptor->bufferContainer.range = range;
 }
 
 #ifdef __cplusplus

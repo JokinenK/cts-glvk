@@ -33,15 +33,19 @@ CtsResult ctsCreateDescriptorSetLayout(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
+    uint32_t descriptorOffset = 0;
     for (uint32_t i = 0; i < descriptorSetLayout->bindingCount; ++i) {
-        CtsDescriptorSetLayoutBinding* target = &descriptorSetLayout->bindings[i];
+        CtsGlDescriptorSetLayoutBinding* target = &descriptorSetLayout->bindings[i];
         const CtsDescriptorSetLayoutBinding* source = &pCreateInfo->bindings[i];
 
         target->binding = source->binding;
         target->descriptorType = source->descriptorType;
         target->descriptorCount = source->descriptorCount;
+        target->descriptorOffset = descriptorOffset;
         target->stageFlags = source->stageFlags;
         target->immutableSamplers = source->immutableSamplers;
+
+        descriptorOffset += source->descriptorCount;
     }
     
     *pDescriptorSetLayout = descriptorSetLayout;

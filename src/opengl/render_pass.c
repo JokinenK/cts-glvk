@@ -76,6 +76,18 @@ CtsResult ctsCreateRenderPass(
         renderPass->subpasses[i] = pCreateInfo->subpasses[i];
     }
 
+    renderPass->drawBuffers = ctsAllocation(
+        pAllocator,
+        sizeof(GLenum) * pCreateInfo->attachmentCount,
+        alignof(GLenum),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
+
+    if (renderPass->drawBuffers == NULL) {
+        ctsDestroyRenderPass(pDevice, renderPass, pAllocator);
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
     *pRenderPass = renderPass;
     return CTS_SUCCESS;
 }
@@ -98,6 +110,10 @@ void ctsDestroyRenderPass(
 
         if (pRenderPass->subpasses != NULL) {
             ctsFree(pAllocator, pRenderPass->subpasses);
+        }
+
+        if (pRenderPass->drawBuffers != NULL) {
+            ctsFree(pAllocator, pRenderPass->drawBuffers);
         }
 
         ctsFree(pAllocator, pRenderPass);

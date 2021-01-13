@@ -15,8 +15,10 @@
 #include <private/command_buffer_private.h>
 #include <private/command_pool_private.h>
 #include <private/buffer_private.h>
+#include <private/buffer_view_private.h>
 #include <private/device_memory_private.h>
 #include <private/device_private.h>
+#include <private/descriptor_private.h>
 #include <private/descriptor_set_private.h>
 #include <private/descriptor_set_layout_private.h>
 #include <private/fence_private.h>
@@ -34,7 +36,7 @@ extern "C" {
 
 static bool hasFlag(CtsFlags flags, CtsFlags flag);
 static void bindTexture(CtsDevice pDevice, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsTextureBinding* pPrevious);
-static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint32_t pSubpassNumber);
+static void bindRenderPass(CtsDevice pDevice, CtsRenderPass pRenderPass, uint32_t pSubpassNumber);
 static void bindDynamicState(CtsDevice pDevice, CtsFlags pState);
 static void bindVertexInputState(CtsDevice pDevice, CtsGlPipelineVertexInputState* pState);
 static void bindInputAssemblyState(CtsDevice pDevice, CtsGlPipelineInputAssemblyState* pState);
@@ -1099,7 +1101,8 @@ void ctsCmdBeginRenderPassImpl(
     CtsDevice device = pCommandBuffer->device;
     CtsFramebuffer framebuffer = pRenderPassBegin->framebuffer;
 
-    bindFramebuffer(device, framebuffer, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->handle);
+    bindRenderPass(device, pRenderPassBegin->renderPass, 0);
 
     uint32_t lastAttachment = (pRenderPassBegin->clearValueCount < framebuffer->attachmentCount)
         ? pRenderPassBegin->clearValueCount
@@ -1122,6 +1125,8 @@ void ctsCmdBeginRenderPassImpl(
             glClearBufferfv(GL_COLOR, i, clearValue->color.float32);
         }
     }
+
+    device->activeFramebuffer = framebuffer;
 }
 
 void ctsCmdEndRenderPassImpl(
@@ -1150,33 +1155,65 @@ void ctsCmdBindDescriptorSetsImpl(
     CtsDevice device = pCommandBuffer->device;
 
     for (uint32_t i = pFirstSet; i < pDescriptorSetCount; ++i) {
-        const CtsDescriptorSet descriptorSet = pDescriptorSets[i];
+        CtsDescriptorSet descriptorSet = pDescriptorSets[i];
+        CtsDescriptorSetLayout layout = descriptorSet->layout;
 
-        for (uint32_t j = 0; j < descriptorSet->bindingCount; ++j) {
-            CtsGlDescriptorSetLayoutBinding* binding = &descriptorSet->bindings[j];
+        for (uint32_t j = 0; j < layout->bindingCount; ++j) {
+            const CtsGlDescriptorSetLayoutBinding* binding = &layout->bindings[j];
+            CtsDescriptor descriptor = descriptorSet->descriptors[binding->binding];
 
-            for (uint32_t k = 0; k < binding->descriptorCount; ++k) {
-                if (binding->type == CTS_GL_DESCRIPTOR_TYPE_IMAGE_INFO) {
-                    CtsDescriptorImageInfo* imageInfo = &binding->imageInfo[k];
-                    CtsImageView imageView = imageInfo->imageView;
-                    
-                    bindTexture(device, binding->binding + k, imageView->target, imageView->handle, NULL);
-                    glBindSampler(binding->binding, imageInfo->sampler->handle);
-                } else if (binding->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_INFO) {
-                    CtsDescriptorBufferInfo* bufferInfo = &binding->bufferInfo[k];
-                    CtsBuffer buffer = bufferInfo->buffer;
+            switch (descriptor->type) {
+                case CTS_DESCRIPTOR_TYPE_SAMPLER:
+                case CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+                case CTS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+                case CTS_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+                case CTS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
+                    CtsDescriptorImageView* imageViewContainer = &descriptor->imageViewContainer;
+                    CtsImageView imageView = imageViewContainer->imageView;
+                    CtsSampler sampler = imageViewContainer->sampler;
 
-                    size_t offset = buffer->offset + bufferInfo->offset;
-                    size_t size = (bufferInfo->range > buffer->size)
-                        ? buffer->size
-                        : bufferInfo->range;
+                    if (imageView != NULL) {
+                        bindTexture(device, binding->binding, imageView->target, imageView->handle, NULL);
+                    }
 
-                    glBindBuffer(buffer->type, buffer->memory->handle);
-                    glBindBufferRange(buffer->type, binding->binding + k, buffer->memory->handle, offset, size);
-                } else if (binding->type == CTS_GL_DESCRIPTOR_TYPE_BUFFER_VIEW) {
-                    // TODO: Not implemented yet
-                    CtsBufferView texelBufferView = binding->texelBufferView[k];
-                }
+                    if (sampler != NULL) {
+                        glBindSampler(binding->binding, sampler->handle);
+                    }
+                } break;
+
+                case CTS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+                case CTS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: {
+                    CtsDescriptorBufferView* bufferViewContainer = &descriptor->bufferViewContainer;
+                    CtsBufferView bufferView = bufferViewContainer->bufferView;
+
+                    if (bufferView != NULL) {
+                        bindTexture(device, binding->binding, GL_TEXTURE_BUFFER, bufferView->handle, NULL);
+                        glTexBufferRange(
+                            GL_TEXTURE_BUFFER,
+                            bufferView->format,
+                            bufferView->buffer->memory->handle,
+                            bufferView->buffer->offset + bufferView->offset,
+                            bufferView->range
+                        );
+                    }
+                } break;
+
+                case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+                case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+                case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: {
+                    CtsDescriptorBuffer* bufferContainer = &descriptor->bufferContainer;
+                    CtsBuffer buffer = bufferContainer->buffer;
+
+                    if (buffer != NULL) {
+                        glBindBuffer(buffer->type, buffer->memory->handle);
+                        glBindBufferRange(buffer->type, binding->binding, buffer->memory->handle, bufferContainer->offset, bufferContainer->range);
+                    }
+                } break;
+
+                default: {
+                    /* Unreachable */
+                } break;
             }
         }
     }
@@ -1659,7 +1696,7 @@ void ctsCmdNextSubpassImpl(
     CtsSubpassContents pContents
 ) {
     CtsDevice device = pCommandBuffer->device;
-    bindFramebuffer(device, device->activeFramebuffer, device->activeSubpass + 1);
+    bindRenderPassSubPass(device, device->activeFramebuffer, device->activeSubpassNumber + 1);
 }
 
 void ctsCmdPipelineBarrierImpl(
@@ -1887,9 +1924,8 @@ static void bindTexture(CtsDevice pDevice, uint32_t pSlot, GLenum pTarget, uint3
     data->target = pTarget;
 }
 
-static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint32_t pSubpassNumber) {
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pFramebuffer->handle);
-    const CtsSubpassDescription* subpassDescription = &pFramebuffer->renderPass->subpasses[pSubpassNumber];
+static void bindRenderPass(CtsDevice pDevice, CtsRenderPass pRenderPass, uint32_t pSubpassNumber) {
+    const CtsSubpassDescription* subpassDescription = &pRenderPass->subpasses[pSubpassNumber];
 
     (void) subpassDescription->flags;
     (void) subpassDescription->pipelineBindPoint;
@@ -1897,50 +1933,20 @@ static void bindFramebuffer(CtsDevice pDevice, CtsFramebuffer pFramebuffer, uint
     (void) subpassDescription->preserveAttachmentCount;
     (void) subpassDescription->preserveAttachments;
 
-    for (uint32_t i = 0; i < pFramebuffer->attachmentCount; ++i) {
-        pFramebuffer->drawBuffers[i] = GL_NONE;
-    }
-
     for (uint32_t i = 0; i < subpassDescription->inputAttachmentCount; ++i) {
         const CtsAttachmentReference* inputAttachment = &subpassDescription->inputAttachments[i];
-        const CtsImageView imageView = pFramebuffer->attachments[inputAttachment->attachment];
 
-        bindTexture(pDevice, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
+        //bindTexture(pDevice, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
     }
 
     for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
-        const CtsAttachmentReference* colorAttachment = &subpassDescription->colorAttachments[i];
-        const CtsImageView imageView = pFramebuffer->attachments[colorAttachment->attachment];
-        GLenum buffer = GL_COLOR_ATTACHMENT0 + colorAttachment->attachment;
-
-        pFramebuffer->drawBuffers[colorAttachment->attachment] = buffer;
-        glFramebufferTexture2D(
-            GL_DRAW_FRAMEBUFFER,
-            buffer,
-            imageView->target,
-            imageView->handle,
-            0
-        );
+        pRenderPass->drawBuffers[i] = GL_COLOR_ATTACHMENT0 + subpassDescription->colorAttachments[i].attachment;
     }
 
-    if (subpassDescription->depthStencilAttachment != NULL) {
-        const CtsAttachmentReference* depthStencilAttachment = subpassDescription->depthStencilAttachment;
-        const CtsImageView imageView = pFramebuffer->attachments[depthStencilAttachment->attachment];
-        GLenum buffer = GL_DEPTH_STENCIL_ATTACHMENT;
+    glDrawBuffers(subpassDescription->colorAttachmentCount, pRenderPass->drawBuffers);
 
-        pFramebuffer->drawBuffers[depthStencilAttachment->attachment] = buffer;
-        glFramebufferTexture2D(
-            GL_DRAW_FRAMEBUFFER,
-            buffer,
-            imageView->target,
-            imageView->handle,
-            0
-        );
-    }
-
-    glDrawBuffers(pFramebuffer->attachmentCount, pFramebuffer->drawBuffers);
-    pDevice->activeSubpass = pSubpassNumber;
-    pDevice->activeFramebuffer = pFramebuffer;
+    pDevice->activeSubpassNumber = pSubpassNumber;
+    pDevice->activeSubpass = subpassDescription;
 }
 
 static void bindDynamicState(

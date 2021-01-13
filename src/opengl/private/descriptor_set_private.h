@@ -9,21 +9,10 @@
 extern "C" {
 #endif
 
-typedef struct CtsGlDescriptorSetLayoutBinding {
-    uint32_t binding;
-    CtsGlDescriptorType type;
-    CtsDescriptorType descriptorType;
-    uint32_t descriptorCount;
-    CtsShaderStageFlags stageFlags;
-    //const CtsSampler* immutableSamplers;
-    CtsDescriptorImageInfo* imageInfo;
-    CtsDescriptorBufferInfo* bufferInfo;
-    CtsBufferView* texelBufferView;
-} CtsGlDescriptorSetLayoutBinding;
-
 struct CtsDescriptorSet {
-    uint32_t bindingCount;
-    CtsGlDescriptorSetLayoutBinding* bindings;
+    CtsDescriptorSetLayout layout;
+    uint32_t descriptorCount;
+    CtsDescriptor* descriptors;
 };
 
 CtsResult ctsAllocateDescriptorSetsImpl(
