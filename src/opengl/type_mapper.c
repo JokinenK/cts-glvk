@@ -115,7 +115,7 @@ static const CtsFormatData sFormats[] = {
     { GL_INVALID_ENUM,    GL_INVALID_ENUM,                   GL_INVALID_ENUM       }, // CTS_FORMAT_UNDEFINED
       
     { GL_RGBA,            GL_UNSIGNED_SHORT_4_4_4_4,         GL_RGBA4              }, // CTS_FORMAT_R4G4B4A4_UNORM_PACK16
-    { GL_BGRA,            GL_UNSIGNED_SHORT_4_4_4_4,         GL_RGBA4              }, // CTS_FORMAT_B4G4R4A4_UNORM_PACK16
+    { GL_BGRA,            GL_UNSIGNED_SHORT_4_4_4_4_REV,     GL_RGBA4              }, // CTS_FORMAT_B4G4R4A4_UNORM_PACK16
                   
     { GL_RGBA,            GL_UNSIGNED_SHORT_5_5_5_1,         GL_RGB5_A1            }, // CTS_FORMAT_R5G5B5A1_UNORM_PACK16
     { GL_BGRA,            GL_UNSIGNED_SHORT_5_5_5_1,         GL_RGB5_A1            }, // CTS_FORMAT_B5G5R5A1_UNORM_PACK16
@@ -134,6 +134,7 @@ static const CtsFormatData sFormats[] = {
     { GL_RGB,             GL_BYTE,                           GL_RGB8_SNORM         }, // CTS_FORMAT_R8G8B8_SNORM 
     { GL_RGB_INTEGER,     GL_UNSIGNED_BYTE,                  GL_RGB8UI             }, // CTS_FORMAT_R8G8B8_UINT 
     { GL_RGB_INTEGER,     GL_BYTE,                           GL_RGB8I              }, // CTS_FORMAT_R8G8B8_SINT 
+    { GL_RGB,             GL_BYTE,                           GL_SRGB8              }, // CTS_FORMAT_R8G8B8_SRGB 
                   
     { GL_BGR,             GL_UNSIGNED_BYTE,                  GL_RGB8               }, // CTS_FORMAT_B8G8R8_UNORM 
     { GL_BGR,             GL_BYTE,                           GL_RGB8_SNORM         }, // CTS_FORMAT_B8G8R8_SNORM 
@@ -144,12 +145,24 @@ static const CtsFormatData sFormats[] = {
     { GL_RGBA,            GL_BYTE,                           GL_RGBA8_SNORM        }, // CTS_FORMAT_R8G8B8A8_SNORM 
     { GL_RGBA_INTEGER,    GL_UNSIGNED_BYTE,                  GL_RGBA8UI            }, // CTS_FORMAT_R8G8B8A8_UINT 
     { GL_RGBA_INTEGER,    GL_BYTE,                           GL_RGBA8I             }, // CTS_FORMAT_R8G8B8A8_SINT 
+    { GL_RGBA,            GL_BYTE,                           GL_SRGB8_ALPHA8       }, // CTS_FORMAT_R8G8B8A8_SRGB 
                  
     { GL_BGRA,            GL_UNSIGNED_BYTE,                  GL_RGBA8              }, // CTS_FORMAT_B8G8R8A8_UNORM 
     { GL_BGRA,            GL_BYTE,                           GL_RGBA8_SNORM        }, // CTS_FORMAT_B8G8R8A8_SNORM 
     { GL_BGRA_INTEGER,    GL_UNSIGNED_BYTE,                  GL_RGBA8UI            }, // CTS_FORMAT_B8G8R8A8_UINT 
     { GL_BGRA_INTEGER,    GL_BYTE,                           GL_RGBA8I             }, // CTS_FORMAT_B8G8R8A8_SINT 
-          
+
+    { GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV,       GL_RGBA8              }, // CTS_FORMAT_A8B8G8R8_UNORM_PACK32,
+    { GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV,       GL_RGBA8_SNORM        }, // CTS_FORMAT_A8B8G8R8_SNORM_PACK32,
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_INT_8_8_8_8_REV,       GL_RGBA8UI            }, // CTS_FORMAT_A8B8G8R8_UINT_PACK32,
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_INT_8_8_8_8_REV,       GL_RGBA8I             }, // CTS_FORMAT_A8B8G8R8_SINT_PACK32,
+    { GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV,       GL_SRGB8_ALPHA8       }, // CTS_FORMAT_A8B8G8R8_SRGB_PACK32,
+
+    { GL_RGBA,            GL_UNSIGNED_INT_2_10_10_10_REV,    GL_RGB10_A2UI         }, // CTS_FORMAT_A2B10G10R10_UNORM_PACK32,
+    { GL_RGBA,            GL_UNSIGNED_INT_2_10_10_10_REV,    GL_RGB10_A2           }, // CTS_FORMAT_A2B10G10R10_SNORM_PACK32,
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_INT_2_10_10_10_REV,    GL_RGB10_A2UI         }, // CTS_FORMAT_A2B10G10R10_UINT_PACK32,
+    { GL_RGBA_INTEGER,    GL_UNSIGNED_INT_2_10_10_10_REV,    GL_RGB10_A2           }, // CTS_FORMAT_A2B10G10R10_SINT_PACK32,
+
     { GL_RED,             GL_UNSIGNED_SHORT,                 GL_R16                }, // CTS_FORMAT_R16_UNORM 
     { GL_RED,             GL_SHORT,                          GL_R16_SNORM          }, // CTS_FORMAT_R16_SNORM 
     { GL_RED_INTEGER,     GL_UNSIGNED_SHORT,                 GL_R16UI              }, // CTS_FORMAT_R16_UINT 
