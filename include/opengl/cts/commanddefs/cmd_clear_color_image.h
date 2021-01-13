@@ -12,9 +12,9 @@ typedef struct CtsCmdClearColorImage {
     CtsCommandBuffer commandBuffer;
     CtsImage image;
     CtsImageLayout imageLayout;
-    const CtsClearColorValue* color;
+    const CtsClearColorValue* pColor;
     uint32_t rangeCount;
-    const CtsImageSubresourceRange* ranges;
+    const CtsImageSubresourceRange* pRanges;
 } CtsCmdClearColorImage;
 
 #ifdef __cplusplus

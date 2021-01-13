@@ -11,7 +11,7 @@ typedef struct CtsDestroySampler {
     CtsCmdBase base;
     CtsDevice device;
     CtsSampler sampler;
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 } CtsDestroySampler;
 
 #ifdef __cplusplus

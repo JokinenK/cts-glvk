@@ -9,9 +9,9 @@ extern "C" {
 typedef struct CtsShaderModule* CtsShaderModule;
 typedef struct CtsShaderModuleCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     size_t codeSize;
-    const uint32_t* code;
+    const uint32_t* pCode;
 } CtsShaderModuleCreateInfo;
 
 #ifdef __cplusplus

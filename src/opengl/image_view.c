@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateImageView(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageViewCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImageView* pImageView
@@ -20,44 +20,44 @@ CtsResult ctsCreateImageView(
     CtsResult result;
     CtsCreateImageView cmd;
     cmd.base.type = CTS_COMMAND_CREATE_IMAGE_VIEW;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.createInfo = pCreateInfo;
-    cmd.allocator = pAllocator;
-    cmd.imageView = pImageView;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.pCreateInfo = pCreateInfo;
+    cmd.pAllocator = pAllocator;
+    cmd.pImageView = pImageView;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 void ctsDestroyImageView(
-    CtsDevice pDevice,
-    CtsImageView pImageView,
+    CtsDevice device,
+    CtsImageView imageView,
     const CtsAllocationCallbacks* pAllocator
 ) {
     CtsDestroyImageView cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_IMAGE_VIEW;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.imageView = pImageView;
-    cmd.allocator = pAllocator;
+    cmd.device = device;
+    cmd.imageView = imageView;
+    cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 CtsResult ctsCreateImageViewImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageViewCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImageView* pImageView
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsImageView imageView = ctsAllocation(
         pAllocator,
@@ -93,13 +93,13 @@ CtsResult ctsCreateImageViewImpl(
 }
 
 void ctsDestroyImageViewImpl(
-    CtsDevice pDevice,
-    CtsImageView pImageView,
+    CtsDevice device,
+    CtsImageView imageView,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pImageView != NULL) {
-        glDeleteTextures(1, &pImageView->handle);
-        ctsFree(pAllocator, pImageView);
+    if (imageView != NULL) {
+        glDeleteTextures(1, &imageView->handle);
+        ctsFree(pAllocator, imageView);
     }
 }
 

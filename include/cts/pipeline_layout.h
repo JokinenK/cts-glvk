@@ -7,15 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreatePipelineLayout(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsPipelineLayoutCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsPipelineLayout* pPipelineLayout
 );
 
 void ctsDestroyPipelineLayout(
-    CtsDevice pDevice,
-    CtsPipelineLayout pPipelineLayout,
+    CtsDevice device,
+    CtsPipelineLayout pipelineLayout,
     const CtsAllocationCallbacks* pAllocator
 );
 

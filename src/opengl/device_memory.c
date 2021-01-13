@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 CtsResult ctsAllocateMemory(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsMemoryAllocateInfo* pAllocateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDeviceMemory* pMemory
@@ -18,86 +18,86 @@ CtsResult ctsAllocateMemory(
     CtsResult result;
     CtsAllocateMemory cmd;
     cmd.base.type = CTS_COMMAND_ALLOCATE_MEMORY;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.allocateInfo = pAllocateInfo;
-    cmd.allocator = pAllocator;
-    cmd.memory = pMemory;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.pAllocateInfo = pAllocateInfo;
+    cmd.pAllocator = pAllocator;
+    cmd.pMemory = pMemory;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 CtsResult ctsMapMemory(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset,
-    CtsDeviceSize pSize,
-    CtsMemoryMapFlags pFlags,
-    void** pData
+    CtsDevice device,
+    CtsDeviceMemory memory,
+    CtsDeviceSize offset,
+    CtsDeviceSize size,
+    CtsMemoryMapFlags flags,
+    void** ppData
 ) {
     CtsResult result;
     CtsMapMemory cmd;
     cmd.base.type = CTS_COMMAND_MAP_MEMORY;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.memory = pMemory;
-    cmd.offset = pOffset;
-    cmd.size = pSize;
-    cmd.flags = pFlags;
-    cmd.data = pData;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.memory = memory;
+    cmd.offset = offset;
+    cmd.size = size;
+    cmd.flags = flags;
+    cmd.ppData = ppData;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 void ctsUnmapMemory(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory
+    CtsDevice device,
+    CtsDeviceMemory memory
 ) {
     CtsMapMemory cmd;
     cmd.base.type = CTS_COMMAND_UNMAP_MEMORY;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.memory = pMemory;
+    cmd.device = device;
+    cmd.memory = memory;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 void ctsFreeMemory(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
+    CtsDevice device,
+    CtsDeviceMemory memory,
     const CtsAllocationCallbacks* pAllocator
 ) {
     CtsFreeMemory cmd;
     cmd.base.type = CTS_COMMAND_FREE_MEMORY;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.memory = pMemory;
-    cmd.allocator = pAllocator;
+    cmd.device = device;
+    cmd.memory = memory;
+    cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 CtsResult ctsAllocateMemoryImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsMemoryAllocateInfo* pAllocateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDeviceMemory* pMemory
 ) {
-    (void) pDevice;
+    (void) device;
     
     CtsDeviceMemory memory = ctsAllocation(
         pAllocator,
@@ -122,22 +122,22 @@ CtsResult ctsAllocateMemoryImpl(
 }
 
 CtsResult ctsMapMemoryImpl(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset,
-    CtsDeviceSize pSize,
-    CtsMemoryMapFlags pFlags,
+    CtsDevice device,
+    CtsDeviceMemory memory,
+    CtsDeviceSize offset,
+    CtsDeviceSize size,
+    CtsMemoryMapFlags flags,
     void** pData
 ) {
-    if (pMemory == NULL) {
+    if (memory == NULL) {
         return CTS_ERROR_MEMORY_MAP_FAILED;
     }
 
-    (void) pFlags;
-    GLuint flags = GL_MAP_READ_BIT  | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    (void) flags;
+    GLuint mapFlags = GL_MAP_READ_BIT  | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
-    glBindBuffer(GL_COPY_WRITE_BUFFER, pMemory->handle);
-    void* data = glMapBufferRange(GL_COPY_WRITE_BUFFER, pOffset, pSize, flags);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, memory->handle);
+    void* data = glMapBufferRange(GL_COPY_WRITE_BUFFER, offset, size, mapFlags);
     glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
     if (data == NULL) {
@@ -149,26 +149,24 @@ CtsResult ctsMapMemoryImpl(
 }
 
 void ctsUnmapMemoryImpl(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory
+    CtsDevice device,
+    CtsDeviceMemory memory
 ) {
-    if (pMemory == NULL) {
-        return;
+    if (memory != NULL) {
+        glBindBuffer(GL_COPY_WRITE_BUFFER, memory->handle);
+        glUnmapBuffer(GL_COPY_WRITE_BUFFER);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
     }
-
-    glBindBuffer(GL_COPY_WRITE_BUFFER, pMemory->handle);
-    glUnmapBuffer(GL_COPY_WRITE_BUFFER);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 }
 
 void ctsFreeMemoryImpl(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
+    CtsDevice device,
+    CtsDeviceMemory memory,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pMemory != NULL) {
-        glDeleteBuffers(1, &pMemory->handle);
-        ctsFree(pAllocator, pMemory);
+    if (memory != NULL) {
+        glDeleteBuffers(1, &memory->handle);
+        ctsFree(pAllocator, memory);
     }
 }
 

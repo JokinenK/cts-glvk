@@ -20,17 +20,17 @@ typedef struct CtsAllocationCallbacks {
 
     void*(*allocation)(
         void* pUserData,
-        size_t pSize,
-        size_t pAlign,
-        CtsSystemAllocationScope pScope
+        size_t size,
+        size_t align,
+        CtsSystemAllocationScope scope
     );
 
     void*(*reallocation)(
         void* pUserData,
         void* pOriginal,
-        size_t pSize,
-        size_t pAlign,
-        CtsSystemAllocationScope pScope
+        size_t size,
+        size_t align,
+        CtsSystemAllocationScope scope
     );
 
     void(*free)(
@@ -40,30 +40,30 @@ typedef struct CtsAllocationCallbacks {
 
     void(*internalAllocation)(
         void* pUserData,
-        size_t pSize,
-        CtsSystemAllocationScope pScope
+        size_t size,
+        CtsSystemAllocationScope scope
     );
 
     void(*internalFree)(
         void* pUserData,
-        size_t pSize, 
-        CtsSystemAllocationScope pScope
+        size_t size, 
+        CtsSystemAllocationScope scope
     );
 } CtsAllocationCallbacks;
 
 void* ctsAllocation(
     const CtsAllocationCallbacks* pAllocator,
-    size_t pSize,
-    size_t pAlign,
-    CtsSystemAllocationScope pScope
+    size_t size,
+    size_t align,
+    CtsSystemAllocationScope scope
 );
 
 void* ctsReallocation(
     const CtsAllocationCallbacks* pAllocator,
     void* pOriginal,
-    size_t pSize,
-    size_t pAlign,
-    CtsSystemAllocationScope pScope
+    size_t size,
+    size_t align,
+    CtsSystemAllocationScope scope
 );
 
 void ctsFree(
@@ -73,14 +73,14 @@ void ctsFree(
 
 void ctsInternalAllocation(
     const CtsAllocationCallbacks* pAllocator,
-    size_t pSize,
-    CtsSystemAllocationScope pScope
+    size_t size,
+    CtsSystemAllocationScope scope
 );
 
 void ctsInternalFree(
     const CtsAllocationCallbacks* pAllocator,
-    size_t pSize, 
-    CtsSystemAllocationScope pScope
+    size_t size, 
+    CtsSystemAllocationScope scope
 );
 
 #ifdef __cplusplus

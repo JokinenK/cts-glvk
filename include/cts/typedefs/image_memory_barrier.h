@@ -13,7 +13,7 @@ extern "C" {
 
 typedef struct CtsImageMemoryBarrier {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsAccessFlags srcAccessMask;
     CtsAccessFlags dstAccessMask;
     CtsImageLayout oldLayout;

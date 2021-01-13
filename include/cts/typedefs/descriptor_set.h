@@ -15,20 +15,20 @@ typedef struct CtsDescriptorSet* CtsDescriptorSet;
 
 typedef struct CtsWriteDescriptorSet {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDescriptorSet dstSet;
     uint32_t dstBinding;
     uint32_t dstArrayElement;
     uint32_t descriptorCount;
     CtsDescriptorType descriptorType;
-    const CtsDescriptorImageInfo* imageInfo;
-    const CtsDescriptorBufferInfo* bufferInfo;
-    const CtsBufferView* texelBufferView;
+    const CtsDescriptorImageInfo* pImageInfo;
+    const CtsDescriptorBufferInfo* pBufferInfo;
+    const CtsBufferView* pTexelBufferView;
 } CtsWriteDescriptorSet;
 
 typedef struct CtsCopyDescriptorSet {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDescriptorSet srcSet;
     uint32_t srcBinding;
     uint32_t srcArrayElement;
@@ -40,10 +40,10 @@ typedef struct CtsCopyDescriptorSet {
 
 typedef struct CtsDescriptorSetAllocateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDescriptorPool descriptorPool;
     uint32_t descriptorSetCount;
-    const CtsDescriptorSetLayout* setLayouts;
+    const CtsDescriptorSetLayout* pSetLayouts;
 } CtsDescriptorSetAllocateInfo;
 
 #ifdef __cplusplus

@@ -6,8 +6,8 @@ extern "C" {
 
 typedef struct CtsThread* CtsThread;
 typedef struct CtsThreadCreateInfo {
-    void(*entryPoint)(void* pArgs);
-    void* args;
+    void(*pfEntryPoint)(void* pArgs);
+    void* pArgs;
 } CtsThreadCreateInfo;
 
 #ifdef __cplusplus

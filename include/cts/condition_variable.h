@@ -18,21 +18,21 @@ CtsResult ctsCreateConditionVariable(
 );
 
 void ctsDestroyConditionVariable(
-    CtsConditionVariable pConditionVariable,
+    CtsConditionVariable conditionVariable,
     const CtsAllocationCallbacks* pAllocator
 );
 
 void ctsConditionVariableSleep(
-    CtsConditionVariable pConditionVariable,
-    CtsMutex pMutex
+    CtsConditionVariable conditionVariable,
+    CtsMutex mutex
 );
 
 void ctsConditionVariableWake(
-    CtsConditionVariable pConditionVariable
+    CtsConditionVariable conditionVariable
 );
 
 void ctsConditionVariableWakeAll(
-    CtsConditionVariable pConditionVariable
+    CtsConditionVariable conditionVariable
 );
 
 #ifdef __cplusplus

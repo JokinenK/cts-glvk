@@ -15,11 +15,11 @@ typedef struct CtsCmdWaitEvents {
     CtsPipelineStageFlags srcStageMask;
     CtsPipelineStageFlags dstStageMask;
     uint32_t memoryBarrierCount;
-    const CtsMemoryBarrier* memoryBarriers;
+    const CtsMemoryBarrier* pMemoryBarriers;
     uint32_t bufferMemoryBarrierCount;
-    const CtsBufferMemoryBarrier* bufferMemoryBarriers;
+    const CtsBufferMemoryBarrier* pBufferMemoryBarriers;
     uint32_t imageMemoryBarrierCount;
-    const CtsImageMemoryBarrier* imageMemoryBarriers;
+    const CtsImageMemoryBarrier* pImageMemoryBarriers;
 } CtsCmdWaitEvents;
 
 #ifdef __cplusplus

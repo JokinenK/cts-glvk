@@ -10,19 +10,19 @@ extern "C" {
 
 typedef struct CtsPoolAllocator* CtsPoolAllocator;
 typedef struct CtsPoolAllocatorCreateInfo {
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize blockSize;
     CtsDeviceSize growSize;
 } CtsPoolAllocatorCreateInfo;
 
 bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorCreateInfo* pCreateInfo);
-void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator pInstance, CtsAllocationCallbacks* pAllocator);
-bool ctsDestroyPoolAllocator(CtsPoolAllocator pInstance);
+void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator instance, CtsAllocationCallbacks* pAllocator);
+bool ctsDestroyPoolAllocator(CtsPoolAllocator instance);
 
-void* ctsPoolAllocatorAlloc(CtsPoolAllocator pInstance, size_t pSize, size_t pAlign);
-void* ctsPoolAllocatorRealloc(CtsPoolAllocator pInstance, void* pOrigPtr, size_t pSize, size_t pAlign);
-void ctsPoolAllocatorFree(CtsPoolAllocator pInstance, void* pPtr);
-void ctsPoolAllocatorReset(CtsPoolAllocator pInstance);
+void* ctsPoolAllocatorAlloc(CtsPoolAllocator instance, size_t size, size_t align);
+void* ctsPoolAllocatorRealloc(CtsPoolAllocator instance, void* pOrigPtr, size_t size, size_t align);
+void ctsPoolAllocatorFree(CtsPoolAllocator instance, void* pPtr);
+void ctsPoolAllocatorReset(CtsPoolAllocator instance);
 
 #ifdef __cplusplus
 }

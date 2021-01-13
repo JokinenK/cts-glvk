@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateQueryPool(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsQueryPoolCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsQueryPool* pQueryPool
@@ -28,12 +28,12 @@ CtsResult ctsCreateQueryPool(
 }
 
 void ctsDestroyQueryPool(
-    CtsDevice pDevice,
-    CtsQueryPool pQueryPool,
+    CtsDevice device,
+    CtsQueryPool queryPool,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pQueryPool != NULL) {
-        ctsFree(pAllocator, pQueryPool);
+    if (queryPool != NULL) {
+        ctsFree(pAllocator, queryPool);
     }
 }
 

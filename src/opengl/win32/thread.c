@@ -14,7 +14,7 @@ static DWORD WINAPI threadEntry(LPVOID pArgs)
     CtsThreadCreateInfo createInfo;
     memcpy(&createInfo, pArgs, sizeof(CtsThreadCreateInfo));
 
-    createInfo.entryPoint(createInfo.args);
+    createInfo.pfEntryPoint(createInfo.pArgs);
     return 0;
 }
 
@@ -50,36 +50,36 @@ CtsResult ctsCreateThread(
 }
 
 void ctsDestroyThread(
-    CtsThread pThread,
+    CtsThread thread,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pThread) {
-        ctsThreadJoin(pThread);
-        ctsFree(pAllocator, pThread);
+    if (thread) {
+        ctsThreadJoin(thread);
+        ctsFree(pAllocator, thread);
     }
 }
 
-bool ctsThreadJoinable(CtsThread pThread)
+bool ctsThreadJoinable(CtsThread thread)
 {
-    return (!pThread->joined && !pThread->detached);
+    return (!thread->joined && !thread->detached);
 }
 
 void ctsThreadJoin(
-    CtsThread pThread
+    CtsThread thread
 ) {
-    if (ctsThreadJoinable(pThread)) {
-        pThread->joined = true;
-        WaitForSingleObject(pThread->thread, INFINITE);
-        CloseHandle(pThread->thread);
+    if (ctsThreadJoinable(thread)) {
+        thread->joined = true;
+        WaitForSingleObject(thread->thread, INFINITE);
+        CloseHandle(thread->thread);
     }
 }
 
 void ctsThreadDetach(
-    CtsThread pThread
+    CtsThread thread
 ) {
-    if (ctsThreadJoinable(pThread)) {
-        pThread->detached = true;
-        CloseHandle(pThread->thread);
+    if (ctsThreadJoinable(thread)) {
+        thread->detached = true;
+        CloseHandle(thread->thread);
     }
 }
 

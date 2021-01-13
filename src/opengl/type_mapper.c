@@ -333,109 +333,109 @@ static_assert(COUNTOF(sRenderTargetAttachments) == NUM_CTS_RENDER_TARGET_ATTACHM
 static_assert(COUNTOF(sRenderTargetBinds) == NUM_CTS_RENDER_TARGET_BINDS, "Assertion failure");
 static_assert(COUNTOF(sDynamicStates) == NUM_CTS_DYNAMIC_STATES, "Assertion failure");
 
-const GLenum parseCompareOperator(CtsCompareOperator pValue)
+const GLenum parseCompareOperator(CtsCompareOperator value)
 {
-    return sCompareOperators[pValue];
+    return sCompareOperators[value];
 }
 
-const GLenum parseStencilAction(CtsStencilAction pValue)
+const GLenum parseStencilAction(CtsStencilAction value)
 {
-    return sStencilActions[pValue];
+    return sStencilActions[value];
 }
 
-const GLenum parseCullMode(CtsCullMode pValue)
+const GLenum parseCullMode(CtsCullMode value)
 {
-    return sCullModes[pValue];
+    return sCullModes[value];
 }
 
-const GLenum parseFrontFace(CtsFrontFace pValue)
+const GLenum parseFrontFace(CtsFrontFace value)
 {
-    return sFrontFaces[pValue];
+    return sFrontFaces[value];
 }
 
-const GLenum parsePolygonMode(CtsPolygonMode pValue)
+const GLenum parsePolygonMode(CtsPolygonMode value)
 {
-    return sPolygonModes[pValue];
+    return sPolygonModes[value];
 }
 
-const GLenum parseSamplerAddressMode(CtsSamplerAddressMode pValue)
+const GLenum parseSamplerAddressMode(CtsSamplerAddressMode value)
 {
-    return sSamplerAddressModes[pValue];
+    return sSamplerAddressModes[value];
 }
 
-const GLenum parseFilter(CtsFilter pValue)
+const GLenum parseFilter(CtsFilter value)
 {
-    return sFilters[pValue];
+    return sFilters[value];
 }
 
-const GLenum parseIndexType(CtsIndexType pValue)
+const GLenum parseIndexType(CtsIndexType value)
 {
-    return sIndexTypes[pValue];
+    return sIndexTypes[value];
 }
 
-const GLenum parseShaderType(CtsShaderType pValue)
+const GLenum parseShaderType(CtsShaderType value)
 {
-    return sShaderTypes[pValue];
+    return sShaderTypes[value];
 }
 
-const GLenum parseImageType(CtsImageType pValue)
+const GLenum parseImageType(CtsImageType value)
 {
-    return sImageTypes[pValue];
+    return sImageTypes[value];
 }
 
-const GLenum parsePrimitiveType(CtsPrimitiveType pValue)
+const GLenum parsePrimitiveType(CtsPrimitiveType value)
 {
-    return sPrimitiveTypes[pValue];
+    return sPrimitiveTypes[value];
 }
 
-const GLenum parseBufferUsage(CtsBufferUsage pValue)
+const GLenum parseBufferUsage(CtsBufferUsage value)
 {
-    return sBufferUsages[pValue];
+    return sBufferUsages[value];
 }
 
-const GLenum parseBufferType(CtsBufferType pValue)
+const GLenum parseBufferType(CtsBufferType value)
 {
-    return sBufferTypes[pValue];
+    return sBufferTypes[value];
 }
 
-const GLenum parseBlendFunc(CtsBlendFunc pValue)
+const GLenum parseBlendFunc(CtsBlendFunc value)
 {
-    return sBlendFuncs[pValue];
+    return sBlendFuncs[value];
 }
 
-const GLenum parseBlendOperation(CtsBlendOp pValue)
+const GLenum parseBlendOperation(CtsBlendOp value)
 {
-    return sBlendOperations[pValue];
+    return sBlendOperations[value];
 }
 
-const GLenum parseRenderTargetAttachment(CtsRenderTargetAttachment pValue)
+const GLenum parseRenderTargetAttachment(CtsRenderTargetAttachment value)
 {
-    return sRenderTargetAttachments[pValue];
+    return sRenderTargetAttachments[value];
 }
 
-const GLenum parseRenderTargetBind(CtsRenderTargetBind pValue)
+const GLenum parseRenderTargetBind(CtsRenderTargetBind value)
 {
-    return sRenderTargetBinds[pValue];
+    return sRenderTargetBinds[value];
 }
 
-const CtsFlags parseDynamicStateFlag(CtsDynamicState pValue)
+const CtsFlags parseDynamicStateFlag(CtsDynamicState value)
 {
-    return sDynamicStates[pValue];
+    return sDynamicStates[value];
 }
 
-const CtsFormatData parseFormat(CtsFormat pValue)
+const CtsFormatData parseFormat(CtsFormat value)
 {
-    return sFormats[pValue];
+    return sFormats[value];
 }
 
-const CtsAttributeMapping parseAttributeMapping(CtsAttribType pValue)
+const CtsAttributeMapping parseAttributeMapping(CtsAttribType value)
 {
-    return sAttributeMappings[pValue];
+    return sAttributeMappings[value];
 }
 
-const CtsGlDescriptorType parseDescriptorType(CtsDescriptorType pValue)
+const CtsGlDescriptorType parseDescriptorType(CtsDescriptorType value)
 {
-    switch (pValue) {
+    switch (value) {
         case CTS_DESCRIPTOR_TYPE_SAMPLER:
         case CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
         case CTS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
@@ -603,7 +603,7 @@ CtsFlagBit parseDynamicStateFlagBits(const CtsPipelineDynamicStateCreateInfo* pC
 
     CtsFlagBit dynamicState = 0;
     for (uint32_t i = 0; i < pCreateInfo->dynamicStateCount; ++i) {
-        dynamicState |= parseDynamicStateFlag(pCreateInfo->dynamicStates[i]);
+        dynamicState |= parseDynamicStateFlag(pCreateInfo->pDynamicStates[i]);
     }
 
     return dynamicState;

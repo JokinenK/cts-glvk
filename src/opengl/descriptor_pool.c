@@ -9,12 +9,12 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateDescriptorPool(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorPoolCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDescriptorPool* pDescriptorPool
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsDescriptorPool descriptorPool = ctsAllocation(
         pAllocator,
@@ -28,7 +28,7 @@ CtsResult ctsCreateDescriptorPool(
     }
 
     CtsLinearAllocatorCreateInfo linearAllocatorCreateInfo;
-    linearAllocatorCreateInfo.allocator = pAllocator;
+    linearAllocatorCreateInfo.pAllocator = pAllocator;
     linearAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
     ctsCreateLinearAllocator(&descriptorPool->linearAllocatorInstance, &linearAllocatorCreateInfo);
     ctsGetLinearAllocatorCallbacks(descriptorPool->linearAllocatorInstance, &descriptorPool->linearAllocator);
@@ -38,20 +38,20 @@ CtsResult ctsCreateDescriptorPool(
 }
 
 void ctsDestroyDescriptorPool(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
+    CtsDevice device,
+    CtsDescriptorPool descriptorPool,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pDescriptorPool != NULL) {
-        ctsFree(pAllocator, pDescriptorPool);
+    if (descriptorPool != NULL) {
+        ctsFree(pAllocator, descriptorPool);
     }
 }
 
 CtsDescriptorSet ctsDescriptorPoolAllocateSet(
-    CtsDescriptorPool pDescriptorPool
+    CtsDescriptorPool descriptorPool
 ) {
     return ctsAllocation(
-        &pDescriptorPool->linearAllocator,
+        &descriptorPool->linearAllocator,
         sizeof(struct CtsDescriptorSet),
         alignof(struct CtsDescriptorSet),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT

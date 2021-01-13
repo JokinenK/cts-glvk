@@ -12,7 +12,7 @@ typedef struct CtsImage* CtsImage;
 
 typedef struct CtsImageCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsImageType imageType;
     CtsFormat imageFormat;
     CtsExtent3D extent;
@@ -23,7 +23,7 @@ typedef struct CtsImageCreateInfo {
     CtsImageUsage usage;
     //VkSharingMode sharingMode;
     uint32_t queueFamilyIndexCount;
-    const uint32_t* queueFamilyIndices;
+    const uint32_t* pQueueFamilyIndices;
     //VkImageLayout initialLayout;
 } CtsImageCreateInfo;
 

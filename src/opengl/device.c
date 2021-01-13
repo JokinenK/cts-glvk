@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateDevice(
-    CtsPhysicalDevice pPhysicalDevice,
+    CtsPhysicalDevice physicalDevice,
     const CtsDeviceCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDevice* pDevice
@@ -35,7 +35,7 @@ CtsResult ctsCreateDevice(
     device->activeMultisampleState = NULL;
     device->activeDepthStencilState = NULL;
     device->activeColorBlendState = NULL;
-    device->physicalDevice = pPhysicalDevice;
+    device->physicalDevice = physicalDevice;
 
     CtsQueueCreateInfo queueCreateInfo;
     queueCreateInfo.device = device;
@@ -51,34 +51,34 @@ CtsResult ctsCreateDevice(
 }
 
 void ctsGetDeviceQueue(
-    CtsDevice pDevice,
-    uint32_t pQueueFamilyIndex,
-    uint32_t pQueueIndex,
+    CtsDevice device,
+    uint32_t queueFamilyIndex,
+    uint32_t queueIndex,
     CtsQueue* pQueue
 ) {
-    (void) pQueueFamilyIndex;
-    (void) pQueueIndex;
+    (void) queueFamilyIndex;
+    (void) queueIndex;
 
-    if (pDevice != NULL) {
-        *pQueue = pDevice->queue;
+    if (device != NULL) {
+        *pQueue = device->queue;
     }
 }
 
 void ctsDestroyDevice(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pDevice) {
-        pDevice->isRunning = false;
+    if (device != NULL) {
+        device->isRunning = false;
 
-        ctsSignalSemaphores(1, &pDevice->initSemaphore);
-        ctsSignalSemaphores(1, &pDevice->dispatchSemaphore);
+        ctsSignalSemaphores(1, &device->initSemaphore);
+        ctsSignalSemaphores(1, &device->dispatchSemaphore);
 
-        ctsDestroySemaphore(pDevice, pDevice->initSemaphore, pAllocator);
-        ctsDestroySemaphore(pDevice, pDevice->dispatchSemaphore, pAllocator);
-        ctsDestroyQueue(pDevice->queue, pAllocator);
+        ctsDestroySemaphore(device, device->initSemaphore, pAllocator);
+        ctsDestroySemaphore(device, device->dispatchSemaphore, pAllocator);
+        ctsDestroyQueue(device->queue, pAllocator);
 
-        ctsFree(pAllocator, pDevice);
+        ctsFree(pAllocator, device);
     }
 }
 

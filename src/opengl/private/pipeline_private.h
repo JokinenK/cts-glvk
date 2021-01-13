@@ -18,17 +18,17 @@ struct CtsPipeline {
 };
 
 CtsResult ctsCreateGraphicsPipelinesImpl(
-    CtsDevice pDevice,
-    CtsPipelineCache pPipelineCache,
-    uint32_t pCreateInfoCount,
+    CtsDevice device,
+    CtsPipelineCache pipelineCache,
+    uint32_t createInfoCount,
     const CtsGraphicsPipelineCreateInfo* pCreateInfos,
     const CtsAllocationCallbacks* pAllocator,
     CtsPipeline* pPipelines
 );
 
 void ctsDestroyPipelineImpl(
-    CtsDevice pDevice,
-    CtsPipeline pPipeline,
+    CtsDevice device,
+    CtsPipeline pipeline,
     const CtsAllocationCallbacks* pAllocator
 );
 

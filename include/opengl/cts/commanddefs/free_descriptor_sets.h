@@ -12,8 +12,8 @@ typedef struct CtsFreeDescriptorSets {
     CtsDevice device;
     CtsDescriptorPool descriptorPool;
     uint32_t descriptorSetCount;
-    const CtsDescriptorSet* descriptorSets;
-    CtsResult* result;
+    const CtsDescriptorSet* pDescriptorSets;
+    CtsResult* pResult;
 } CtsFreeDescriptorSets;
 
 #ifdef __cplusplus

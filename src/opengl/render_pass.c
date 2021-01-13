@@ -7,12 +7,12 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateRenderPass(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsRenderPassCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsRenderPass* pRenderPass
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsRenderPass renderPass = ctsAllocation(
         pAllocator,
@@ -26,65 +26,65 @@ CtsResult ctsCreateRenderPass(
     }
 
     renderPass->attachmentCount = pCreateInfo->attachmentCount;
-    renderPass->attachments = ctsAllocation(
+    renderPass->pAttachments = ctsAllocation(
         pAllocator,
         sizeof(CtsAttachmentDescription) * pCreateInfo->attachmentCount,
         alignof(CtsAttachmentDescription),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    if (renderPass->attachments == NULL) {
-        ctsDestroyRenderPass(pDevice, renderPass, pAllocator);
+    if (renderPass->pAttachments == NULL) {
+        ctsDestroyRenderPass(device, renderPass, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
-        renderPass->attachments[i] = pCreateInfo->attachments[i];
+        renderPass->pAttachments[i] = pCreateInfo->pAttachments[i];
     }
 
     renderPass->dependencyCount = pCreateInfo->dependencyCount;
-    renderPass->dependencies = ctsAllocation(
+    renderPass->pDependencies = ctsAllocation(
         pAllocator,
         sizeof(CtsSubpassDescription) * pCreateInfo->dependencyCount,
         alignof(CtsSubpassDescription),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    if (renderPass->dependencies == NULL) {
-        ctsDestroyRenderPass(pDevice, renderPass, pAllocator);
+    if (renderPass->pDependencies == NULL) {
+        ctsDestroyRenderPass(device, renderPass, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     for (uint32_t i = 0; i < pCreateInfo->dependencyCount; ++i) {
-        renderPass->dependencies[i] = pCreateInfo->dependencies[i];
+        renderPass->pDependencies[i] = pCreateInfo->pDependencies[i];
     }
 
     renderPass->subpassCount = pCreateInfo->subpassCount;
-    renderPass->subpasses = ctsAllocation(
+    renderPass->pSubpasses = ctsAllocation(
         pAllocator,
         sizeof(CtsSubpassDependency) * pCreateInfo->subpassCount,
         alignof(CtsSubpassDependency),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    if (renderPass->subpasses == NULL) {
-        ctsDestroyRenderPass(pDevice, renderPass, pAllocator);
+    if (renderPass->pSubpasses == NULL) {
+        ctsDestroyRenderPass(device, renderPass, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     for (uint32_t i = 0; i < pCreateInfo->subpassCount; ++i) {
-        renderPass->subpasses[i] = pCreateInfo->subpasses[i];
+        renderPass->pSubpasses[i] = pCreateInfo->pSubpasses[i];
     }
 
-    renderPass->drawBuffers = ctsAllocation(
+    renderPass->pDrawBuffers = ctsAllocation(
         pAllocator,
         sizeof(GLenum) * pCreateInfo->attachmentCount,
         alignof(GLenum),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    if (renderPass->drawBuffers == NULL) {
-        ctsDestroyRenderPass(pDevice, renderPass, pAllocator);
+    if (renderPass->pDrawBuffers == NULL) {
+        ctsDestroyRenderPass(device, renderPass, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
@@ -93,30 +93,30 @@ CtsResult ctsCreateRenderPass(
 }
 
 void ctsDestroyRenderPass(
-    CtsDevice pDevice,
-    CtsRenderPass pRenderPass,
+    CtsDevice device,
+    CtsRenderPass renderPass,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pRenderPass != NULL) {
-        if (pRenderPass->attachments != NULL) {
-            ctsFree(pAllocator, pRenderPass->attachments);
+    if (renderPass != NULL) {
+        if (renderPass->pAttachments != NULL) {
+            ctsFree(pAllocator, renderPass->pAttachments);
         }
 
-        if (pRenderPass->dependencies != NULL) {
-            ctsFree(pAllocator, pRenderPass->dependencies);
+        if (renderPass->pDependencies != NULL) {
+            ctsFree(pAllocator, renderPass->pDependencies);
         }
 
-        if (pRenderPass->subpasses != NULL) {
-            ctsFree(pAllocator, pRenderPass->subpasses);
+        if (renderPass->pSubpasses != NULL) {
+            ctsFree(pAllocator, renderPass->pSubpasses);
         }
 
-        if (pRenderPass->drawBuffers != NULL) {
-            ctsFree(pAllocator, pRenderPass->drawBuffers);
+        if (renderPass->pDrawBuffers != NULL) {
+            ctsFree(pAllocator, renderPass->pDrawBuffers);
         }
 
-        ctsFree(pAllocator, pRenderPass);
+        ctsFree(pAllocator, renderPass);
     }
 }
 

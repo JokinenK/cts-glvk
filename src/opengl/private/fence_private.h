@@ -12,34 +12,34 @@ struct CtsFence {
 };
 
 CtsResult ctsCreateFenceImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsFenceCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFence* pFence
 );
 
 CtsResult ctsResetFencesImpl(
-    CtsDevice pDevice,
-    uint32_t pFenceCount,
+    CtsDevice device,
+    uint32_t fenceCount,
     const CtsFence* pFences
 );
 
 CtsResult ctsGetFenceStatusImpl(
-    CtsDevice pDevice,
-    CtsFence pFence
+    CtsDevice device,
+    CtsFence fence
 );
 
 CtsResult ctsWaitForFencesImpl(
-    CtsDevice pDevice,
-    uint32_t pFenceCount,
+    CtsDevice device,
+    uint32_t fenceCount,
     const CtsFence* pFences,
-    CtsBool32 pWaitAll,
-    uint64_t pTimeout
+    CtsBool32 waitAll,
+    uint64_t timeout
 );
 
 void ctsDestroyFenceImpl(
-    CtsDevice pDevice,
-    CtsFence pFence,
+    CtsDevice device,
+    CtsFence fence,
     const CtsAllocationCallbacks* pAllocator
 );
 

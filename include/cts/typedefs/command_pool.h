@@ -13,7 +13,7 @@ typedef struct CtsCommandPool* CtsCommandPool;
 
 typedef struct CtsCommandPoolCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsCommandPoolCreateFlags flags;
     uint32_t queueFamilyIndex;
 } CtsCommandPoolCreateInfo;

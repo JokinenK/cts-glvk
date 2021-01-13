@@ -8,15 +8,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateCommandPool(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsCommandPoolCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsCommandPool* pCommandPool
 );
 
 void ctsDestroyCommandPool(
-    CtsDevice pDevice,
-    CtsCommandPool pCommandPool,
+    CtsDevice device,
+    CtsCommandPool commandPool,
     const CtsAllocationCallbacks* pAllocator
 );
 

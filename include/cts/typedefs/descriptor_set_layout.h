@@ -13,15 +13,15 @@ typedef struct CtsDescriptorSetLayoutBinding {
     CtsDescriptorType descriptorType;
     uint32_t descriptorCount;
     CtsShaderStageFlags stageFlags;
-    const CtsSampler* immutableSamplers;
+    const CtsSampler* pImmutableSamplers;
 } CtsDescriptorSetLayoutBinding;
 
 typedef struct CtsDescriptorSetLayout* CtsDescriptorSetLayout;
 typedef struct CtsDescriptorSetLayoutCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t bindingCount;
-    const CtsDescriptorSetLayoutBinding* bindings;
+    const CtsDescriptorSetLayoutBinding* pBindings;
 } CtsDescriptorSetLayoutCreateInfo;
 
 #ifdef __cplusplus

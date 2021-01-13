@@ -14,18 +14,18 @@ CtsResult ctsCreateInstance(
 );
 
 CtsResult ctsDestroyInstance(
-    CtsInstance pInstance,
+    CtsInstance instance,
     const CtsAllocationCallbacks* pAllocator
 );
 
 CtsResult ctsEnumeratePhysicalDevices(
-    CtsInstance pInstance,
+    CtsInstance instance,
     uint32_t* pPhysicalDeviceCount,
     CtsPhysicalDevice* pPhysicalDevices
 );
 
 CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
-    CtsPhysicalDevice pPhysicalDevice,
+    CtsPhysicalDevice physicalDevice,
     uint32_t* pQueueFamilyPropertyCount,
     CtsQueueFamilyProperties* pQueueFamilyProperties
 );

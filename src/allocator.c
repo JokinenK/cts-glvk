@@ -3,28 +3,28 @@
 
 void* ctsAllocation(
     const CtsAllocationCallbacks* pAllocator,
-    size_t pSize,
-    size_t pAlign,
-    CtsSystemAllocationScope pScope
+    size_t size,
+    size_t align,
+    CtsSystemAllocationScope scope
 ) {
     if (pAllocator) {
-        return pAllocator->allocation(pAllocator->userData, pSize, pAlign, pScope);
+        return pAllocator->allocation(pAllocator->userData, size, align, scope);
     } else {
-        return malloc(pSize);
+        return malloc(size);
     }
 }
 
 void* ctsReallocate(
     const CtsAllocationCallbacks* pAllocator,
     void* pOriginal,
-    size_t pSize,
-    size_t pAlign,
-    CtsSystemAllocationScope pScope
+    size_t size,
+    size_t align,
+    CtsSystemAllocationScope scope
 ) {
     if (pAllocator) {
-        return pAllocator->reallocation(pAllocator->userData, pOriginal, pSize, pAlign, pScope);
+        return pAllocator->reallocation(pAllocator->userData, pOriginal, size, align, scope);
     } else {
-        return realloc(pOriginal, pSize);
+        return realloc(pOriginal, size);
     }
 }
 
@@ -41,20 +41,20 @@ void ctsFree(
 
 void ctsInternalAllocation(
     const CtsAllocationCallbacks* pAllocator,
-    size_t pSize,
-    CtsSystemAllocationScope pScope
+    size_t size,
+    CtsSystemAllocationScope scope
 ) {
     if (pAllocator) {
-        pAllocator->internalAllocation(pAllocator->userData, pSize, pScope);
+        pAllocator->internalAllocation(pAllocator->userData, size, scope);
     }
 }
 
 void ctsInternalFree(
     const CtsAllocationCallbacks* pAllocator,
-    size_t pSize, 
-    CtsSystemAllocationScope pScope
+    size_t size, 
+    CtsSystemAllocationScope scope
 ) {
     if (pAllocator) {
-        pAllocator->internalFree(pAllocator->userData, pSize, pScope);
+        pAllocator->internalFree(pAllocator->userData, size, scope);
     }
 }

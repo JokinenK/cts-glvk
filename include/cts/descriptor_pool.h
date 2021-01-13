@@ -7,15 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateDescriptorPool(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorPoolCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDescriptorPool* pDescriptorPool
 );
 
 void ctsDestroyDescriptorPool(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
+    CtsDevice device,
+    CtsDescriptorPool descriptorPool,
     const CtsAllocationCallbacks* pAllocator
 );
 

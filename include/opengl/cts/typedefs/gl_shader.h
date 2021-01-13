@@ -9,13 +9,13 @@ extern "C" {
 
 typedef struct CtsGlShaderStage {
     GLuint handle;
-    const char* name;
+    const char* pName;
 } CtsGlShaderStage;
 
 typedef struct CtsGlShader {
     GLuint handle;
     uint32_t stageCount;
-    CtsGlShaderStage* stages;
+    CtsGlShaderStage* pStages;
 } CtsGlShader;
 
 #ifdef __cplusplus

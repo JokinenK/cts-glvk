@@ -8,15 +8,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateShaderModule(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsShaderModuleCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsShaderModule* pShaderModule
 );
 
 void ctsDestroyShaderModule(
-    CtsDevice pDevice,
-    CtsShaderModule pShaderModule,
+    CtsDevice device,
+    CtsShaderModule shaderModule,
     const CtsAllocationCallbacks* pAllocator
 );
 

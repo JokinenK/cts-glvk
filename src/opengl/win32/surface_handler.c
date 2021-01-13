@@ -1,15 +1,16 @@
 #pragma once
 
+#include <stdbool.h>
 #include <cts/surface_handler.h>
-#include <cts/typedefs/private/surface_private.h>
-#include <cts/typedefs/private/instance_private.h>
+#include <private/surface_private.h>
+#include <private/instance_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 CtsResult ctsCreateWin32Surface(
-    CtsInstance pInstance,
+    CtsInstance instance,
     const CtsWin32SurfaceCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSurface* pSurface
@@ -75,35 +76,35 @@ CtsResult ctsCreateWin32Surface(
         bool initialized = (gladLoadGL() == 1);
         assert(initialized && "Unable to load OpenGL");
 
-        pInstance->surface = surface;
+        instance->surface = surface;
         *pSurface = surface;
         return CTS_SUCCESS;
     }
 
-    return CTS_FAILURE;
+    return CTS_NOT_READY;
 }
 
 CtsResult ctsDestroyWin32Surface(
-    CtsSurface pSurface,
+    CtsSurface surface,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pSurface) {
+    if (surface) {
         wglMakeCurrent(NULL, NULL);
-        wglDeleteContext(pSurface->context);
-        ctsFree(pAllocator, pSurface);
+        wglDeleteContext(surface->context);
+        ctsFree(pAllocator, surface);
     }
 }
 
-void ctsSurfaceMakeCurrent(CtsSurface pSurface)
+void ctsSurfaceMakeCurrent(CtsSurface surface)
 {
-    if (pSurface->device && pSurface->context) {
-        wglMakeCurrent(pSurface->device, pSurface->context);
+    if (surface->device && surface->context) {
+        wglMakeCurrent(surface->device, surface->context);
     }
 }
 
-void ctsSurfaceSwapBuffers(CtsSurface pSurface)
+void ctsSurfaceSwapBuffers(CtsSurface surface)
 {
-    SwapBuffers(pSurface->device);
+    SwapBuffers(surface->device);
 }
 
 #ifdef __cplusplus

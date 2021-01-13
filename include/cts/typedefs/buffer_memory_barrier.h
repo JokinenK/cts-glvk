@@ -12,7 +12,7 @@ extern "C" {
 
 typedef struct CtsBufferMemoryBarrier {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsAccessFlags srcAccessMask;
     CtsAccessFlags dstAccessMask;
     uint32_t srcQueueFamilyIndex;

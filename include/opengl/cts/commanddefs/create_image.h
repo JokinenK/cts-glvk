@@ -10,10 +10,10 @@ extern "C" {
 typedef struct CtsCreateImage {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsImageCreateInfo* createInfo;
-    const CtsAllocationCallbacks* allocator;
-    CtsImage* image;
-    CtsResult* result;
+    const CtsImageCreateInfo* pCreateInfo;
+    const CtsAllocationCallbacks* pAllocator;
+    CtsImage* pImage;
+    CtsResult* pResult;
 } CtsCreateImage;
 
 #ifdef __cplusplus

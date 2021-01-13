@@ -86,28 +86,29 @@ CtsResult ctsInitFSTextureHelper() {
 
     GLint samplerLocation = glGetUniformLocation(gShaderProgram, "sampler");
     glUniform1i(samplerLocation, 0);
+    
     return CTS_SUCCESS;
 }
 
 CtsResult ctsDrawFSTexture(
-    CtsDevice pDevice,
-    CtsImage pImage
+    CtsDevice device,
+    CtsImage image
 ) {
-    GLuint prevProgram = (pDevice->activeGraphicsPipeline != NULL)
-        ? pDevice->activeGraphicsPipeline->shader.handle
+    GLuint prevProgram = (device->activeGraphicsPipeline != NULL)
+        ? device->activeGraphicsPipeline->shader.handle
         : 0u;
 
-    GLuint prevFramebuffer = (pDevice->activeFramebuffer != NULL)
-        ? pDevice->activeFramebuffer->handle
+    GLuint prevFramebuffer = (device->activeFramebuffer != NULL)
+        ? device->activeFramebuffer->handle
         : 0u;
 
-    GLenum prevTextureTarget = pDevice->activeTextures[0].target;
-    GLint prevTextureHandle = pDevice->activeTextures[0].handle;
+    GLenum prevTextureTarget = device->activeTextures[0].target;
+    GLint prevTextureHandle = device->activeTextures[0].handle;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glUseProgram(gShaderProgram);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, pImage->handle);
+    glBindTexture(GL_TEXTURE_2D, image->handle);
     glDrawArrays(GL_POINT, 0, 4);
     glUseProgram(prevProgram);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFramebuffer);

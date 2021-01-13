@@ -23,7 +23,7 @@ struct CtsSwapchain {
     CtsDevice device;
     CtsSurface surface;
     uint32_t entryCount;
-    CtsSwapchainEntry* entries;
+    CtsSwapchainEntry* pEntries;
 };
 
 #ifdef __cplusplus

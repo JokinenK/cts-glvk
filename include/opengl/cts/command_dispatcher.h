@@ -14,7 +14,7 @@ typedef struct CtsCommandMetadata {
     size_t align;
 } CtsCommandMetadata;
 
-const CtsCommandMetadata* ctsGetCommandMetadata(CtsCommandType pCommandType);
+const CtsCommandMetadata* ctsGetCommandMetadata(CtsCommandType commandType);
 const size_t ctsGetMaxCommandSize();
 const size_t ctsGetMaxCommandAlign();
 

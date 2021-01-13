@@ -8,12 +8,12 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateShaderModule(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsShaderModuleCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsShaderModule* pShaderModule
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsShaderModule shaderModule = ctsAllocation(
         pAllocator,
@@ -34,21 +34,21 @@ CtsResult ctsCreateShaderModule(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    memcpy(shaderModule->code, pCreateInfo->code, pCreateInfo->codeSize);
+    memcpy(shaderModule->code, pCreateInfo->pCode, pCreateInfo->codeSize);
     *pShaderModule = shaderModule;
     return CTS_SUCCESS;
 }
 
 void ctsDestroyShaderModule(
-    CtsDevice pDevice,
-    CtsShaderModule pShaderModule,
+    CtsDevice device,
+    CtsShaderModule shaderModule,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pShaderModule != NULL) {
-        ctsFree(pAllocator, pShaderModule->code);
-        ctsFree(pAllocator, pShaderModule);
+    if (shaderModule != NULL) {
+        ctsFree(pAllocator, shaderModule->code);
+        ctsFree(pAllocator, shaderModule);
     }
 }
 

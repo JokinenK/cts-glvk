@@ -11,7 +11,7 @@ typedef struct CtsDestroyFence {
     CtsCmdBase base;
     CtsDevice device;
     CtsFence fence;
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 } CtsDestroyFence;
 
 #ifdef __cplusplus

@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 static void writeImageView(
-    CtsDevice pDevice,
+    CtsDevice device,
     CtsDescriptorSet pDescriptorSet, 
     CtsDescriptorType pDescriptorType, 
     const CtsDescriptorImageInfo* pDescriptorImageInfo, 
@@ -24,7 +24,7 @@ static void writeImageView(
 );
 
 static void writeBufferView(
-    CtsDevice pDevice,
+    CtsDevice device,
     CtsDescriptorSet pDescriptorSet, 
     CtsDescriptorType pDescriptorType, 
     CtsBufferView pBufferView, 
@@ -33,7 +33,7 @@ static void writeBufferView(
 );
 
 static void writeBuffer(
-    CtsDevice pDevice,
+    CtsDevice device,
     CtsDescriptorSet pDescriptorSet, 
     CtsDescriptorType pDescriptorType, 
     const CtsDescriptorBufferInfo* pDescriptorBufferInfo, 
@@ -42,76 +42,76 @@ static void writeBuffer(
 );
 
 CtsResult ctsAllocateDescriptorSets(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorSetAllocateInfo* pAllocateInfo,
     CtsDescriptorSet* pDescriptorSets
 ) {
     CtsResult result;
     CtsAllocateDescriptorSets cmd;
     cmd.base.type = CTS_COMMAND_ALLOCATE_DESCRIPTOR_SETS;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.allocateInfo = pAllocateInfo;
-    cmd.descriptorSets = pDescriptorSets;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.pAllocateInfo = pAllocateInfo;
+    cmd.pDescriptorSets = pDescriptorSets;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 void ctsUpdateDescriptorSets(
-    CtsDevice pDevice,
-    uint32_t pDescriptorWriteCount,
+    CtsDevice device,
+    uint32_t descriptorWriteCount,
     const CtsWriteDescriptorSet* pDescriptorWrites,
-    uint32_t pDescriptorCopyCount,
+    uint32_t descriptorCopyCount,
     const CtsCopyDescriptorSet* pDescriptorCopies
 ) {
     CtsUpdateDescriptorSets cmd;
     cmd.base.type = CTS_COMMAND_UPDATE_DESCRIPTOR_SETS;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.descriptorWriteCount = pDescriptorWriteCount;
-    cmd.descriptorWrites = pDescriptorWrites;
-    cmd.descriptorCopyCount = pDescriptorCopyCount;
-    cmd.descriptorCopies = pDescriptorCopies;
+    cmd.device = device;
+    cmd.descriptorWriteCount = descriptorWriteCount;
+    cmd.pDescriptorWrites = pDescriptorWrites;
+    cmd.descriptorCopyCount = descriptorCopyCount;
+    cmd.pDescriptorCopies = pDescriptorCopies;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 CtsResult ctsFreeDescriptorSets(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
-    uint32_t pDescriptorSetCount,
+    CtsDevice device,
+    CtsDescriptorPool descriptorPool,
+    uint32_t descriptorSetCount,
     const CtsDescriptorSet* pDescriptorSets
 ) {
     CtsResult result;
     CtsFreeDescriptorSets cmd;
     cmd.base.type = CTS_COMMAND_FREE_DESCRIPTOR_SETS;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.descriptorPool = pDescriptorPool;
-    cmd.descriptorSetCount = pDescriptorSetCount;
-    cmd.descriptorSets = pDescriptorSets;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.descriptorPool = descriptorPool;
+    cmd.descriptorSetCount = descriptorSetCount;
+    cmd.pDescriptorSets = pDescriptorSets;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 CtsResult ctsAllocateDescriptorSetsImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorSetAllocateInfo* pAllocateInfo,
     CtsDescriptorSet* pDescriptorSets
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsResult result = CTS_SUCCESS;
     uint32_t i = 0;
@@ -123,7 +123,7 @@ CtsResult ctsAllocateDescriptorSetsImpl(
             break;
         }
 
-        CtsDescriptorSetLayout layout = pAllocateInfo->setLayouts[i];
+        CtsDescriptorSetLayout layout = pAllocateInfo->pSetLayouts[i];
         
         uint32_t descriptorCount = 0;
         for (uint32_t j = 0; j < layout->bindingCount; ++j) {
@@ -156,13 +156,13 @@ CtsResult ctsAllocateDescriptorSetsImpl(
 }
 
 void ctsUpdateDescriptorSetsImpl(
-    CtsDevice pDevice,
-    uint32_t pDescriptorWriteCount,
+    CtsDevice device,
+    uint32_t descriptorWriteCount,
     const CtsWriteDescriptorSet* pDescriptorWrites,
-    uint32_t pDescriptorCopyCount,
+    uint32_t descriptorCopyCount,
     const CtsCopyDescriptorSet* pDescriptorCopies
 ) {
-    for (uint32_t i = 0; i < pDescriptorWriteCount; ++i) {
+    for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
         const CtsWriteDescriptorSet* write = &pDescriptorWrites[i];
         CtsDescriptorSet target = write->dstSet;
         CtsGlDescriptorSetLayoutBinding* binding = &target->layout->bindings[write->dstBinding];
@@ -177,10 +177,10 @@ void ctsUpdateDescriptorSetsImpl(
                 for (uint32_t j = 0; j < write->descriptorCount; j++) {
                     offset = binding->descriptorOffset + write->dstArrayElement + j;
                     writeImageView(
-                        pDevice,
+                        device,
                         target,
                         write->descriptorType,
-                        &write->imageInfo[j],
+                        &write->pImageInfo[j],
                         write->dstBinding,
                         offset
                     );
@@ -192,10 +192,10 @@ void ctsUpdateDescriptorSetsImpl(
                 for (uint32_t j = 0; j < write->descriptorCount; j++) {
                     offset = binding->descriptorOffset + write->dstArrayElement + j;
                     writeBufferView(
-                        pDevice,
+                        device,
                         target,
                         write->descriptorType,
-                        write->texelBufferView[j],
+                        write->pTexelBufferView[j],
                         write->dstBinding,
                         offset
                     );
@@ -209,10 +209,10 @@ void ctsUpdateDescriptorSetsImpl(
                 for (uint32_t j = 0; j < write->descriptorCount; j++) {
                     offset = binding->descriptorOffset + write->dstArrayElement + j;
                     writeBuffer(
-                        pDevice,
+                        device,
                         target,
                         write->descriptorType,
-                        &write->bufferInfo[j],
+                        &write->pBufferInfo[j],
                         write->dstBinding,
                         offset
                     );
@@ -224,7 +224,7 @@ void ctsUpdateDescriptorSetsImpl(
         }
     }
 
-    for (uint32_t i = 0; i < pDescriptorCopyCount; ++i) {
+    for (uint32_t i = 0; i < descriptorCopyCount; ++i) {
         const CtsCopyDescriptorSet* descriptorSet = &pDescriptorCopies[i];
 
         CtsDescriptorSet src = descriptorSet->srcSet;
@@ -245,20 +245,20 @@ void ctsUpdateDescriptorSetsImpl(
 }
 
 CtsResult ctsFreeDescriptorSetsImpl(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
-    uint32_t pDescriptorSetCount,
+    CtsDevice device,
+    CtsDescriptorPool descriptorPool,
+    uint32_t descriptorSetCount,
     const CtsDescriptorSet* pDescriptorSets
 ) {
-    for (uint32_t i = 0; pDescriptorSetCount; ++i) {
-        ctsFree(&pDescriptorPool->linearAllocator, pDescriptorSets[i]);
+    for (uint32_t i = 0; descriptorSetCount; ++i) {
+        ctsFree(&descriptorPool->linearAllocator, pDescriptorSets[i]);
     }
 
     return CTS_SUCCESS;
 }
 
 static void writeImageView(
-    CtsDevice pDevice,
+    CtsDevice device,
     CtsDescriptorSet pDescriptorSet, 
     CtsDescriptorType pDescriptorType, 
     const CtsDescriptorImageInfo* pDescriptorImageInfo, 
@@ -305,7 +305,7 @@ static void writeImageView(
 
 
 static void writeBufferView(
-    CtsDevice pDevice,
+    CtsDevice device,
     CtsDescriptorSet pDescriptorSet, 
     CtsDescriptorType pDescriptorType, 
     CtsBufferView pBufferView, 
@@ -322,7 +322,7 @@ static void writeBufferView(
 }
 
 static void writeBuffer(
-    CtsDevice pDevice,
+    CtsDevice device,
     CtsDescriptorSet pDescriptorSet, 
     CtsDescriptorType pDescriptorType, 
     const CtsDescriptorBufferInfo* pDescriptorBufferInfo, 

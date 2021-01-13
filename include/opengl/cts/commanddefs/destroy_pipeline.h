@@ -12,7 +12,7 @@ typedef struct CtsDestroyPipeline {
     CtsCmdBase base;
     CtsDevice device;
     CtsPipeline pipeline;
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 } CtsDestroyPipeline;
 
 #ifdef __cplusplus

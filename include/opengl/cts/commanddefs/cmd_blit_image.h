@@ -15,7 +15,7 @@ typedef struct CtsCmdBlitImage {
     CtsImage dstImage;
     CtsImageLayout dstImageLayout;
     uint32_t regionCount;
-    const CtsImageBlit* regions;
+    const CtsImageBlit* pRegions;
     CtsFilter filter;
 } CtsCmdBlitImage;
 

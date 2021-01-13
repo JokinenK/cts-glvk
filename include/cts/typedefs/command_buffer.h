@@ -13,7 +13,7 @@ typedef struct CtsCommandBuffer* CtsCommandBuffer;
 
 typedef struct CtsCommandBufferAllocateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsCommandPool commandPool;
     CtsCommandBufferLevel level;
     uint32_t commandBufferCount;

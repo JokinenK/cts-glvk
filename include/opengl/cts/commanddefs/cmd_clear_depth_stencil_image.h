@@ -12,9 +12,9 @@ typedef struct CtsCmdClearDepthStencilImage {
     CtsCommandBuffer commandBuffer;
     CtsImage image;
     CtsImageLayout imageLayout;
-    const CtsClearDepthStencilValue* depthStencil;
+    const CtsClearDepthStencilValue* pDepthStencil;
     uint32_t rangeCount;
-    const CtsImageSubresourceRange* ranges;
+    const CtsImageSubresourceRange* pRanges;
 } CtsCmdClearDepthStencilImage;
 
 #ifdef __cplusplus

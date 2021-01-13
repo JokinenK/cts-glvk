@@ -11,7 +11,7 @@ typedef struct CtsEvent* CtsEvent;
 
 typedef struct CtsEventCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsEventCreateFlags flags;
 } CtsEventCreateInfo;
 

@@ -12,7 +12,7 @@ typedef struct CtsCmdSetViewport {
     CtsCommandBuffer commandBuffer;
     uint32_t firstViewport;
     uint32_t viewportCount;
-    const CtsViewport* viewports;
+    const CtsViewport* pViewports;
 } CtsCmdSetViewport;
 
 #ifdef __cplusplus

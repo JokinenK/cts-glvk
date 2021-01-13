@@ -11,8 +11,8 @@ typedef struct CtsResetFences {
     CtsCmdBase base;
     CtsDevice device;
     uint32_t fenceCount;
-    const CtsFence* fences;
-    CtsResult* result;
+    const CtsFence* pFences;
+    CtsResult* pResult;
 } CtsResetFences;
 
 #ifdef __cplusplus

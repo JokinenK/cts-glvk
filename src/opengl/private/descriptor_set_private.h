@@ -16,23 +16,23 @@ struct CtsDescriptorSet {
 };
 
 CtsResult ctsAllocateDescriptorSetsImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorSetAllocateInfo* pAllocateInfo,
     CtsDescriptorSet* pDescriptorSets
 );
 
 void ctsUpdateDescriptorSetsImpl(
-    CtsDevice pDevice,
-    uint32_t pDescriptorWriteCount,
+    CtsDevice device,
+    uint32_t descriptorWriteCount,
     const CtsWriteDescriptorSet* pDescriptorWrites,
-    uint32_t pDescriptorCopyCount,
+    uint32_t descriptorCopyCount,
     const CtsCopyDescriptorSet* pDescriptorCopies
 );
 
 CtsResult ctsFreeDescriptorSetsImpl(
-    CtsDevice pDevice,
-    CtsDescriptorPool pDescriptorPool,
-    uint32_t pDescriptorSetCount,
+    CtsDevice device,
+    CtsDescriptorPool descriptorPool,
+    uint32_t descriptorSetCount,
     const CtsDescriptorSet* pDescriptorSets
 );
 

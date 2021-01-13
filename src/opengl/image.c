@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateImage(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImage* pImage
@@ -19,44 +19,44 @@ CtsResult ctsCreateImage(
     CtsResult result;
     CtsCreateImage cmd;
     cmd.base.type = CTS_COMMAND_CREATE_IMAGE;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.createInfo = pCreateInfo;
-    cmd.allocator = pAllocator;
-    cmd.image = pImage;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.pCreateInfo = pCreateInfo;
+    cmd.pAllocator = pAllocator;
+    cmd.pImage = pImage;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 void ctsDestroyImage(
-    CtsDevice pDevice,
-    CtsImage pImage,
+    CtsDevice device,
+    CtsImage image,
     const CtsAllocationCallbacks* pAllocator
 ) {
     CtsDestroyImage cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_IMAGE;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.image = pImage;
-    cmd.allocator = pAllocator;
+    cmd.device = device;
+    cmd.image = image;
+    cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 CtsResult ctsCreateImageImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImage* pImage
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsImage image = ctsAllocation(
         pAllocator,
@@ -75,7 +75,7 @@ CtsResult ctsCreateImageImpl(
     //(void) pCreateInfo->tiling;
     //(void) pCreateInfo->sharingMode;
     (void) pCreateInfo->queueFamilyIndexCount;
-    (void) pCreateInfo->queueFamilyIndices;
+    (void) pCreateInfo->pQueueFamilyIndices;
     //(void) pCreateInfo->initialLayout;
 
     CtsFormatData formatData = parseFormat(pCreateInfo->imageFormat);
@@ -133,15 +133,15 @@ CtsResult ctsCreateImageImpl(
 }
 
 void ctsDestroyImageImpl(
-    CtsDevice pDevice,
-    CtsImage pImage,
+    CtsDevice device,
+    CtsImage image,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pImage != NULL) {
-        glDeleteTextures(1, &pImage->handle);
-        ctsFree(pAllocator, pImage);
+    if (image != NULL) {
+        glDeleteTextures(1, &image->handle);
+        ctsFree(pAllocator, image);
     }
 }
 

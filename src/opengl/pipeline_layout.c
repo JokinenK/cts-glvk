@@ -8,12 +8,12 @@ extern "C" {
 #endif
 
 CtsResult ctsCreatePipelineLayout(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsPipelineLayoutCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsPipelineLayout* pPipelineLayout
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsPipelineLayout pipelineLayout = ctsAllocation(
         pAllocator,
@@ -35,7 +35,7 @@ CtsResult ctsCreatePipelineLayout(
     );
 
     for (uint32_t i = 0; i < pipelineLayout->setLayoutCount; ++i) {
-        pipelineLayout->setLayouts[i] = pCreateInfo->setLayouts[i];
+        pipelineLayout->setLayouts[i] = pCreateInfo->pSetLayouts[i];
     }
 
     pipelineLayout->pushConstantRangeCount = pCreateInfo->pushConstantRangeCount;
@@ -47,7 +47,7 @@ CtsResult ctsCreatePipelineLayout(
     );
 
     for (uint32_t i = 0; i < pipelineLayout->pushConstantRangeCount; ++i) {
-        pipelineLayout->pushConstantRanges[i] = pCreateInfo->pushConstantRanges[i];
+        pipelineLayout->pushConstantRanges[i] = pCreateInfo->pPushConstantRanges[i];
     }
 
     *pPipelineLayout = pipelineLayout;
@@ -55,16 +55,16 @@ CtsResult ctsCreatePipelineLayout(
 }
 
 void ctsDestroyPipelineLayout(
-    CtsDevice pDevice,
-    CtsPipelineLayout pPipelineLayout,
+    CtsDevice device,
+    CtsPipelineLayout pipelineLayout,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pPipelineLayout != NULL) {
-        ctsFree(pAllocator, pPipelineLayout->setLayouts);
-        ctsFree(pAllocator, pPipelineLayout->pushConstantRanges);
-        ctsFree(pAllocator, pPipelineLayout);
+    if (pipelineLayout != NULL) {
+        ctsFree(pAllocator, pipelineLayout->setLayouts);
+        ctsFree(pAllocator, pipelineLayout->pushConstantRanges);
+        ctsFree(pAllocator, pipelineLayout);
     }
 }
 

@@ -12,7 +12,7 @@ typedef struct CtsQueueFinish {
     CtsCmdBase base;
     CtsDevice device;
     uint32_t semaphoreCount;
-    const CtsSemaphore* semaphores;
+    const CtsSemaphore* pSemaphores;
     CtsCommandBuffer commandBuffer;
 } CtsQueueFinish;
 

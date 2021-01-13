@@ -8,15 +8,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateRenderPass(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsRenderPassCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsRenderPass* pRenderPass
 );
 
 void ctsDestroyRenderPass(
-    CtsDevice pDevice,
-    CtsRenderPass pRenderPass,
+    CtsDevice device,
+    CtsRenderPass renderPass,
     const CtsAllocationCallbacks* pAllocator
 );
 

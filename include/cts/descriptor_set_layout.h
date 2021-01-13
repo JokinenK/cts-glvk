@@ -7,28 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateDescriptorSetLayout(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorSetLayoutCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDescriptorSetLayout* pDescriptorSetLayout
 );
 
 void ctsDestroyDescriptorSetLayout(
-    CtsDevice pDevice,
-    CtsDescriptorSetLayout pDescriptorSetLayout,
-    const CtsAllocationCallbacks* pAllocator
-);
-
-CtsResult ctsCreatePipelineLayout(
-    CtsDevice pDevice,
-    const CtsPipelineLayoutCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipelineLayout* pPipelineLayout
-);
-
-void ctsDestroyPipelineLayout(
-    CtsDevice pDevice,
-    CtsPipelineLayout pPipelineLayout,
+    CtsDevice device,
+    CtsDescriptorSetLayout descriptorSetLayout,
     const CtsAllocationCallbacks* pAllocator
 );
 

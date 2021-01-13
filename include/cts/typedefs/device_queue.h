@@ -9,11 +9,11 @@ extern "C" {
 
 typedef struct CtsDeviceQueueCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDeviceQueueCreateFlags flags;
     uint32_t queueFamilyIndex;
     uint32_t queueCount;
-    const float* queuePriorities;
+    const float* pQueuePriorities;
 } CtsDeviceQueueCreateInfo;
 
 #ifdef __cplusplus

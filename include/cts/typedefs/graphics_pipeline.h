@@ -11,18 +11,18 @@ extern "C" {
 
 typedef struct CtsGraphicsPipelineCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t stageCount;
     const CtsPipelineShaderStageCreateInfo* stages;
-    const CtsPipelineVertexInputStateCreateInfo* vertexInputState;
-    const CtsPipelineInputAssemblyStateCreateInfo* inputAssemblyState;
-    const CtsPipelineTessellationStateCreateInfo* tessellationState;
-    const CtsPipelineViewportStateCreateInfo* viewportState;
-    const CtsPipelineRasterizationStateCreateInfo* rasterizationState;
-    const CtsPipelineMultisampleStateCreateInfo* multisampleState;
-    const CtsPipelineDepthStencilStateCreateInfo* depthStencilState;
-    const CtsPipelineColorBlendStateCreateInfo* colorBlendState;
-    const CtsPipelineDynamicStateCreateInfo* dynamicState;
+    const CtsPipelineVertexInputStateCreateInfo* pVertexInputState;
+    const CtsPipelineInputAssemblyStateCreateInfo* pInputAssemblyState;
+    const CtsPipelineTessellationStateCreateInfo* pTessellationState;
+    const CtsPipelineViewportStateCreateInfo* pViewportState;
+    const CtsPipelineRasterizationStateCreateInfo* pRasterizationState;
+    const CtsPipelineMultisampleStateCreateInfo* pMultisampleState;
+    const CtsPipelineDepthStencilStateCreateInfo* pDepthStencilState;
+    const CtsPipelineColorBlendStateCreateInfo* pColorBlendState;
+    const CtsPipelineDynamicStateCreateInfo* pDynamicState;
     CtsPipelineLayout layout;
     CtsRenderPass renderPass;
     uint32_t subpass;

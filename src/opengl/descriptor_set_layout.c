@@ -7,12 +7,12 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateDescriptorSetLayout(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsDescriptorSetLayoutCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDescriptorSetLayout* pDescriptorSetLayout
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsDescriptorSetLayout descriptorSetLayout = ctsAllocation(
         pAllocator,
@@ -36,14 +36,14 @@ CtsResult ctsCreateDescriptorSetLayout(
     uint32_t descriptorOffset = 0;
     for (uint32_t i = 0; i < descriptorSetLayout->bindingCount; ++i) {
         CtsGlDescriptorSetLayoutBinding* target = &descriptorSetLayout->bindings[i];
-        const CtsDescriptorSetLayoutBinding* source = &pCreateInfo->bindings[i];
+        const CtsDescriptorSetLayoutBinding* source = &pCreateInfo->pBindings[i];
 
         target->binding = source->binding;
         target->descriptorType = source->descriptorType;
         target->descriptorCount = source->descriptorCount;
         target->descriptorOffset = descriptorOffset;
         target->stageFlags = source->stageFlags;
-        target->immutableSamplers = source->immutableSamplers;
+        target->immutableSamplers = source->pImmutableSamplers;
 
         descriptorOffset += source->descriptorCount;
     }
@@ -53,15 +53,15 @@ CtsResult ctsCreateDescriptorSetLayout(
 }
 
 void ctsDestroyDescriptorSetLayout(
-    CtsDevice pDevice,
-    CtsDescriptorSetLayout pDescriptorSetLayout,
+    CtsDevice device,
+    CtsDescriptorSetLayout descriptorSetLayout,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pDescriptorSetLayout != NULL) {
-        ctsFree(pAllocator, pDescriptorSetLayout->bindings);
-        ctsFree(pAllocator, pDescriptorSetLayout);
+    if (descriptorSetLayout != NULL) {
+        ctsFree(pAllocator, descriptorSetLayout->bindings);
+        ctsFree(pAllocator, descriptorSetLayout);
     }
 }
 

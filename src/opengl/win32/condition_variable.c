@@ -30,37 +30,37 @@ CtsResult ctsCreateConditionVariables(
 }
 
 void ctsDestroyConditionVariable(
-    CtsConditionVariable pConditionVariable,
+    CtsConditionVariable conditionVariable,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pConditionVariable != NULL) {
-        ctsFree(pAllocator, pConditionVariable);
+    if (conditionVariable != NULL) {
+        ctsFree(pAllocator, conditionVariable);
     }
 }
 
 void ctsConditionVariableSleep(
-    CtsConditionVariable pConditionVariable,
-    CtsMutex pMutex
+    CtsConditionVariable conditionVariable,
+    CtsMutex mutex
 ) {
-    if (pConditionVariable != NULL && pMutex != NULL) {
+    if (conditionVariable != NULL && mutex != NULL) {
         SleepConditionVariableCS(
-            &pConditionVariable->conditionVariable,
-            &pMutex->criticalSection,
+            &conditionVariable->conditionVariable,
+            &mutex->criticalSection,
             INFINITE
         );
     }
 }
 
 void ctsConditionVariableWake(
-    CtsConditionVariable pConditionVariable
+    CtsConditionVariable conditionVariable
 ) {
-    WakeConditionVariable(&pConditionVariable->conditionVariable);
+    WakeConditionVariable(&conditionVariable->conditionVariable);
 }
 
 void ctsConditionVariableWakeAll(
-    CtsConditionVariable pConditionVariable
+    CtsConditionVariable conditionVariable
 ) {
-    WakeAllConditionVariable(&pConditionVariable->conditionVariable);
+    WakeAllConditionVariable(&conditionVariable->conditionVariable);
 }
 
 #ifdef __cplusplus

@@ -14,11 +14,11 @@ typedef struct CtsDescriptorPool* CtsDescriptorPool;
 
 typedef struct CtsDescriptorPoolCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDescriptorPoolCreateFlags flags;
     uint32_t maxSets;
     uint32_t poolSizeCount;
-    const CtsDescriptorPoolSize* poolSizes;
+    const CtsDescriptorPoolSize* pPoolSizes;
 } CtsDescriptorPoolCreateInfo;
 
 #ifdef __cplusplus

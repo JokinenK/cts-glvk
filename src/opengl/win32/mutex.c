@@ -10,10 +10,10 @@ extern "C" {
 bool ctsCreateMutexes(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pMutexCount,
+    uint32_t mutexCount,
     CtsMutex* pMutexes
 ) {
-    for (uint32_t i = 0; i < pMutexCount; ++i) {
+    for (uint32_t i = 0; i < mutexCount; ++i) {
         CtsMutex mutex = ctsAllocation(
             pAllocator,
             sizeof(struct CtsMutex),
@@ -33,12 +33,12 @@ bool ctsCreateMutexes(
 }
 
 bool ctsDestroyMutex(
-    CtsMutex pMutex,
+    CtsMutex mutex,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pMutex) {
-        DeleteCriticalSection(&pMutex->criticalSection);
-        ctsFree(pAllocator, pMutex);
+    if (mutex) {
+        DeleteCriticalSection(&mutex->criticalSection);
+        ctsFree(pAllocator, mutex);
         return true;
     }
 
@@ -46,21 +46,21 @@ bool ctsDestroyMutex(
 }
 
 void ctsMutexLock(
-    CtsMutex pMutex
+    CtsMutex mutex
 ) {
-    EnterCriticalSection(&pMutex->criticalSection);
+    EnterCriticalSection(&mutex->criticalSection);
 }
 
 bool ctsMutexTryLock(
-    CtsMutex pMutex
+    CtsMutex mutex
 ) {
-    return TryEnterCriticalSection(&pMutex->criticalSection);
+    return TryEnterCriticalSection(&mutex->criticalSection);
 }
 
 void ctsMutexUnlock(
-    CtsMutex pMutex
+    CtsMutex mutex
 ) {
-    LeaveCriticalSection(&pMutex->criticalSection);
+    LeaveCriticalSection(&mutex->criticalSection);
 }
 
 #ifdef __cplusplus

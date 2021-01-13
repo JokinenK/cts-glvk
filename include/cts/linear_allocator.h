@@ -10,19 +10,19 @@ extern "C" {
 
 typedef struct CtsLinearAllocator* CtsLinearAllocator;
 typedef struct CtsLinearAllocatorCreateInfo {
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize growSize;
 } CtsLinearAllocatorCreateInfo;
 
 bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllocatorCreateInfo* pCreateInfo);
-void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator pInstance, CtsAllocationCallbacks* pAllocator);
-bool ctsDestroyLinearAllocator(CtsLinearAllocator pInstance);
+void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator instance, CtsAllocationCallbacks* pAllocator);
+bool ctsDestroyLinearAllocator(CtsLinearAllocator instance);
 
-void* ctsLinearAllocatorAlloc(CtsLinearAllocator pInstance, size_t pSize, size_t pAlign);
-void* ctsLinearAllocatorRealloc(CtsLinearAllocator pInstance, void* pOrigPtr, size_t pSize, size_t pAlign);
-void ctsLinearAllocatorFree(CtsLinearAllocator pInstance, void* pPtr);
-void ctsLinearAllocatorReset(CtsLinearAllocator pInstance);
-void ctsLinearAllocatorTrim(CtsLinearAllocator pInstance);
+void* ctsLinearAllocatorAlloc(CtsLinearAllocator instance, size_t size, size_t align);
+void* ctsLinearAllocatorRealloc(CtsLinearAllocator instance, void* pOrigPtr, size_t size, size_t align);
+void ctsLinearAllocatorFree(CtsLinearAllocator instance, void* pPtr);
+void ctsLinearAllocatorReset(CtsLinearAllocator instance);
+void ctsLinearAllocatorTrim(CtsLinearAllocator instance);
 
 #ifdef __cplusplus
 }

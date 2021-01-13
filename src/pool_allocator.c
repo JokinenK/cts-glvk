@@ -13,17 +13,17 @@ typedef struct CtsPoolAllocatorPool {
 } CtsPoolAllocatorPool;
 
 struct CtsPoolAllocator {
-	const CtsAllocationCallbacks* allocator;
+	const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize blockSize;
     CtsDeviceSize growSize;
 	CtsPoolAllocatorPool* pools;
     CtsPoolAllocatorBlock* blocks;
 };
 
-static CtsPoolAllocatorPool* allocatePool(CtsPoolAllocator pInstance)
+static CtsPoolAllocatorPool* allocatePool(CtsPoolAllocator instance)
 {
 	CtsPoolAllocatorPool* pool = ctsAllocation(
-		pInstance->allocator,
+		instance->pAllocator,
 		sizeof(CtsPoolAllocatorPool),
 		alignof(CtsPoolAllocatorPool),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
@@ -37,15 +37,15 @@ static CtsPoolAllocatorPool* allocatePool(CtsPoolAllocator pInstance)
 	return NULL;
 }
 
-static CtsPoolAllocatorBlock* splitPoolIntoBlocks(CtsPoolAllocator pInstance, CtsPoolAllocatorPool* pPool) {
-    size_t availableSize = pInstance->growSize - sizeof(CtsPoolAllocatorPool);
-    size_t blocksPerPool = availableSize / pInstance->blockSize;
+static CtsPoolAllocatorBlock* splitPoolIntoBlocks(CtsPoolAllocator instance, CtsPoolAllocatorPool* pPool) {
+    size_t availableSize = instance->growSize - sizeof(CtsPoolAllocatorPool);
+    size_t blocksPerPool = availableSize / instance->blockSize;
 
     CtsPoolAllocatorBlock* firstBlock = (CtsPoolAllocatorBlock*)((char*)pPool + sizeof(CtsPoolAllocatorPool));
     CtsPoolAllocatorBlock* block = firstBlock;
     
     for (uint32_t i = 0; i < blocksPerPool; ++i) {
-        block->next = (CtsPoolAllocatorBlock*)((char*)block + pInstance->blockSize);
+        block->next = (CtsPoolAllocatorBlock*)((char*)block + instance->blockSize);
         block = block->next;
     }
     
@@ -62,25 +62,25 @@ static CtsPoolAllocatorBlock* getLastBlock(CtsPoolAllocatorBlock* pBlock) {
 
 static void* proxyAllocation(
 	void* pUserData,
-	size_t pSize,
-	size_t pAlign,
-	CtsSystemAllocationScope pScope
+	size_t size,
+	size_t align,
+	CtsSystemAllocationScope scope
 ) {
-	(void) pScope;
+	(void) scope;
 
-	ctsPoolAllocatorAlloc((CtsPoolAllocator) pUserData, pSize, pAlign);
+	return ctsPoolAllocatorAlloc((CtsPoolAllocator) pUserData, size, align);
 }
 
 static void* proxyReallocation(
 	void* pUserData,
 	void* pOriginal,
-	size_t pSize,
-	size_t pAlign,
-	CtsSystemAllocationScope pScope
+	size_t size,
+	size_t align,
+	CtsSystemAllocationScope scope
 ) {
-	(void) pScope;
+	(void) scope;
 
-	ctsPoolAllocatorRealloc((CtsPoolAllocator) pUserData, pOriginal, pSize, pAlign);
+	return ctsPoolAllocatorRealloc((CtsPoolAllocator) pUserData, pOriginal, size, align);
 }
 
 static void proxyFree(
@@ -92,28 +92,28 @@ static void proxyFree(
 
 static void proxyInternalAllocation(
 	void* pUserData,
-	size_t pSize,
-	CtsSystemAllocationScope pScope
+	size_t size,
+	CtsSystemAllocationScope scope
 ) {
 	(void) pUserData;
-	(void) pSize;
-	(void) pScope;
+	(void) size;
+	(void) scope;
 }
 
 static void proxyInternalFree(
 	void* pUserData,
-	size_t pSize, 
-	CtsSystemAllocationScope pScope
+	size_t size, 
+	CtsSystemAllocationScope scope
 ) {
 	(void) pUserData;
-	(void) pSize;
-	(void) pScope;
+	(void) size;
+	(void) scope;
 }
 
 bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorCreateInfo* pCreateInfo)
 {	
 	CtsPoolAllocator instance = ctsAllocation(
-		pCreateInfo->allocator,
+		pCreateInfo->pAllocator,
 		sizeof(struct CtsPoolAllocator),
 		alignof(struct CtsPoolAllocator),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
@@ -124,20 +124,20 @@ bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorC
 	}
 
 	instance->growSize = pCreateInfo->growSize;
-	instance->allocator = pCreateInfo->allocator;
+	instance->pAllocator = pCreateInfo->pAllocator;
 	instance->pools = allocatePool(instance);
     instance->blocks = splitPoolIntoBlocks(instance, instance->pools);
 
 	if (instance->pools == NULL) {
-		ctsFree(pCreateInfo->allocator, instance);
+		ctsFree(pCreateInfo->pAllocator, instance);
 		return false;
 	}
 	
 	return true;
 }
 
-void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator pInstance, CtsAllocationCallbacks* pAllocator) {
-	pAllocator->userData           = pInstance;
+void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator instance, CtsAllocationCallbacks* pAllocator) {
+	pAllocator->userData           = instance;
 	pAllocator->allocation         = proxyAllocation;
 	pAllocator->reallocation       = proxyReallocation;
 	pAllocator->free               = proxyFree;
@@ -145,67 +145,67 @@ void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator pInstance, CtsAllocationCallb
 	pAllocator->internalFree       = proxyInternalFree;
 }
 
-bool ctsDestroyPoolAllocator(CtsPoolAllocator pInstance)
+bool ctsDestroyPoolAllocator(CtsPoolAllocator instance)
 {
-	CtsPoolAllocatorPool* pool = pInstance->pools;
+	CtsPoolAllocatorPool* pool = instance->pools;
 	CtsPoolAllocatorPool* prev;
 
 	while (pool != NULL) {
 		prev = pool;
 		pool = pool->next;
 
-		ctsFree(pInstance->allocator, prev);
+		ctsFree(instance->pAllocator, prev);
 	}
 	
 	return true;
 }
 
-void* ctsPoolAllocatorAlloc(CtsPoolAllocator pInstance, size_t pSize, size_t pAlign)
+void* ctsPoolAllocatorAlloc(CtsPoolAllocator instance, size_t size, size_t align)
 {
-    if (pSize > pInstance->blockSize) {
+    if (size > instance->blockSize) {
         return NULL;
     }
 
-    if (pInstance->blocks == NULL) {
-        CtsPoolAllocatorPool* prevPool = pInstance->pools;
-        pInstance->pools = allocatePool(pInstance);
-        pInstance->pools->next = prevPool;
-        pInstance->blocks = splitPoolIntoBlocks(pInstance, pInstance->pools);
+    if (instance->blocks == NULL) {
+        CtsPoolAllocatorPool* prevPool = instance->pools;
+        instance->pools = allocatePool(instance);
+        instance->pools->next = prevPool;
+        instance->blocks = splitPoolIntoBlocks(instance, instance->pools);
     }
     
-    CtsPoolAllocatorBlock* freeBlock = pInstance->blocks;
-    pInstance->blocks = freeBlock->next;
+    CtsPoolAllocatorBlock* freeBlock = instance->blocks;
+    instance->blocks = freeBlock->next;
 
     return freeBlock;
 }
 
-void* ctsPoolAllocatorRealloc(CtsPoolAllocator pInstance, void* pOrigPtr, size_t pSize, size_t pAlign)
+void* ctsPoolAllocatorRealloc(CtsPoolAllocator instance, void* pOrigPtr, size_t size, size_t align)
 {
-    if (pSize > pInstance->blockSize) {
+    if (size > instance->blockSize) {
         return NULL;
     }
 
     return pOrigPtr;
 }
 
-void ctsPoolAllocatorFree(CtsPoolAllocator pInstance, void* pPtr)
+void ctsPoolAllocatorFree(CtsPoolAllocator instance, void* pPtr)
 {
     CtsPoolAllocatorBlock* block = pPtr;
-    block->next = pInstance->blocks;
-    pInstance->blocks = block;
+    block->next = instance->blocks;
+    instance->blocks = block;
 }
 
-void ctsPoolAllocatorReset(CtsPoolAllocator pInstance)
+void ctsPoolAllocatorReset(CtsPoolAllocator instance)
 {
-	CtsPoolAllocatorPool* pool = pInstance->pools;
-    pInstance->blocks = NULL;
+	CtsPoolAllocatorPool* pool = instance->pools;
+    instance->blocks = NULL;
 
 	while (pool != NULL) {
-        CtsPoolAllocatorBlock* first = splitPoolIntoBlocks(pInstance, pool);
+        CtsPoolAllocatorBlock* first = splitPoolIntoBlocks(instance, pool);
         CtsPoolAllocatorBlock* last = getLastBlock(first);
 
-        last->next = pInstance->blocks;
-        pInstance->blocks = first;
+        last->next = instance->blocks;
+        instance->blocks = first;
 
 		pool = pool->next;
 	}

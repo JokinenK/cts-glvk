@@ -13,8 +13,8 @@ struct CtsSurface {
     HGLRC context;
 };
 
-void ctsSurfaceMakeCurrent(CtsSurface pSurface);
-void ctsSurfaceSwapBuffers(CtsSurface pSurface);
+void ctsSurfaceMakeCurrent(CtsSurface surface);
+void ctsSurfaceSwapBuffers(CtsSurface surface);
 
 #ifdef __cplusplus
 }

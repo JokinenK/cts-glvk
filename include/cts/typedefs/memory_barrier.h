@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct CtsMemoryBarrier {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsAccessFlags srcAccessMask;
     CtsAccessFlags dstAccessMask;
 } CtsMemoryBarrier;

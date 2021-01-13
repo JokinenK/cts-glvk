@@ -12,8 +12,8 @@ typedef struct CtsCmdBindVertexBuffers {
     CtsCommandBuffer commandBuffer;
     uint32_t firstBinding;
     uint32_t bindingCount;
-    const CtsBuffer* buffers;
-    const CtsDeviceSize* offsets;
+    const CtsBuffer* pBuffers;
+    const CtsDeviceSize* pOffsets;
 } CtsCmdBindVertexBuffers;
 
 #ifdef __cplusplus

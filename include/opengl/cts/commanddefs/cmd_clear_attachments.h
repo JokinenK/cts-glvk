@@ -11,9 +11,9 @@ typedef struct CtsCmdClearAttachments {
     CtsCmdBase base;
     CtsCommandBuffer commandBuffer;
     uint32_t attachmentCount;
-    const CtsClearAttachment* attachments;
+    const CtsClearAttachment* pAttachments;
     uint32_t rectCount;
-    const CtsClearRect* rects;
+    const CtsClearRect* pRects;
 } CtsCmdClearAttachments;
 
 #ifdef __cplusplus

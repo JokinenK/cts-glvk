@@ -12,14 +12,14 @@ extern "C" {
 
 typedef struct CtsSubmitInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t waitSemaphoreCount;
-    const CtsSemaphore* waitSemaphores;
-    const CtsPipelineStageFlags* waitDstStageMask;
+    const CtsSemaphore* pWaitSemaphores;
+    const CtsPipelineStageFlags* pWaitDstStageMask;
     uint32_t commandBufferCount;
-    const CtsCommandBuffer* commandBuffers;
+    const CtsCommandBuffer* pCommandBuffers;
     uint32_t signalSemaphoreCount;
-    const CtsSemaphore* signalSemaphores;
+    const CtsSemaphore* pSignalSemaphores;
 } CtsSubmitInfo;
 
 #ifdef __cplusplus

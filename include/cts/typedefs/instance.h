@@ -12,13 +12,13 @@ typedef struct CtsInstance* CtsInstance;
 
 typedef struct CtsInstanceCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsInstanceCreateFlags flags;
     //const VkApplicationInfo* applicationInfo;
     uint32_t enabledLayerCount;
-    const char* const* enabledLayerNames;
+    const char* const* pEnabledLayerNames;
     uint32_t enabledExtensionCount;
-    const char* const* enabledExtensionNames;
+    const char* const* pEnabledExtensionNames;
 } CtsInstanceCreateInfo;
 
 #ifdef __cplusplus

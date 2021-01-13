@@ -16,15 +16,15 @@ struct CtsImageView {
 };
 
 CtsResult ctsCreateImageViewImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageViewCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImageView* pImageView
 );
 
 void ctsDestroyImageViewImpl(
-    CtsDevice pDevice,
-    CtsImageView pImageView,
+    CtsDevice device,
+    CtsImageView imageView,
     const CtsAllocationCallbacks* pAllocator
 );
 

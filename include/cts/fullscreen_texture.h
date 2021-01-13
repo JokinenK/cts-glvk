@@ -10,8 +10,8 @@ extern "C" {
 CtsResult ctsInitFSTextureHelper();
 
 CtsResult ctsDrawFSTexture(
-    CtsDevice pDevice,
-    CtsImage pImage
+    CtsDevice device,
+    CtsImage image
 );
 
 void ctsCleanupFSTextureHelper();

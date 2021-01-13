@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct CtsMemoryAllocateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDeviceSize allocationSize;
     uint32_t memoryTypeIndex;
 } CtsMemoryAllocateInfo;

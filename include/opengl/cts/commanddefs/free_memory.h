@@ -11,7 +11,7 @@ typedef struct CtsFreeMemory {
     CtsCmdBase base;
     CtsDevice device;
     CtsDeviceMemory memory;
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 } CtsFreeMemory;
 
 #ifdef __cplusplus

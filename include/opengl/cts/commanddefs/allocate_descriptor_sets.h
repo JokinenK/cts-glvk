@@ -10,9 +10,9 @@ extern "C" {
 typedef struct CtsAllocateDescriptorSets {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsDescriptorSetAllocateInfo* allocateInfo;
-    CtsDescriptorSet* descriptorSets;
-    CtsResult* result;
+    const CtsDescriptorSetAllocateInfo* pAllocateInfo;
+    CtsDescriptorSet* pDescriptorSets;
+    CtsResult* pResult;
 } CtsAllocateDescriptorSets;
 
 #ifdef __cplusplus

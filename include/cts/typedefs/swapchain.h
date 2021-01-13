@@ -16,7 +16,7 @@ typedef CtsFlags CtsSwapchainCreateFlags;
 typedef struct CtsSwapchain* CtsSwapchain;
 typedef struct CtsSwapchainCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsSwapchainCreateFlags flags;
     CtsSurface surface;
     uint32_t minImageCount;
@@ -27,7 +27,7 @@ typedef struct CtsSwapchainCreateInfo {
     CtsImageUsageFlags imageUsage;
     //CtsSharingMode imageSharingMode;
     uint32_t queueFamilyIndexCount;
-    const uint32_t* queueFamilyIndices;
+    const uint32_t* pQueueFamilyIndices;
     //CtsSurfaceTransformFlagBitsKHR preTransform;
     //CtsCompositeAlphaFlagBitsKHR compositeAlpha;
     //CtsPresentModeKHR presentMode;

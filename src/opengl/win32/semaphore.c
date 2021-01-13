@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateSemaphores(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSemaphoreCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSemaphore* pSemaphore
@@ -38,30 +38,30 @@ CtsResult ctsCreateSemaphores(
 }
 
 void ctsDestroySemaphore(
-    CtsDevice pDevice,
-    CtsSemaphore pSemaphore,
+    CtsDevice device,
+    CtsSemaphore semaphore,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pSemaphore != NULL) {
-        CloseHandle(pSemaphore->semaphore); 
-        ctsFree(pAllocator, pSemaphore);
+    if (semaphore != NULL) {
+        CloseHandle(semaphore->semaphore); 
+        ctsFree(pAllocator, semaphore);
     }
 }
 
 void ctsWaitSemaphores(
-    uint32_t pSemaphoreCount,
+    uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 ) {
-    for (uint32_t i = 0; i < pSemaphoreCount; ++i) {
+    for (uint32_t i = 0; i < semaphoreCount; ++i) {
         WaitForSingleObject(pSemaphores[i]->semaphore, INFINITE);
     }
 }
 
 void ctsSignalSemaphores(
-    uint32_t pSemaphoreCount,
+    uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 ) {
-    for (uint32_t i = 0; i < pSemaphoreCount; ++i) {
+    for (uint32_t i = 0; i < semaphoreCount; ++i) {
         ReleaseSemaphore(pSemaphores[i]->semaphore, 1, NULL);
     }
 }

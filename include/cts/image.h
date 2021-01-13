@@ -7,15 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateImage(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImage* pImage
 );
 
 void ctsDestroyImage(
-    CtsDevice pDevice,
-    CtsImage pImage,
+    CtsDevice device,
+    CtsImage image,
     const CtsAllocationCallbacks* pAllocator
 );
 

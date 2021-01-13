@@ -5,22 +5,22 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateBuffer(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsBufferCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsBuffer* pBuffer
 );
 
 CtsResult ctsBindBufferMemory(
-    CtsDevice pDevice,
-    CtsBuffer pBuffer, 
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset
+    CtsDevice device,
+    CtsBuffer buffer, 
+    CtsDeviceMemory memory,
+    CtsDeviceSize offset
 );
 
 void ctsDestroyBuffer(
-    CtsDevice pDevice,
-    CtsBuffer pBuffer,
+    CtsDevice device,
+    CtsBuffer buffer,
     const CtsAllocationCallbacks* pAllocator
 );
 

@@ -7,34 +7,34 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateFence(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsFenceCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFence* pFence
 );
 
 CtsResult ctsResetFences(
-    CtsDevice pDevice,
-    uint32_t pFenceCount,
+    CtsDevice device,
+    uint32_t fenceCount,
     const CtsFence* pFences
 );
 
 CtsResult ctsGetFenceStatus(
-    CtsDevice pDevice,
-    CtsFence pFence
+    CtsDevice device,
+    CtsFence fence
 );
 
 CtsResult ctsWaitForFences(
-    CtsDevice pDevice,
-    uint32_t pFenceCount,
+    CtsDevice device,
+    uint32_t fenceCount,
     const CtsFence* pFences,
-    CtsBool32 pWaitAll,
-    uint64_t pTimeout
+    CtsBool32 waitAll,
+    uint64_t timeout
 );
 
 void ctsDestroyFence(
-    CtsDevice pDevice,
-    CtsFence pFence,
+    CtsDevice device,
+    CtsFence fence,
     const CtsAllocationCallbacks* pAllocator
 );
 

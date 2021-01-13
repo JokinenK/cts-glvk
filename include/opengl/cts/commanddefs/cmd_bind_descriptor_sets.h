@@ -14,9 +14,9 @@ typedef struct CtsCmdBindDescriptorSets {
     CtsPipelineLayout pipelineLayout;
     uint32_t firstSet;
     uint32_t descriptorSetCount;
-    const CtsDescriptorSet* descriptorSets;
+    const CtsDescriptorSet* pDescriptorSets;
     uint32_t dynamicOffsetCount;
-    const uint32_t* dynamicOffsets;
+    const uint32_t* pDynamicOffsets;
 } CtsCmdBindDescriptorSets;
 
 #ifdef __cplusplus

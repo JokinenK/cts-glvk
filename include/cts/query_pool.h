@@ -7,15 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateQueryPool(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsQueryPoolCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsQueryPool* pQueryPool
 );
 
 void ctsDestroyQueryPool(
-    CtsDevice pDevice,
-    CtsQueryPool pQueryPool,
+    CtsDevice device,
+    CtsQueryPool queryPool,
     const CtsAllocationCallbacks* pAllocator
 );
 

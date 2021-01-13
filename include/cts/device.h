@@ -8,21 +8,21 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateDevice(
-    CtsPhysicalDevice pPhysicalDevice,
+    CtsPhysicalDevice physicalDevice,
     const CtsDeviceCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDevice* pDevice
 );
 
 void ctsGetDeviceQueue(
-    CtsDevice pDevice,
-    uint32_t pQueueFamilyIndex,
-    uint32_t pQueueIndex,
+    CtsDevice device,
+    uint32_t queueFamilyIndex,
+    uint32_t queueIndex,
     CtsQueue* pQueue
 );
 
 void ctsDestroyDevice(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsAllocationCallbacks* pAllocator
 );
 

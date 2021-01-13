@@ -43,35 +43,35 @@ CtsResult ctsCreateThread(
 }
 
 void ctsDestroyThread(
-    CtsThread pThread,
+    CtsThread thread,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pThread != NULL) {
-        ctsThreadJoin(pThread);
-        ctsFree(pAllocator, pThread);
+    if (thread != NULL) {
+        ctsThreadJoin(thread);
+        ctsFree(pAllocator, thread);
     }
 }
 
-bool ctsThreadJoinable(CtsThread pThread)
+bool ctsThreadJoinable(CtsThread thread)
 {
-    return (!pThread->joined && !pThread->detached);
+    return (!thread->joined && !thread->detached);
 }
 
 void ctsThreadJoin(
-    CtsThread pThread
+    CtsThread thread
 ) {
-    if (ctsThreadJoinable(pThread)) {
-        pThread->joined = true;
-        pthread_join(pThread->thread, NULL);
+    if (ctsThreadJoinable(thread)) {
+        thread->joined = true;
+        pthread_join(thread->thread, NULL);
     }
 }
 
 void ctsThreadDetach(
-    CtsThread pThread
+    CtsThread thread
 ) {
-    if (ctsThreadJoinable(pThread)) {
-        pThread->detached = true;
-        pthread_detach(pThread->thread);
+    if (ctsThreadJoinable(thread)) {
+        thread->detached = true;
+        pthread_detach(thread->thread);
     }
 }
 

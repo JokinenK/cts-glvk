@@ -13,13 +13,13 @@ typedef struct CtsSubpassDescription {
     CtsSubpassDescriptionFlags flags;
     CtsPipelineBindPoint pipelineBindPoint;
     uint32_t inputAttachmentCount;
-    const CtsAttachmentReference* inputAttachments;
+    const CtsAttachmentReference* pInputAttachments;
     uint32_t colorAttachmentCount;
-    const CtsAttachmentReference* colorAttachments;
-    const CtsAttachmentReference* resolveAttachments;
-    const CtsAttachmentReference* depthStencilAttachment;
+    const CtsAttachmentReference* pColorAttachments;
+    const CtsAttachmentReference* pResolveAttachments;
+    const CtsAttachmentReference* pDepthStencilAttachment;
     uint32_t preserveAttachmentCount;
-    const uint32_t* preserveAttachments;
+    const uint32_t* pPreserveAttachments;
 } CtsSubpassDescription;
 
 #ifdef __cplusplus

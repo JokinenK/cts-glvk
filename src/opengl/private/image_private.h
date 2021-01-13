@@ -17,15 +17,15 @@ struct CtsImage {
 };
 
 CtsResult ctsCreateImageImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsImageCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsImage* pImage
 );
 
 void ctsDestroyImageImpl(
-    CtsDevice pDevice,
-    CtsImage pImage,
+    CtsDevice device,
+    CtsImage image,
     const CtsAllocationCallbacks* pAllocator
 );
 

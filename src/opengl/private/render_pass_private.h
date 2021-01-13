@@ -11,15 +11,15 @@ struct CtsRenderPass {
     CtsRenderPassCreateFlags flags;
     
     uint32_t attachmentCount;
-    CtsAttachmentDescription* attachments;
+    CtsAttachmentDescription* pAttachments;
     
     uint32_t subpassCount;
-    CtsSubpassDescription* subpasses;
+    CtsSubpassDescription* pSubpasses;
     
     uint32_t dependencyCount;
-    CtsSubpassDependency* dependencies;
+    CtsSubpassDependency* pDependencies;
 
-    GLenum* drawBuffers;
+    GLenum* pDrawBuffers;
 };
 
 #ifdef __cplusplus

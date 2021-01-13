@@ -11,7 +11,7 @@ typedef struct CtsDestroyFramebuffer {
     CtsCmdBase base;
     CtsDevice device;
     CtsFramebuffer framebuffer;
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 } CtsDestroyFramebuffer;
 
 #ifdef __cplusplus

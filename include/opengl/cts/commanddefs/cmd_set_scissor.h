@@ -12,7 +12,7 @@ typedef struct CtsCmdSetScissor {
     CtsCommandBuffer commandBuffer;
     uint32_t firstScissor;
     uint32_t scissorCount;
-    const CtsRect2D* scissors;
+    const CtsRect2D* pScissors;
 } CtsCmdSetScissor;
 
 #ifdef __cplusplus

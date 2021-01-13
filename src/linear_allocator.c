@@ -13,37 +13,37 @@ typedef struct CtsLinearAllocatorPool {
 } CtsLinearAllocatorPool;
 
 struct CtsLinearAllocator {
-	const CtsAllocationCallbacks* allocator;
+	const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize growSize;
     CtsLinearAllocatorPool* begin;
 	CtsLinearAllocatorPool* current;
 };
 
-static bool canFit(CtsLinearAllocatorPool* pPool, size_t pSize) {
-	return ((char*)pPool->current + pSize < (char*)pPool->end);
+static bool canFit(CtsLinearAllocatorPool* pPool, size_t size) {
+	return ((char*)pPool->current + size < (char*)pPool->end);
 }
 
 static void* proxyAllocation(
 	void* pUserData,
-	size_t pSize,
-	size_t pAlign,
-	CtsSystemAllocationScope pScope
+	size_t size,
+	size_t align,
+	CtsSystemAllocationScope scope
 ) {
-	(void) pScope;
+	(void) scope;
 
-	ctsLinearAllocatorAlloc((CtsLinearAllocator) pUserData, pSize, pAlign);
+	return ctsLinearAllocatorAlloc((CtsLinearAllocator) pUserData, size, align);
 }
 
 static void* proxyReallocation(
 	void* pUserData,
 	void* pOriginal,
-	size_t pSize,
-	size_t pAlign,
-	CtsSystemAllocationScope pScope
+	size_t size,
+	size_t align,
+	CtsSystemAllocationScope scope
 ) {
-	(void) pScope;
+	(void) scope;
 
-	ctsLinearAllocatorRealloc((CtsLinearAllocator) pUserData, pOriginal, pSize, pAlign);
+	return ctsLinearAllocatorRealloc((CtsLinearAllocator) pUserData, pOriginal, size, align);
 }
 
 static void proxyFree(
@@ -55,28 +55,28 @@ static void proxyFree(
 
 static void proxyInternalAllocation(
 	void* pUserData,
-	size_t pSize,
-	CtsSystemAllocationScope pScope
+	size_t size,
+	CtsSystemAllocationScope scope
 ) {
 	(void) pUserData;
-	(void) pSize;
-	(void) pScope;
+	(void) size;
+	(void) scope;
 }
 
 static void proxyInternalFree(
 	void* pUserData,
-	size_t pSize, 
-	CtsSystemAllocationScope pScope
+	size_t size, 
+	CtsSystemAllocationScope scope
 ) {
 	(void) pUserData;
-	(void) pSize;
-	(void) pScope;
+	(void) size;
+	(void) scope;
 }
 
-static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator pInstance)
+static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator instance)
 {
 	CtsLinearAllocatorPool* pool = ctsAllocation(
-		pInstance->allocator,
+		instance->pAllocator,
 		sizeof(CtsLinearAllocatorPool),
 		alignof(CtsLinearAllocatorPool),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
@@ -84,7 +84,7 @@ static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator pInstance)
 
 	if (pool != NULL) {
 		pool->begin = (char*)pool + sizeof(CtsLinearAllocatorPool);
-		pool->end = (char*)pool + pInstance->growSize;
+		pool->end = (char*)pool + instance->growSize;
 		pool->current = pool->begin;
 		pool->prev = pool->begin;
 		pool->next = NULL;
@@ -98,7 +98,7 @@ static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator pInstance)
 bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllocatorCreateInfo* pCreateInfo)
 {	
 	CtsLinearAllocator instance = ctsAllocation(
-		pCreateInfo->allocator,
+		pCreateInfo->pAllocator,
 		sizeof(struct CtsLinearAllocator),
 		alignof(struct CtsLinearAllocator),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
@@ -109,20 +109,20 @@ bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllo
 	}
 
 	instance->growSize = pCreateInfo->growSize;
-	instance->allocator = pCreateInfo->allocator;
+	instance->pAllocator = pCreateInfo->pAllocator;
 	instance->begin = allocatePool(instance);
 	instance->current = instance->begin;
 
 	if (instance->begin == NULL) {
-		ctsFree(pCreateInfo->allocator, instance);
+		ctsFree(pCreateInfo->pAllocator, instance);
 		return false;
 	}
 	
 	return true;
 }
 
-void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator pInstance, CtsAllocationCallbacks* pAllocator) {
-	pAllocator->userData           = pInstance;
+void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator instance, CtsAllocationCallbacks* pAllocator) {
+	pAllocator->userData           = instance;
 	pAllocator->allocation         = proxyAllocation;
 	pAllocator->reallocation       = proxyReallocation;
 	pAllocator->free               = proxyFree;
@@ -130,25 +130,25 @@ void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator pInstance, CtsAllocationC
 	pAllocator->internalFree       = proxyInternalFree;
 }
 
-bool ctsDestroyLinearAllocator(CtsLinearAllocator pInstance)
+bool ctsDestroyLinearAllocator(CtsLinearAllocator instance)
 {
-	CtsLinearAllocatorPool* pool = pInstance->begin;
+	CtsLinearAllocatorPool* pool = instance->begin;
 	CtsLinearAllocatorPool* prev;
 
 	while (pool != NULL) {
 		prev = pool;
 		pool = pool->next;
 
-		ctsFree(pInstance->allocator, prev);
+		ctsFree(instance->pAllocator, prev);
 	}
 	
 	return true;
 }
 
-void* ctsLinearAllocatorAlloc(CtsLinearAllocator pInstance, size_t pSize, size_t pAlign)
+void* ctsLinearAllocatorAlloc(CtsLinearAllocator instance, size_t size, size_t align)
 {
-	size_t alignedSize = pSize;
-	CtsLinearAllocatorPool* pool = pInstance->current;
+	size_t alignedSize = size;
+	CtsLinearAllocatorPool* pool = instance->current;
 
 	while (pool != NULL) {	
 		if (canFit(pool, alignedSize)) {
@@ -159,7 +159,7 @@ void* ctsLinearAllocatorAlloc(CtsLinearAllocator pInstance, size_t pSize, size_t
 		}
 
 		if (pool->next == NULL) {
-			pool->next = allocatePool(pInstance);
+			pool->next = allocatePool(instance);
 		}
 
 		pool = pool->next;
@@ -168,28 +168,28 @@ void* ctsLinearAllocatorAlloc(CtsLinearAllocator pInstance, size_t pSize, size_t
     return NULL;
 }
 
-void* ctsLinearAllocatorRealloc(CtsLinearAllocator pInstance, void* pOrigPtr, size_t pSize, size_t pAlign)
+void* ctsLinearAllocatorRealloc(CtsLinearAllocator instance, void* pOrigPtr, size_t size, size_t align)
 {
 	if (pOrigPtr == NULL) {
-		return ctsLinearAllocatorAlloc(pInstance, pSize, pAlign);
+		return ctsLinearAllocatorAlloc(instance, size, align);
 	}
 	
-	size_t alignedSize = pSize;
-	if (pInstance->current->prev == pOrigPtr) {
-		pInstance->current->current = (char*)pInstance->current->prev + alignedSize;
+	size_t alignedSize = size;
+	if (instance->current->prev == pOrigPtr) {
+		instance->current->current = (char*)instance->current->prev + alignedSize;
 		return pOrigPtr;
 	}
 
-	return ctsLinearAllocatorAlloc(pInstance, pSize, pAlign);
+	return ctsLinearAllocatorAlloc(instance, size, align);
 }
 
-void ctsLinearAllocatorFree(CtsLinearAllocator pInstance, void* pPtr)
+void ctsLinearAllocatorFree(CtsLinearAllocator instance, void* pPtr)
 {
 }
 
-void ctsLinearAllocatorReset(CtsLinearAllocator pInstance)
+void ctsLinearAllocatorReset(CtsLinearAllocator instance)
 {
-	CtsLinearAllocatorPool* pool = pInstance->begin;
+	CtsLinearAllocatorPool* pool = instance->begin;
 
 	while (pool != NULL) {
 		pool->current = pool->begin;
@@ -197,20 +197,20 @@ void ctsLinearAllocatorReset(CtsLinearAllocator pInstance)
 		pool = pool->next;
 	}
 
-	pInstance->current = pInstance->begin;
+	instance->current = instance->begin;
 }
 
-void ctsLinearAllocatorTrim(CtsLinearAllocator pInstance)
+void ctsLinearAllocatorTrim(CtsLinearAllocator instance)
 {
-	CtsLinearAllocatorPool* pool = pInstance->current->next;
+	CtsLinearAllocatorPool* pool = instance->current->next;
 	CtsLinearAllocatorPool* prev;
 
 	while (pool != NULL) {
 		prev = pool;
 		pool = pool->next;
 
-		ctsFree(pInstance->allocator, prev);
+		ctsFree(instance->pAllocator, prev);
 	}
 
-	pInstance->current->next = NULL;
+	instance->current->next = NULL;
 }

@@ -14,7 +14,7 @@ typedef struct CtsCmdCopyBufferToImage {
     CtsImage dstImage;
     CtsImageLayout dstImageLayout;
     uint32_t regionCount;
-    const CtsBufferImageCopy* regions;
+    const CtsBufferImageCopy* pRegions;
 } CtsCmdCopyBufferToImage;
 
 #ifdef __cplusplus

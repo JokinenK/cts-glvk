@@ -12,7 +12,7 @@ typedef struct CtsBuffer* CtsBuffer;
 
 typedef struct CtsBufferCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsBufferType type;
     CtsBufferUsage usage;
     CtsDeviceSize size;

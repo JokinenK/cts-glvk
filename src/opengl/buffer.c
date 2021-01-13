@@ -9,12 +9,12 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateBuffer(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsBufferCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsBuffer* pBuffer
 ) {
-    (void) pDevice;
+    (void) device;
     
     CtsBuffer buffer = ctsAllocation(
         pAllocator,
@@ -38,29 +38,29 @@ CtsResult ctsCreateBuffer(
 }
 
 CtsResult ctsBindBufferMemory(
-    CtsDevice pDevice,
-    CtsBuffer pBuffer, 
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset
+    CtsDevice device,
+    CtsBuffer buffer, 
+    CtsDeviceMemory memory,
+    CtsDeviceSize offset
 ) {
-    if (pBuffer->size > pMemory->size - pOffset) {
+    if (buffer->size > memory->size - offset) {
         return CTS_ERROR_OUT_OF_DEVICE_MEMORY;
     }
 
-    pBuffer->memory = pMemory;
-    pBuffer->offset = (GLsizei)pOffset;
+    buffer->memory = memory;
+    buffer->offset = (GLsizei)offset;
     return CTS_SUCCESS;
 }
 
 void ctsDestroyBuffer(
-    CtsDevice pDevice,
-    CtsBuffer pBuffer,
+    CtsDevice device,
+    CtsBuffer buffer,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pBuffer != NULL) {
-        ctsFree(pAllocator, pBuffer);
+    if (buffer != NULL) {
+        ctsFree(pAllocator, buffer);
     }
 }
 

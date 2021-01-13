@@ -27,6 +27,7 @@ struct CtsDevice {
 
     const CtsGlGraphicsPipeline* activeGraphicsPipeline;
     CtsFramebuffer activeFramebuffer;
+    CtsRenderPass activeRenderPass;
     uint32_t activeSubpassNumber;
     const CtsSubpassDescription* activeSubpass;
     CtsTextureBinding activeTextures[32];

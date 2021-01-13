@@ -11,9 +11,9 @@ typedef struct CtsUpdateDescriptorSets {
     CtsCmdBase base;
     CtsDevice device;
     uint32_t descriptorWriteCount;
-    const CtsWriteDescriptorSet* descriptorWrites;
+    const CtsWriteDescriptorSet* pDescriptorWrites;
     uint32_t descriptorCopyCount;
-    const CtsCopyDescriptorSet* descriptorCopies;
+    const CtsCopyDescriptorSet* pDescriptorCopies;
 } CtsUpdateDescriptorSets;
 
 #ifdef __cplusplus

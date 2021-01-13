@@ -13,7 +13,7 @@ typedef struct CtsCmdUpdateBuffer {
     CtsBuffer dstBuffer;
     CtsDeviceSize dstOffset;
     CtsDeviceSize dataSize;
-    const void* data;
+    const void* pData;
 } CtsCmdUpdateBuffer;
 
 #ifdef __cplusplus

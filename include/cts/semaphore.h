@@ -12,25 +12,25 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateSemaphore(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSemaphoreCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSemaphore* pSemaphore
 );
 
 void ctsDestroySemaphore(
-    CtsDevice pDevice,
-    CtsSemaphore pSemaphore,
+    CtsDevice device,
+    CtsSemaphore semaphore,
     const CtsAllocationCallbacks* pAllocator
 );
 
 void ctsWaitSemaphores(
-    uint32_t pSemaphoreCount,
+    uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 );
 
 void ctsSignalSemaphores(
-    uint32_t pSemaphoreCount,
+    uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 );
 

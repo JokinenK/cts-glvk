@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateSampler(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSamplerCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSampler* pSampler
@@ -19,44 +19,44 @@ CtsResult ctsCreateSampler(
     CtsResult result;
     CtsCreateSampler cmd;
     cmd.base.type = CTS_COMMAND_CREATE_SAMPLER;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.createInfo = pCreateInfo;
-    cmd.allocator = pAllocator;
-    cmd.sampler = pSampler;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.pCreateInfo = pCreateInfo;
+    cmd.pAllocator = pAllocator;
+    cmd.pSampler = pSampler;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 void ctsDestroySampler(
-    CtsDevice pDevice,
-    CtsSampler pSampler,
+    CtsDevice device,
+    CtsSampler sampler,
     const CtsAllocationCallbacks* pAllocator
 ) {
     CtsDestroySampler cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_SAMPLER;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.sampler = pSampler;
-    cmd.allocator = pAllocator;
+    cmd.device = device;
+    cmd.sampler = sampler;
+    cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 CtsResult ctsCreateSamplerImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSamplerCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSampler* pSampler
 ) {
-    (void) pDevice;
+    (void) device;
 
     CtsSampler sampler = ctsAllocation(
         pAllocator,
@@ -90,13 +90,13 @@ CtsResult ctsCreateSamplerImpl(
 }
 
 void ctsDestroySamplerImpl(
-    CtsDevice pDevice,
-    CtsSampler pSampler,
+    CtsDevice device,
+    CtsSampler sampler,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pSampler != NULL) {
-        glDeleteSamplers(1, &pSampler->handle);
-        ctsFree(pAllocator, pSampler);
+    if (sampler != NULL) {
+        glDeleteSamplers(1, &sampler->handle);
+        ctsFree(pAllocator, sampler);
     }
 }
 

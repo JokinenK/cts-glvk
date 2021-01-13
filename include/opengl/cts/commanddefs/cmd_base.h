@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct CtsCmdBase {
     CtsCommandType type;
-    const void* next;
+    const struct CtsCmdBase* pNext;
 } CtsCmdBase;
 
 #ifdef __cplusplus

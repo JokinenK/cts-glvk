@@ -11,7 +11,7 @@ typedef struct CtsDestroyImageView {
     CtsCmdBase base;
     CtsDevice device;
     CtsImageView imageView;
-    const CtsAllocationCallbacks* allocator;
+    const CtsAllocationCallbacks* pAllocator;
 } CtsDestroyImageView;
 
 #ifdef __cplusplus

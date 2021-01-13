@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-static bool waitForSurface(CtsQueue pQueue);
+static bool waitForSurface(CtsQueue queue);
 static void workerEntry(void* pArgs);
 
 CtsResult ctsCreateQueue(
@@ -49,8 +49,8 @@ CtsResult ctsCreateQueue(
     ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &queue->conditionVariable);
 
     CtsThreadCreateInfo threadCreateInfo;
-    threadCreateInfo.entryPoint = workerEntry;
-    threadCreateInfo.args = queue;
+    threadCreateInfo.pfEntryPoint = workerEntry;
+    threadCreateInfo.pArgs = queue;
     ctsCreateThread(&threadCreateInfo, pAllocator, &queue->thread);
 
     *pQueue = queue;
@@ -58,72 +58,72 @@ CtsResult ctsCreateQueue(
 }
 
 void ctsDestroyQueue(
-    CtsQueue pQueue,
+    CtsQueue queue,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pQueue) {
-        ctsConditionVariableWakeAll(pQueue->conditionVariable);
-        ctsDestroyThread(pQueue->thread, pAllocator);
-        ctsDestroyConditionVariable(pQueue->conditionVariable, pAllocator);
-        ctsDestroyMutex(pQueue->mutex, pAllocator);
+    if (queue) {
+        ctsConditionVariableWakeAll(queue->conditionVariable);
+        ctsDestroyThread(queue->thread, pAllocator);
+        ctsDestroyConditionVariable(queue->conditionVariable, pAllocator);
+        ctsDestroyMutex(queue->mutex, pAllocator);
 
-        ctsFree(pAllocator, pQueue->data);
-        ctsFree(pAllocator, pQueue); 
+        ctsFree(pAllocator, queue->data);
+        ctsFree(pAllocator, queue); 
     }
 }
 
 void ctsQueueDispatch(
-    CtsQueue pQueue,
+    CtsQueue queue,
     const CtsCmdBase* pCmd,
-    CtsSemaphore pSemaphore
+    CtsSemaphore semaphore
 ) {
     CtsQueueItem queueItem;
     queueItem.cmd = pCmd;
-    queueItem.semaphore = pSemaphore;
+    queueItem.semaphore = semaphore;
 
-    ctsQueuePush(pQueue, &queueItem);
+    ctsQueuePush(queue, &queueItem);
 }
 
-bool ctsQueuePush(CtsQueue pQueue, CtsQueueItem* pQueueItem) {
-    ctsMutexLock(pQueue->mutex);
+bool ctsQueuePush(CtsQueue queue, CtsQueueItem* pQueueItem) {
+    ctsMutexLock(queue->mutex);
 
-    if (((pQueue->head + 1) % pQueue->size) == pQueue->tail) {
-        ctsMutexUnlock(pQueue->mutex);
+    if (((queue->head + 1) % queue->size) == queue->tail) {
+        ctsMutexUnlock(queue->mutex);
         return false;
     }
 
-    size_t idx = pQueue->head;
-    pQueue->head = (pQueue->head + 1) % pQueue->size;
-    pQueue->data[idx] = *pQueueItem;
+    size_t idx = queue->head;
+    queue->head = (queue->head + 1) % queue->size;
+    queue->data[idx] = *pQueueItem;
 
-    ctsMutexUnlock(pQueue->mutex);
-    ctsConditionVariableWakeAll(pQueue->conditionVariable);
+    ctsMutexUnlock(queue->mutex);
+    ctsConditionVariableWakeAll(queue->conditionVariable);
     return true;
 }
 
-bool ctsQueuePop(CtsQueue pQueue, CtsQueueItem* pQueueItem) {
-    ctsMutexLock(pQueue->mutex);
+bool ctsQueuePop(CtsQueue queue, CtsQueueItem* pQueueItem) {
+    ctsMutexLock(queue->mutex);
 
-    if (pQueue->tail == pQueue->head) {
-        ctsMutexUnlock(pQueue->mutex);
+    if (queue->tail == queue->head) {
+        ctsMutexUnlock(queue->mutex);
         return false;
     }
 
-    size_t idx = pQueue->tail;
-    pQueue->tail = (pQueue->tail + 1) % pQueue->size;
-    *pQueueItem = pQueue->data[idx];
+    size_t idx = queue->tail;
+    queue->tail = (queue->tail + 1) % queue->size;
+    *pQueueItem = queue->data[idx];
 
-    ctsMutexUnlock(pQueue->mutex);
+    ctsMutexUnlock(queue->mutex);
     return true;
 }
 
-static bool waitForSurface(CtsQueue pQueue) {
-    CtsDevice device = pQueue->device;
+static bool waitForSurface(CtsQueue queue) {
+    CtsDevice device = queue->device;
     CtsPhysicalDevice physicalDevice = device->physicalDevice;
     CtsInstance instance = physicalDevice->instance;
 
     while (device->isRunning && instance->surface == NULL) {
-        ctsConditionVariableSleep(pQueue->conditionVariable, pQueue->mutex);
+        ctsConditionVariableSleep(queue->conditionVariable, queue->mutex);
     }
 
     if (instance->surface != NULL) {
@@ -159,7 +159,7 @@ static void workerEntry(void* pArgs) {
         while (cmd != NULL) {
             commandMetadata = ctsGetCommandMetadata(cmd->type);
             commandMetadata->handler(cmd);
-            cmd = cmd->next;
+            cmd = cmd->pNext;
         }
 
         if (queueItem.semaphore != NULL) {

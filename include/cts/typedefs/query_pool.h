@@ -12,7 +12,7 @@ typedef struct CtsQueryPool* CtsQueryPool;
 
 typedef struct CtsQueryPoolCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsQueryPoolCreateFlags flags;
     CtsQueryType queryType;
     uint32_t queryCount;

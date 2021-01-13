@@ -13,7 +13,7 @@ typedef struct CtsSampler* CtsSampler;
 
 typedef struct CtsSamplerCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsSamplerCreateFlags flags;
     CtsFilter magFilter;
     CtsFilter minFilter;

@@ -10,10 +10,10 @@ extern "C" {
 typedef struct CtsCreateFence {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsFenceCreateInfo* createInfo;
-    const CtsAllocationCallbacks* allocator;
-    CtsFence* fence;
-    CtsResult* result;
+    const CtsFenceCreateInfo* pCreateInfo;
+    const CtsAllocationCallbacks* pAllocator;
+    CtsFence* pFence;
+    CtsResult* pResult;
 } CtsCreateFence;
 
 #ifdef __cplusplus

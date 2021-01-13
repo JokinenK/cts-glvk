@@ -7,15 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateFramebuffer(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsFramebufferCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFramebuffer* pFramebuffer
 );
 
 void ctsDestroyFramebuffer(
-    CtsDevice pDevice,
-    CtsFramebuffer pFramebuffer,
+    CtsDevice device,
+    CtsFramebuffer framebuffer,
     const CtsAllocationCallbacks* pAllocator
 );
 

@@ -12,25 +12,25 @@ extern "C" {
 bool ctsCreateMutexes(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pMutexCount,
+    uint32_t mutexCount,
     CtsMutex* pMutexes
 );
 
 bool ctsDestroyMutex(
-    CtsMutex pMutex,
+    CtsMutex mutex,
     const CtsAllocationCallbacks* pAllocator
 );
 
 void ctsMutexLock(
-    CtsMutex pMutex
+    CtsMutex mutex
 );
 
 bool ctsMutexTryLock(
-    CtsMutex pMutex
+    CtsMutex mutex
 );
 
 void ctsMutexUnlock(
-    CtsMutex pMutex
+    CtsMutex mutex
 );
 
 #ifdef __cplusplus

@@ -11,9 +11,9 @@ extern "C" {
 
 typedef struct CtsCommandBufferBeginInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsCommandBufferUsageFlags flags;
-    const CtsCommandBufferInheritanceInfo* inheritanceInfo;
+    const CtsCommandBufferInheritanceInfo* pInheritanceInfo;
 } CtsCommandBufferBeginInfo;
 
 #ifdef __cplusplus

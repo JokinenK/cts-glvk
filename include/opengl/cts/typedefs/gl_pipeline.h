@@ -21,7 +21,7 @@ typedef struct CtsGlVertexInputAttributeDescription {
 
 typedef struct CtsGlPipelineVertexInputState {
     uint32_t vertexAttributeDescriptionCount;
-    CtsGlVertexInputAttributeDescription* vertexAttributeDescriptions;
+    CtsGlVertexInputAttributeDescription* pVertexAttributeDescriptions;
 } CtsGlPipelineVertexInputState;
 
 typedef struct CtsGlPipelineInputAssemblyState {
@@ -36,8 +36,8 @@ typedef struct CtsGlPipelineTessellationState {
 typedef struct CtsGlPipelineViewportState {
     uint32_t viewportCount;
     uint32_t scissorCount;
-    CtsViewport* viewports;
-    CtsRect2D* scissors;
+    CtsViewport* pViewports;
+    CtsRect2D* pScissors;
 } CtsGlPipelineViewportState;
 
 typedef struct CtsGlPipelineRasterizationState {
@@ -96,7 +96,7 @@ typedef struct CtsGlPipelineColorBlendStateAttachment {
 
 typedef struct CtsGlPipelineColorBlendState {
     uint32_t attachmentCount;
-    CtsGlPipelineColorBlendStateAttachment* attachments;
+    CtsGlPipelineColorBlendStateAttachment* pAttachments;
     float blendConstants[4];
 } CtsGlPipelineColorBlendState;
 

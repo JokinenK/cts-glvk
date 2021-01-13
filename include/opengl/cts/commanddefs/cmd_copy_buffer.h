@@ -13,7 +13,7 @@ typedef struct CtsCmdCopyBuffer {
     CtsBuffer srcBuffer;
     CtsBuffer dstBuffer;
     uint32_t regionCount;
-    const CtsBufferCopy* regions;
+    const CtsBufferCopy* pRegions;
 } CtsCmdCopyBuffer;
 
 #ifdef __cplusplus

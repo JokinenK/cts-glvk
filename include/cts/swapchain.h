@@ -8,22 +8,22 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateSwapchain(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSwapchainCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSwapchain* pSwapchain
 );
 
 CtsResult ctsGetSwapchainImages(
-    CtsDevice pDevice,
-    CtsSwapchain pSwapchain,
+    CtsDevice device,
+    CtsSwapchain swapchain,
     uint32_t* pSwapchainImageCount,
     CtsImage* pSwapchainImages
 );
 
 void ctsDestroySwapchain(
-    CtsDevice pDevice,
-    CtsSwapchain pSwapchain,
+    CtsDevice device,
+    CtsSwapchain swapchain,
     const CtsAllocationCallbacks* pAllocator
 );
 

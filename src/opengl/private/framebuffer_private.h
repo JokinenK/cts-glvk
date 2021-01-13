@@ -16,15 +16,15 @@ struct CtsFramebuffer {
 };
 
 CtsResult ctsCreateFramebufferImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsFramebufferCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFramebuffer* pFramebuffer
 );
 
 void ctsDestroyFramebufferImpl(
-    CtsDevice pDevice,
-    CtsFramebuffer pFramebuffer,
+    CtsDevice device,
+    CtsFramebuffer framebuffer,
     const CtsAllocationCallbacks* pAllocator
 );
 

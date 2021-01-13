@@ -11,7 +11,7 @@ typedef struct CtsCmdExecuteCommands {
     CtsCmdBase base;
     CtsCommandBuffer commandBuffer;
     uint32_t commandBufferCount;
-    const CtsCommandBuffer* commandBuffers;
+    const CtsCommandBuffer* pCommandBuffers;
 } CtsCmdExecuteCommands;
 
 #ifdef __cplusplus

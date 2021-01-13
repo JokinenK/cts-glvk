@@ -10,13 +10,13 @@ extern "C" {
 
 typedef struct CtsPresentInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t waitSemaphoreCount;
-    const CtsSemaphore* waitSemaphores;
+    const CtsSemaphore* pWaitSemaphores;
     uint32_t swapchainCount;
-    const CtsSwapchain* swapchains;
-    const uint32_t* imageIndices;
-    CtsResult* results;
+    const CtsSwapchain* pSwapchains;
+    const uint32_t* pImageIndices;
+    CtsResult* pResults;
 } CtsPresentInfo;
 
 #ifdef __cplusplus

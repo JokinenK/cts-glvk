@@ -43,23 +43,23 @@ CtsResult ctsCreateQueue(
 );
 
 void ctsDestroyQueue(
-    CtsQueue pQueue,
+    CtsQueue queue,
     const CtsAllocationCallbacks* pAllocator
 );
 
 void ctsQueueDispatch(
-    CtsQueue pQueue,
+    CtsQueue queue,
     const CtsCmdBase* pCommand,
-    CtsSemaphore pSemaphore
+    CtsSemaphore semaphore
 );
 
 bool ctsQueuePush(
-    CtsQueue pQueue,
+    CtsQueue queue,
     CtsQueueItem* pQueueItem
 );
 
 bool ctsQueuePop(
-    CtsQueue pQueue,
+    CtsQueue queue,
     CtsQueueItem* pQueueItem
 );
 

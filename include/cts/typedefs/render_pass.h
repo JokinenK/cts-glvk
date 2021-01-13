@@ -13,14 +13,14 @@ extern "C" {
 typedef struct CtsRenderPass* CtsRenderPass;
 typedef struct CtsRenderPassCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsRenderPassCreateFlags flags;
     uint32_t attachmentCount;
-    const CtsAttachmentDescription* attachments;
+    const CtsAttachmentDescription* pAttachments;
     uint32_t subpassCount;
-    const CtsSubpassDescription* subpasses;
+    const CtsSubpassDescription* pSubpasses;
     uint32_t dependencyCount;
-    const CtsSubpassDependency* dependencies;
+    const CtsSubpassDependency* pDependencies;
 } CtsRenderPassCreateInfo;
 
 #ifdef __cplusplus

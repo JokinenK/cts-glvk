@@ -12,7 +12,7 @@ extern "C" {
 #define SEMAPHORE_MAX_VALUE 1
 
 CtsResult ctsCreateSemaphore(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSemaphoreCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSemaphore* pSemaphore
@@ -35,8 +35,8 @@ CtsResult ctsCreateSemaphore(
 }
 
 void ctsDestroySemaphore(
-    CtsDevice pDevice,
-    CtsSemaphore pSemaphore,
+    CtsDevice device,
+    CtsSemaphore semaphore,
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (pSemaphore != NULL) {
@@ -46,21 +46,21 @@ void ctsDestroySemaphore(
 }
 
 void ctsWaitSemaphores(
-    uint32_t pSemaphoreCount,
+    uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 ) {
-    for (uint32_t i = 0; i < pSemaphoreCount; ++i) {
+    for (uint32_t i = 0; i < semaphoreCount; ++i) {
         sem_wait(&pSemaphores[i]->semaphore); 
     }
 }
 
 void ctsSignalSemaphores(
-    uint32_t pSemaphoreCount,
+    uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 ) {
     int value;
 
-    for (uint32_t i = 0; i < pSemaphoreCount; ++i) {
+    for (uint32_t i = 0; i < semaphoreCount; ++i) {
         sem_getvalue(&pSemaphore->semaphore, &value);
 
         if (value < SEMAPHORE_MAX_VALUE) {

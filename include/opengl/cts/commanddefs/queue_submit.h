@@ -11,9 +11,9 @@ typedef struct CtsQueueSubmit {
     CtsCmdBase base;
     CtsQueue queue;
     uint32_t submitCount;
-    const CtsSubmitInfo* submits;
+    const CtsSubmitInfo* pSubmits;
     CtsFence fence;
-    CtsResult* result;
+    CtsResult* pResult;
 } CtsQueueSubmit;
 
 #ifdef __cplusplus

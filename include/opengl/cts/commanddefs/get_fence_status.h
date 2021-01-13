@@ -11,7 +11,7 @@ typedef struct CtsGetFenceStatus {
     CtsCmdBase base;
     CtsDevice device;
     CtsFence fence;
-    CtsResult* result;
+    CtsResult* pResult;
 } CtsGetFenceStatus;
 
 #ifdef __cplusplus

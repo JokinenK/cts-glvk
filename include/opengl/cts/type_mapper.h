@@ -24,29 +24,29 @@ typedef struct CtsAttributeInfo {
     GLint numComponent;
 } CtsAttributeMapping;
 
-const GLenum parseCompareOperator(CtsCompareOperator pValue);
-const GLenum parseStencilAction(CtsStencilAction pValue);
-const GLenum parseCullMode(CtsCullMode pValue);
-const GLenum parseFrontFace(CtsFrontFace pValue);
-const GLenum parsePolygonMode(CtsPolygonMode pValue);
-const GLenum parseSamplerAddressMode(CtsSamplerAddressMode pValue);
-const GLenum parseFilter(CtsFilter pValue);
-const GLenum parseIndexType(CtsIndexType pValue);
-const GLenum parseShaderType(CtsShaderType pValue);
-const GLenum parseImageType(CtsImageType pValue);
-const GLenum parsePrimitiveType(CtsPrimitiveType pValue);
-const GLenum parseBufferUsage(CtsBufferUsage pValue);
-const GLenum parseBufferType(CtsBufferType pValue);
-const GLenum parseBlendFunc(CtsBlendFunc pValue);
-const GLenum parseBlendOperation(CtsBlendOp pValue);
-const GLenum parseRenderTargetAttachment(CtsRenderTargetAttachment pValue);
-const GLenum parseRenderTargetBind(CtsRenderTargetBind pValue);
+const GLenum parseCompareOperator(CtsCompareOperator value);
+const GLenum parseStencilAction(CtsStencilAction value);
+const GLenum parseCullMode(CtsCullMode value);
+const GLenum parseFrontFace(CtsFrontFace value);
+const GLenum parsePolygonMode(CtsPolygonMode value);
+const GLenum parseSamplerAddressMode(CtsSamplerAddressMode value);
+const GLenum parseFilter(CtsFilter value);
+const GLenum parseIndexType(CtsIndexType value);
+const GLenum parseShaderType(CtsShaderType value);
+const GLenum parseImageType(CtsImageType value);
+const GLenum parsePrimitiveType(CtsPrimitiveType value);
+const GLenum parseBufferUsage(CtsBufferUsage value);
+const GLenum parseBufferType(CtsBufferType value);
+const GLenum parseBlendFunc(CtsBlendFunc value);
+const GLenum parseBlendOperation(CtsBlendOp value);
+const GLenum parseRenderTargetAttachment(CtsRenderTargetAttachment value);
+const GLenum parseRenderTargetBind(CtsRenderTargetBind value);
 
-const CtsFlags parseDynamicStateFlag(CtsDynamicState pValue);
+const CtsFlags parseDynamicStateFlag(CtsDynamicState value);
 const CtsAttribType parseCtsAttribType(GLenum pType);
-const CtsFormatData parseFormat(CtsFormat pValue);
-const CtsAttributeMapping parseAttributeMapping(CtsAttribType pValue);
-const CtsGlDescriptorType parseDescriptorType(CtsDescriptorType pValue);
+const CtsFormatData parseFormat(CtsFormat value);
+const CtsAttributeMapping parseAttributeMapping(CtsAttribType value);
+const CtsGlDescriptorType parseDescriptorType(CtsDescriptorType value);
 
 void parseRasterizationStateChanges(
     const CtsGlPipelineRasterizationState* pLhs, 

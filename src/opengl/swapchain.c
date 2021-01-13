@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateSwapchain(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSwapchainCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSwapchain* pSwapchain
@@ -36,24 +36,24 @@ CtsResult ctsCreateSwapchain(
     //(void) pCreateInfo->compositeAlpha;
     //(void) pCreateInfo->presentMode;
 
-    swapchain->device = pDevice;
+    swapchain->device = device;
     swapchain->surface = pCreateInfo->surface;
     swapchain->entryCount = pCreateInfo->minImageCount;
-    swapchain->entries = ctsAllocation(
+    swapchain->pEntries = ctsAllocation(
         pAllocator,
         sizeof(CtsSwapchainEntry) * swapchain->entryCount,
         alignof(CtsSwapchainEntry),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    if (swapchain->entries == NULL) {
-        ctsDestroySwapchain(pDevice, swapchain, pAllocator);
+    if (swapchain->pEntries == NULL) {
+        ctsDestroySwapchain(device, swapchain, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     CtsImageCreateInfo imageCreateInfo;
     imageCreateInfo.sType = CTS_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageCreateInfo.next = NULL;
+    imageCreateInfo.pNext = NULL;
     imageCreateInfo.arrayLayers = pCreateInfo->imageArrayLayers;
     imageCreateInfo.extent.width = pCreateInfo->imageExtent.width;
     imageCreateInfo.extent.height = pCreateInfo->imageExtent.height;
@@ -62,14 +62,14 @@ CtsResult ctsCreateSwapchain(
     imageCreateInfo.imageType = CTS_IMAGE_TYPE_2D;
     imageCreateInfo.mipLevels = 1;
     imageCreateInfo.queueFamilyIndexCount = pCreateInfo->queueFamilyIndexCount;
-    imageCreateInfo.queueFamilyIndices = pCreateInfo->queueFamilyIndices;
+    imageCreateInfo.pQueueFamilyIndices = pCreateInfo->pQueueFamilyIndices;
     imageCreateInfo.samples = CTS_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.usage = pCreateInfo->imageUsage;
 
     for (uint32_t i = 0; i < pCreateInfo->minImageCount; ++i) {
-        swapchain->entries[i].fence = NULL;
-        swapchain->entries[i].semaphore = NULL;
-        ctsCreateImageImpl(pDevice, &imageCreateInfo, pAllocator, &swapchain->entries[i].image);
+        swapchain->pEntries[i].fence = NULL;
+        swapchain->pEntries[i].semaphore = NULL;
+        ctsCreateImageImpl(device, &imageCreateInfo, pAllocator, &swapchain->pEntries[i].image);
     }
 
     ctsInitFSTextureHelper();
@@ -79,18 +79,18 @@ CtsResult ctsCreateSwapchain(
 }
 
 CtsResult ctsGetSwapchainImages(
-    CtsDevice pDevice,
-    CtsSwapchain pSwapchain,
+    CtsDevice device,
+    CtsSwapchain swapchain,
     uint32_t* pSwapchainImageCount,
     CtsImage* pSwapchainImages
 ) {
     if (pSwapchainImageCount != NULL) {
-        *pSwapchainImageCount = pSwapchain->entryCount;
+        *pSwapchainImageCount = swapchain->entryCount;
     }
 
     if (pSwapchainImages != NULL) {
-        for (uint32_t i = 0; i < pSwapchain->entryCount; ++i) {
-            pSwapchainImages[i] = pSwapchain->entries[i].image;
+        for (uint32_t i = 0; i < swapchain->entryCount; ++i) {
+            pSwapchainImages[i] = swapchain->pEntries[i].image;
         }
     }
 
@@ -98,23 +98,23 @@ CtsResult ctsGetSwapchainImages(
 }
 
 CtsResult ctsAcquireNextImage(
-    CtsDevice pDevice,
-    CtsSwapchain pSwapchain,
-    uint64_t pTimeout,
-    CtsSemaphore pSemaphore,
-    CtsFence pFence,
+    CtsDevice device,
+    CtsSwapchain swapchain,
+    uint64_t timeout,
+    CtsSemaphore semaphore,
+    CtsFence fence,
     uint32_t* pImageIndex
 ) {
-    (void) pDevice;
+    (void) device;
     
     // TODO: Handle timeout cases
-    for (uint32_t i = 0; i < pSwapchain->entryCount; ++i) {
-        CtsSwapchainEntry* entry = &pSwapchain->entries[i];
+    for (uint32_t i = 0; i < swapchain->entryCount; ++i) {
+        CtsSwapchainEntry* entry = &swapchain->pEntries[i];
 
         if (entry->free) {
             entry->free = false;
-            entry->fence = pFence;
-            entry->semaphore = pSemaphore;
+            entry->fence = fence;
+            entry->semaphore = semaphore;
             *pImageIndex = i;
             return CTS_SUCCESS;
         }
@@ -124,21 +124,21 @@ CtsResult ctsAcquireNextImage(
 }
 
 CtsResult ctsQueuePresent(
-    CtsQueue pQueue,
+    CtsQueue queue,
     const CtsPresentInfo* pPresentInfo
 ) {
-    ctsWaitSemaphores(pPresentInfo->waitSemaphoreCount, pPresentInfo->waitSemaphores);
+    ctsWaitSemaphores(pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores);
 
     for (uint32_t i = 0; i < pPresentInfo->swapchainCount; ++i) {
-        uint32_t imageIndex = pPresentInfo->imageIndices[i];
-        CtsSwapchain swapchain = pPresentInfo->swapchains[i];
-        CtsSwapchainEntry* entry = &swapchain->entries[imageIndex];
+        uint32_t imageIndex = pPresentInfo->pImageIndices[i];
+        CtsSwapchain swapchain = pPresentInfo->pSwapchains[i];
+        CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
 
         if (entry->fence != NULL) {
             ctsWaitForFencesImpl(swapchain->device, 1, &entry->fence, true, UINT64_MAX);
         }
         
-        ctsDrawFSTexture(pQueue->device, entry->image);
+        ctsDrawFSTexture(queue->device, entry->image);
         ctsSurfaceSwapBuffers(swapchain->surface);
 
         if (entry->semaphore != NULL) {
@@ -150,21 +150,21 @@ CtsResult ctsQueuePresent(
 }
 
 void ctsDestroySwapchain(
-    CtsDevice pDevice,
-    CtsSwapchain pSwapchain,
+    CtsDevice device,
+    CtsSwapchain swapchain,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
     
-    if (pSwapchain != NULL) {
-        for (uint32_t i = 0; i < pSwapchain->entryCount; ++i) {
-            if (pSwapchain->entries[i].image != NULL) {
-                ctsDestroyImageImpl(pDevice, pSwapchain->entries[i].image, pAllocator);
+    if (swapchain != NULL) {
+        for (uint32_t i = 0; i < swapchain->entryCount; ++i) {
+            if (swapchain->pEntries[i].image != NULL) {
+                ctsDestroyImageImpl(device, swapchain->pEntries[i].image, pAllocator);
             }
         }
 
-        ctsFree(pAllocator, pSwapchain->entries);
-        ctsFree(pAllocator, pSwapchain);
+        ctsFree(pAllocator, swapchain->pEntries);
+        ctsFree(pAllocator, swapchain);
         ctsCleanupFSTextureHelper();
     }
 }

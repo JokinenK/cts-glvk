@@ -30,36 +30,36 @@ CtsResult ctsCreateConditionVariables(
 }
 
 void ctsDestroyConditionVariable(
-    CtsConditionVariable pConditionVariable,
+    CtsConditionVariable conditionVariable,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pConditionVariable != NULL) {
-        ctsFree(pAllocator, pConditionVariable);
+    if (conditionVariable != NULL) {
+        ctsFree(pAllocator, conditionVariable);
     }
 }
 
 void ctsConditionVariableSleep(
-    CtsConditionVariable pConditionVariable,
-    CtsMutex pMutex
+    CtsConditionVariable conditionVariable,
+    CtsMutex mutex
 ) {
-    if (pConditionVariable != NULL && pMutex != NULL) {
+    if (conditionVariable != NULL && mutex != NULL) {
         pthread_cond_wait(
-            &pConditionVariable->conditionVariable,
-            &pMutex->mutex
+            &conditionVariable->conditionVariable,
+            &mutex->mutex
         );
     }
 }
 
 void ctsConditionVariableWake(
-    CtsConditionVariable pConditionVariable
+    CtsConditionVariable conditionVariable
 ) {
-    pthread_cond_signal(&pConditionVariable->conditionVariable);
+    pthread_cond_signal(&conditionVariable->conditionVariable);
 }
 
 void ctsConditionVariableWakeAll(
-    CtsConditionVariable pConditionVariable
+    CtsConditionVariable conditionVariable
 ) {
-    pthread_cond_broadcast(&pConditionVariable->conditionVariable);
+    pthread_cond_broadcast(&conditionVariable->conditionVariable);
 }
 
 #ifdef __cplusplus

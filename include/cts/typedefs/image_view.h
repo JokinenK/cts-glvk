@@ -15,7 +15,7 @@ typedef struct CtsImageView* CtsImageView;
 
 typedef struct CtsImageViewCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsImage image;
     CtsImageViewType viewType;
     CtsFormat format;

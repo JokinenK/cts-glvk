@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct CtsCommandBufferInheritanceInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsRenderPass renderPass;
     uint32_t subpass;
     CtsFramebuffer framebuffer;

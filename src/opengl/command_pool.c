@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateCommandPool(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsCommandPoolCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsCommandPool* pCommandPool
@@ -27,7 +27,7 @@ CtsResult ctsCreateCommandPool(
     }
 
     CtsPoolAllocatorCreateInfo poolAllocatorCreateInfo;
-    poolAllocatorCreateInfo.allocator = pAllocator;
+    poolAllocatorCreateInfo.pAllocator = pAllocator;
     poolAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
     poolAllocatorCreateInfo.blockSize = ctsGetMaxCommandSize();
     ctsCreatePoolAllocator(&commandPool->poolAllocatorInstance, &poolAllocatorCreateInfo);
@@ -38,13 +38,13 @@ CtsResult ctsCreateCommandPool(
 }
 
 void ctsDestroyCommandPool(
-    CtsDevice pDevice,
-    CtsCommandPool pCommandPool,
+    CtsDevice device,
+    CtsCommandPool commandPool,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pCommandPool != NULL) {
-        ctsDestroyPoolAllocator(pCommandPool->poolAllocatorInstance);
-        ctsFree(pAllocator, pCommandPool);
+    if (commandPool != NULL) {
+        ctsDestroyPoolAllocator(commandPool->poolAllocatorInstance);
+        ctsFree(pAllocator, commandPool);
     }
 }
 

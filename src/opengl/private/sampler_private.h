@@ -11,15 +11,15 @@ struct CtsSampler {
 };
 
 CtsResult ctsCreateSamplerImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSamplerCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSampler* pSampler
 );
 
 void ctsDestroySamplerImpl(
-    CtsDevice pDevice,
-    CtsSampler pSampler,
+    CtsDevice device,
+    CtsSampler sampler,
     const CtsAllocationCallbacks* pAllocator
 );
 

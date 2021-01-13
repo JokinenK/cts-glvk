@@ -13,7 +13,7 @@ struct CtsDescriptorPool {
 };
 
 CtsDescriptorSet ctsDescriptorPoolAllocateSet(
-    CtsDescriptorPool pDescriptorPool
+    CtsDescriptorPool descriptorPool
 );
 
 #ifdef __cplusplus

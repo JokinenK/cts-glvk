@@ -10,10 +10,10 @@ extern "C" {
 typedef struct CtsAllocateMemory {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsMemoryAllocateInfo* allocateInfo;
-    const CtsAllocationCallbacks* allocator;
-    CtsDeviceMemory* memory;
-    CtsResult* result;
+    const CtsMemoryAllocateInfo* pAllocateInfo;
+    const CtsAllocationCallbacks* pAllocator;
+    CtsDeviceMemory* pMemory;
+    CtsResult* pResult;
 } CtsAllocateMemory;
 
 #ifdef __cplusplus

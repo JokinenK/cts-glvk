@@ -10,10 +10,10 @@ extern "C" {
 bool ctsCreateMutexes(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t pMutexCount,
+    uint32_t mutexCount,
     CtsMutex* pMutexes
 ) {
-    for (uint32_t i = 0; i < pMutexCount; ++i) {
+    for (uint32_t i = 0; i < mutexCount; ++i) {
         CtsMutex mutex = ctsAllocation(
             pAllocator,
             sizeof(struct CtsMutex),
@@ -33,7 +33,7 @@ bool ctsCreateMutexes(
 }
 
 bool ctsDestroyMutex(
-    CtsMutex pMutex,
+    CtsMutex mutex,
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (pMutex) {
@@ -46,19 +46,19 @@ bool ctsDestroyMutex(
 }
 
 void ctsMutexLock(
-    CtsMutex pMutex
+    CtsMutex mutex
 ) {
     pthread_mutex_lock(&pMutex->mutex);
 }
 
 bool ctsMutexTryLock(
-    CtsMutex pMutex
+    CtsMutex mutex
 ) {
     return (pthread_mutex_trylock(&pMutex->mutex) == 0);
 }
 
 void ctsMutexUnlock(
-    CtsMutex pMutex
+    CtsMutex mutex
 ) {
     pthread_mutex_unlock(&pMutex->mutex);
 }

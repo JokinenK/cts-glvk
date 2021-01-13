@@ -108,10 +108,10 @@ static void handleCmdWriteTimestamp(const CtsCmdBase* pCmd);
 #pragma endregion
 #pragma region PublicMethodBodies
 
-const CtsCommandMetadata* ctsGetCommandMetadata(CtsCommandType pCommandType) {
+const CtsCommandMetadata* ctsGetCommandMetadata(CtsCommandType commandType) {
     initCommandMetadata();
 
-    CtsCommandMetadata* result = &gCommandMetadata[pCommandType];
+    CtsCommandMetadata* result = &gCommandMetadata[commandType];
     assert(result->handler != NULL);
     return result;
 }
@@ -244,12 +244,12 @@ static CtsCommandMetadata* createCommandMetadata()
 
 static void handleAllocateMemory(const CtsCmdBase* pCmd) {
     const CtsAllocateMemory* cmd = (const CtsAllocateMemory*) pCmd;
-    *cmd->result = ctsAllocateMemoryImpl(cmd->device, cmd->allocateInfo, cmd->allocator, cmd->memory);
+    *cmd->pResult = ctsAllocateMemoryImpl(cmd->device, cmd->pAllocateInfo, cmd->pAllocator, cmd->pMemory);
 }
 
 static void handleMapMemory(const CtsCmdBase* pCmd) {
     const CtsMapMemory* cmd = (const CtsMapMemory*) pCmd;
-    *cmd->result = ctsMapMemoryImpl(cmd->device, cmd->memory, cmd->offset, cmd->size, cmd->flags, cmd->data);
+    *cmd->pResult = ctsMapMemoryImpl(cmd->device, cmd->memory, cmd->offset, cmd->size, cmd->flags, cmd->ppData);
 }
 
 static void handleUnmapMemory(const CtsCmdBase* pCmd) {
@@ -259,107 +259,107 @@ static void handleUnmapMemory(const CtsCmdBase* pCmd) {
 
 static void handleFreeMemory(const CtsCmdBase* pCmd) {
     const CtsFreeMemory* cmd = (const CtsFreeMemory*) pCmd;
-    ctsFreeMemoryImpl(cmd->device, cmd->memory, cmd->allocator);
+    ctsFreeMemoryImpl(cmd->device, cmd->memory, cmd->pAllocator);
 }
 
 static void handleQueueSubmit(const CtsCmdBase* pCmd) {
     const CtsQueueSubmit* cmd = (const CtsQueueSubmit*) pCmd;
-    *cmd->result = ctsQueueSubmitImpl(cmd->queue, cmd->submitCount, cmd->submits, cmd->fence);
+    *cmd->pResult = ctsQueueSubmitImpl(cmd->queue, cmd->submitCount, cmd->pSubmits, cmd->fence);
 }
 
 static void handleQueueFinish(const CtsCmdBase* pCmd) {
     const CtsQueueFinish* cmd = (const CtsQueueFinish*) pCmd;
-    ctsSignalSemaphores(cmd->semaphoreCount, cmd->semaphores);
+    ctsQueueFinishImpl(cmd->semaphoreCount, cmd->pSemaphores, cmd->commandBuffer);
 }
 
 static void handleAllocateDescriptorSets(const CtsCmdBase* pCmd) {
     const CtsAllocateDescriptorSets* cmd = (const CtsAllocateDescriptorSets*) pCmd;
-    *cmd->result = ctsAllocateDescriptorSetsImpl(cmd->device, cmd->allocateInfo, cmd->descriptorSets);
+    *cmd->pResult = ctsAllocateDescriptorSetsImpl(cmd->device, cmd->pAllocateInfo, cmd->pDescriptorSets);
 }
 
 static void handleUpdateDescriptorSets(const CtsCmdBase* pCmd) {
     const CtsUpdateDescriptorSets* cmd = (const CtsUpdateDescriptorSets*) pCmd;
-    ctsUpdateDescriptorSetsImpl(cmd->device, cmd->descriptorWriteCount, cmd->descriptorWrites, cmd->descriptorCopyCount, cmd->descriptorCopies);
+    ctsUpdateDescriptorSetsImpl(cmd->device, cmd->descriptorWriteCount, cmd->pDescriptorWrites, cmd->descriptorCopyCount, cmd->pDescriptorCopies);
 }
 
 static void handleFreeDescriptorSets(const CtsCmdBase* pCmd) {
     const CtsFreeDescriptorSets* cmd = (const CtsFreeDescriptorSets*) pCmd;
-    ctsFreeDescriptorSetsImpl(cmd->device,  cmd->descriptorPool, cmd->descriptorSetCount, cmd->descriptorSets);
+    ctsFreeDescriptorSetsImpl(cmd->device,  cmd->descriptorPool, cmd->descriptorSetCount, cmd->pDescriptorSets);
 }
 
 static void handleCreateGraphicsPipelines(const CtsCmdBase* pCmd) {
     const CtsCreateGraphicsPipelines* cmd = (const CtsCreateGraphicsPipelines*) pCmd;
-    *cmd->result = ctsCreateGraphicsPipelinesImpl(cmd->device, cmd->pipelineCache, cmd->createInfoCount,  cmd->createInfos, cmd->allocator, cmd->pipelines);
+    *cmd->pResult = ctsCreateGraphicsPipelinesImpl(cmd->device, cmd->pipelineCache, cmd->createInfoCount, cmd->pCreateInfos, cmd->pAllocator, cmd->pPipelines);
 }
 
 static void handleDestroyPipeline(const CtsCmdBase* pCmd) {
     const CtsDestroyPipeline* cmd = (const CtsDestroyPipeline*) pCmd;
-    ctsDestroyPipelineImpl(cmd->device, cmd->pipeline, cmd->allocator);
+    ctsDestroyPipelineImpl(cmd->device, cmd->pipeline, cmd->pAllocator);
 }
 
 static void handleCreateImageView(const CtsCmdBase* pCmd) {
     const CtsCreateImageView* cmd = (const CtsCreateImageView*) pCmd;
-    *cmd->result = ctsCreateImageViewImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->imageView);
+    *cmd->pResult = ctsCreateImageViewImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pImageView);
 }
 
 static void handleDestroyImageView(const CtsCmdBase* pCmd) {
     const CtsDestroyImageView* cmd = (const CtsDestroyImageView*) pCmd;
-    ctsDestroyImageViewImpl(cmd->device, cmd->imageView, cmd->allocator);
+    ctsDestroyImageViewImpl(cmd->device, cmd->imageView, cmd->pAllocator);
 }
 
 static void handleCreateImage(const CtsCmdBase* pCmd) {
     const CtsCreateImage* cmd = (const CtsCreateImage*) pCmd;
-    *cmd->result = ctsCreateImageImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->image);
+    *cmd->pResult = ctsCreateImageImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pImage);
 }
 
 static void handleDestroyImage(const CtsCmdBase* pCmd) {
     const CtsDestroyImage* cmd = (const CtsDestroyImage*) pCmd;
-    ctsDestroyImageImpl(cmd->device, cmd->image, cmd->allocator);
+    ctsDestroyImageImpl(cmd->device, cmd->image, cmd->pAllocator);
 }
 
 static void handleCreateSampler(const CtsCmdBase* pCmd) {
     const CtsCreateSampler* cmd = (const CtsCreateSampler*) pCmd;
-    *cmd->result = ctsCreateSamplerImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->sampler);
+    *cmd->pResult = ctsCreateSamplerImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pSampler);
 }
 
 static void handleDestroySampler(const CtsCmdBase* pCmd) {
     const CtsDestroySampler* cmd = (const CtsDestroySampler*) pCmd;
-    ctsDestroySamplerImpl(cmd->device, cmd->sampler, cmd->allocator);
+    ctsDestroySamplerImpl(cmd->device, cmd->sampler, cmd->pAllocator);
 }
 
 static void handleCreateFramebuffer(const CtsCmdBase* pCmd) {
     const CtsCreateFramebuffer* cmd = (const CtsCreateFramebuffer*) pCmd;
-    *cmd->result = ctsCreateFramebufferImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->framebuffer);
+    *cmd->pResult = ctsCreateFramebufferImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pFramebuffer);
 }
 
 static void handleDestroyFramebuffer(const CtsCmdBase* pCmd) {
     const CtsDestroyFramebuffer* cmd = (const CtsDestroyFramebuffer*) pCmd;
-    ctsDestroyFramebufferImpl(cmd->device, cmd->framebuffer, cmd->allocator);
+    ctsDestroyFramebufferImpl(cmd->device, cmd->framebuffer, cmd->pAllocator);
 }
 
 static void handleCreateFence(const CtsCmdBase* pCmd) {
     const CtsCreateFence* cmd = (const CtsCreateFence*) pCmd;
-    *cmd->result = ctsCreateFenceImpl(cmd->device, cmd->createInfo, cmd->allocator, cmd->fence);
+    *cmd->pResult = ctsCreateFenceImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pFence);
 }
 
 static void handleResetFences(const CtsCmdBase* pCmd) {
     const CtsResetFences* cmd = (const CtsResetFences*) pCmd;
-    *cmd->result = ctsResetFencesImpl(cmd->device, cmd->fenceCount, cmd->fences);
+    *cmd->pResult = ctsResetFencesImpl(cmd->device, cmd->fenceCount, cmd->pFences);
 }
 
 static void handleGetFenceStatus(const CtsCmdBase* pCmd) {
     const CtsGetFenceStatus* cmd = (const CtsGetFenceStatus*) pCmd;
-    *cmd->result = ctsGetFenceStatusImpl(cmd->device, cmd->fence);
+    *cmd->pResult = ctsGetFenceStatusImpl(cmd->device, cmd->fence);
 }
 
 static void handleWaitForFences(const CtsCmdBase* pCmd) {
     const CtsWaitForFences* cmd = (const CtsWaitForFences*) pCmd;
-    *cmd->result = ctsWaitForFencesImpl(cmd->device, cmd->fenceCount, cmd->fences, cmd->waitAll, cmd->timeout);
+    *cmd->pResult = ctsWaitForFencesImpl(cmd->device, cmd->fenceCount, cmd->pFences, cmd->waitAll, cmd->timeout);
 }
 
 static void handleDestroyFence(const CtsCmdBase* pCmd) {
     const CtsDestroyFence* cmd = (const CtsDestroyFence*) pCmd;
-    ctsDestroyFenceImpl(cmd->device, cmd->fence, cmd->allocator);
+    ctsDestroyFenceImpl(cmd->device, cmd->fence, cmd->pAllocator);
 }
 
 static void handleCmdBeginQuery(const CtsCmdBase* pCmd) {
@@ -369,12 +369,12 @@ static void handleCmdBeginQuery(const CtsCmdBase* pCmd) {
 
 static void handleCmdBeginRenderPass(const CtsCmdBase* pCmd) {
     const CtsCmdBeginRenderPass* cmd = (const CtsCmdBeginRenderPass*) pCmd;
-    ctsCmdBeginRenderPassImpl(cmd->commandBuffer, cmd->renderPassBegin, cmd->contents);
+    ctsCmdBeginRenderPassImpl(cmd->commandBuffer, cmd->pRenderPassBegin, cmd->contents);
 }
 
 static void handleCmdBindDescriptorSets(const CtsCmdBase* pCmd) {
     const CtsCmdBindDescriptorSets* cmd = (const CtsCmdBindDescriptorSets*) pCmd;
-    ctsCmdBindDescriptorSetsImpl(cmd->commandBuffer, cmd->pipelineBindPoint, cmd->pipelineLayout, cmd->firstSet, cmd->descriptorSetCount, cmd->descriptorSets, cmd->dynamicOffsetCount, cmd->dynamicOffsets);
+    ctsCmdBindDescriptorSetsImpl(cmd->commandBuffer, cmd->pipelineBindPoint, cmd->pipelineLayout, cmd->firstSet, cmd->descriptorSetCount, cmd->pDescriptorSets, cmd->dynamicOffsetCount, cmd->pDynamicOffsets);
 }
 
 static void handleCmdBindIndexBuffer(const CtsCmdBase* pCmd) {
@@ -389,47 +389,47 @@ static void handleCmdBindPipeline(const CtsCmdBase* pCmd) {
 
 static void handleCmdBindVertexBuffers(const CtsCmdBase* pCmd) {
     const CtsCmdBindVertexBuffers* cmd = (const CtsCmdBindVertexBuffers*) pCmd;
-    ctsCmdBindVertexBuffersImpl(cmd->commandBuffer, cmd->firstBinding, cmd->bindingCount, cmd->buffers, cmd->offsets);
+    ctsCmdBindVertexBuffersImpl(cmd->commandBuffer, cmd->firstBinding, cmd->bindingCount, cmd->pBuffers, cmd->pOffsets);
 }
 
 static void handleCmdBlitImage(const CtsCmdBase* pCmd) {
     const CtsCmdBlitImage* cmd = (const CtsCmdBlitImage*) pCmd;
-    ctsCmdBlitImageImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->regions, cmd->filter);
+    ctsCmdBlitImageImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->pRegions, cmd->filter);
 }
 
 static void handleCmdClearAttachments(const CtsCmdBase* pCmd) {
     const CtsCmdClearAttachments* cmd = (const CtsCmdClearAttachments*) pCmd;
-    ctsCmdClearAttachmentsImpl(cmd->commandBuffer, cmd->attachmentCount, cmd->attachments, cmd->rectCount, cmd->rects);
+    ctsCmdClearAttachmentsImpl(cmd->commandBuffer, cmd->attachmentCount, cmd->pAttachments, cmd->rectCount, cmd->pRects);
 }
 
 static void handleCmdClearColorImage(const CtsCmdBase* pCmd) {
     const CtsCmdClearColorImage* cmd = (const CtsCmdClearColorImage*) pCmd;
-    ctsCmdClearColorImageImpl(cmd->commandBuffer, cmd->image, cmd->imageLayout, cmd->color, cmd->rangeCount, cmd->ranges);
+    ctsCmdClearColorImageImpl(cmd->commandBuffer, cmd->image, cmd->imageLayout, cmd->pColor, cmd->rangeCount, cmd->pRanges);
 }
 
 static void handleCmdClearDepthStencilImage(const CtsCmdBase* pCmd) {
     const CtsCmdClearDepthStencilImage* cmd = (const CtsCmdClearDepthStencilImage*) pCmd;
-    ctsCmdClearDepthStencilImageImpl(cmd->commandBuffer, cmd->image, cmd->imageLayout, cmd->depthStencil, cmd->rangeCount, cmd->ranges);
+    ctsCmdClearDepthStencilImageImpl(cmd->commandBuffer, cmd->image, cmd->imageLayout, cmd->pDepthStencil, cmd->rangeCount, cmd->pRanges);
 }
 
 static void handleCmdCopyBuffer(const CtsCmdBase* pCmd) {
     const CtsCmdCopyBuffer* cmd = (const CtsCmdCopyBuffer*) pCmd;
-    ctsCmdCopyBufferImpl(cmd->commandBuffer, cmd->srcBuffer, cmd->dstBuffer, cmd->regionCount, cmd->regions);
+    ctsCmdCopyBufferImpl(cmd->commandBuffer, cmd->srcBuffer, cmd->dstBuffer, cmd->regionCount, cmd->pRegions);
 }
 
 static void handleCmdCopyBufferToImage(const CtsCmdBase* pCmd) {
     const CtsCmdCopyBufferToImage* cmd = (const CtsCmdCopyBufferToImage*) pCmd;
-    ctsCmdCopyBufferToImageImpl(cmd->commandBuffer, cmd->srcBuffer, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->regions);
+    ctsCmdCopyBufferToImageImpl(cmd->commandBuffer, cmd->srcBuffer, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->pRegions);
 }
 
 static void handleCmdCopyImage(const CtsCmdBase* pCmd) {
     const CtsCmdCopyImage* cmd = (const CtsCmdCopyImage*) pCmd;
-    ctsCmdCopyImageImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->regions);
+    ctsCmdCopyImageImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->pRegions);
 }
 
 static void handleCmdCopyImageToBuffer(const CtsCmdBase* pCmd) {
     const CtsCmdCopyImageToBuffer* cmd = (const CtsCmdCopyImageToBuffer*) pCmd;
-    ctsCmdCopyImageToBufferImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstBuffer, cmd->regionCount, cmd->regions);
+    ctsCmdCopyImageToBufferImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstBuffer, cmd->regionCount, cmd->pRegions);
 }
 
 static void handleCmdCopyQueryPoolResults(const CtsCmdBase* pCmd) {
@@ -479,7 +479,7 @@ static void handleCmdEndRenderPass(const CtsCmdBase* pCmd) {
 
 static void handleCmdExecuteCommands(const CtsCmdBase* pCmd) {
     const CtsCmdExecuteCommands* cmd = (const CtsCmdExecuteCommands*) pCmd;
-    ctsCmdExecuteCommandsImpl(cmd->commandBuffer, cmd->commandBufferCount, cmd->commandBuffers);
+    ctsCmdExecuteCommandsImpl(cmd->commandBuffer, cmd->commandBufferCount, cmd->pCommandBuffers);
 }
 
 static void handleCmdFillBuffer(const CtsCmdBase* pCmd) {
@@ -494,7 +494,7 @@ static void handleCmdNextSubpass(const CtsCmdBase* pCmd) {
 
 static void handleCmdPipelineBarrier(const CtsCmdBase* pCmd) {
     const CtsCmdPipelineBarrier* cmd = (const CtsCmdPipelineBarrier*) pCmd;
-    ctsCmdPipelineBarrierImpl(cmd->commandBuffer, cmd->srcStageMask, cmd->dstStageMask, cmd->dependencyFlags, cmd->memoryBarrierCount, cmd->memoryBarriers, cmd->bufferMemoryBarrierCount, cmd->bufferMemoryBarriers, cmd->imageMemoryBarrierCount, cmd->imageMemoryBarriers);
+    ctsCmdPipelineBarrierImpl(cmd->commandBuffer, cmd->srcStageMask, cmd->dstStageMask, cmd->dependencyFlags, cmd->memoryBarrierCount, cmd->pMemoryBarriers, cmd->bufferMemoryBarrierCount, cmd->pBufferMemoryBarriers, cmd->imageMemoryBarrierCount, cmd->pImageMemoryBarriers);
 }
 
 static void handleCmdPushConstants(const CtsCmdBase* pCmd) {
@@ -514,7 +514,7 @@ static void handleCmdResetQueryPool(const CtsCmdBase* pCmd) {
 
 static void handleCmdResolveImage(const CtsCmdBase* pCmd) {
     const CtsCmdResolveImage* cmd = (const CtsCmdResolveImage*) pCmd;
-    ctsCmdResolveImageImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->regions);
+    ctsCmdResolveImageImpl(cmd->commandBuffer, cmd->srcImage, cmd->srcImageLayout, cmd->dstImage, cmd->dstImageLayout, cmd->regionCount, cmd->pRegions);
 }
 
 static void handleCmdSetBlendConstants(const CtsCmdBase* pCmd) {
@@ -549,7 +549,7 @@ static void handleCmdSetLineWidth(const CtsCmdBase* pCmd) {
 
 static void handleCmdSetScissor(const CtsCmdBase* pCmd) {
     const CtsCmdSetScissor* cmd = (const CtsCmdSetScissor*) pCmd;
-    ctsCmdSetScissorImpl(cmd->commandBuffer, cmd->firstScissor, cmd->scissorCount, cmd->scissors);
+    ctsCmdSetScissorImpl(cmd->commandBuffer, cmd->firstScissor, cmd->scissorCount, cmd->pScissors);
 }
 
 static void handleCmdSetStencilCompareMask(const CtsCmdBase* pCmd) {
@@ -569,17 +569,17 @@ static void handleCmdSetStencilWriteMask(const CtsCmdBase* pCmd) {
 
 static void handleCmdSetViewport(const CtsCmdBase* pCmd) {
     const CtsCmdSetViewport* cmd = (const CtsCmdSetViewport*) pCmd;
-    ctsCmdSetViewportImpl(cmd->commandBuffer, cmd->firstViewport, cmd->viewportCount, cmd->viewports);
+    ctsCmdSetViewportImpl(cmd->commandBuffer, cmd->firstViewport, cmd->viewportCount, cmd->pViewports);
 }
 
 static void handleCmdUpdateBuffer(const CtsCmdBase* pCmd) {
     const CtsCmdUpdateBuffer* cmd = (const CtsCmdUpdateBuffer*) pCmd;
-    ctsCmdUpdateBufferImpl(cmd->commandBuffer, cmd->dstBuffer, cmd->dstOffset, cmd->dataSize, cmd->data);
+    ctsCmdUpdateBufferImpl(cmd->commandBuffer, cmd->dstBuffer, cmd->dstOffset, cmd->dataSize, cmd->pData);
 }
 
 static void handleCmdWaitEvents(const CtsCmdBase* pCmd) {
     const CtsCmdWaitEvents* cmd = (const CtsCmdWaitEvents*) pCmd;
-    ctsCmdWaitEventsImpl(cmd->commandBuffer, cmd->eventCount, cmd->events, cmd->srcStageMask, cmd->dstStageMask, cmd->memoryBarrierCount, cmd->memoryBarriers, cmd->bufferMemoryBarrierCount, cmd->bufferMemoryBarriers, cmd->imageMemoryBarrierCount, cmd->imageMemoryBarriers);
+    ctsCmdWaitEventsImpl(cmd->commandBuffer, cmd->eventCount, cmd->events, cmd->srcStageMask, cmd->dstStageMask, cmd->memoryBarrierCount, cmd->pMemoryBarriers, cmd->bufferMemoryBarrierCount, cmd->pBufferMemoryBarriers, cmd->imageMemoryBarrierCount, cmd->pImageMemoryBarriers);
 }
 
 static void handleCmdWriteTimestamp(const CtsCmdBase* pCmd) {

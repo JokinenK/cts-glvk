@@ -11,7 +11,7 @@ extern "C" {
 typedef struct CtsDevice* CtsDevice;
 typedef struct CtsDeviceCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsDeviceCreateFlags flags;
     uint32_t pQueueCreateInfoCount;
     const CtsDeviceQueueCreateInfo* pQueueCreateInfos;

@@ -17,20 +17,20 @@ CtsResult ctsCreateThread(
 );
 
 void ctsDestroyThread(
-    CtsThread pThread,
+    CtsThread thread,
     const CtsAllocationCallbacks* pAllocator
 );
 
 bool ctsThreadJoinable(
-    CtsThread pThread
+    CtsThread thread
 );
 
 void ctsThreadJoin(
-    CtsThread pThread
+    CtsThread thread
 );
 
 void ctsThreadDetach(
-    CtsThread pThread
+    CtsThread thread
 );
 
 #ifdef __cplusplus

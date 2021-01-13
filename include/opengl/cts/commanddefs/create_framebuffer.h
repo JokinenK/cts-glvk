@@ -10,10 +10,10 @@ extern "C" {
 typedef struct CtsCreateFramebuffer {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsFramebufferCreateInfo* createInfo;
-    const CtsAllocationCallbacks* allocator;
-    CtsFramebuffer* framebuffer;
-    CtsResult* result;
+    const CtsFramebufferCreateInfo* pCreateInfo;
+    const CtsAllocationCallbacks* pAllocator;
+    CtsFramebuffer* pFramebuffer;
+    CtsResult* pResult;
 } CtsCreateFramebuffer;
 
 #ifdef __cplusplus

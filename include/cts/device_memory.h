@@ -7,29 +7,29 @@ extern "C" {
 #endif
 
 CtsResult ctsAllocateMemory(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsMemoryAllocateInfo* pAllocateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsDeviceMemory* pMemory
 );
 
 CtsResult ctsMapMemory(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
-    CtsDeviceSize pOffset,
-    CtsDeviceSize pSize,
-    CtsMemoryMapFlags pFlags,
+    CtsDevice device,
+    CtsDeviceMemory memory,
+    CtsDeviceSize offset,
+    CtsDeviceSize size,
+    CtsMemoryMapFlags flags,
     void** pData
 );
 
 void ctsUnmapMemory(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory
+    CtsDevice device,
+    CtsDeviceMemory memory
 );
 
 void ctsFreeMemory(
-    CtsDevice pDevice,
-    CtsDeviceMemory pMemory,
+    CtsDevice device,
+    CtsDeviceMemory memory,
     const CtsAllocationCallbacks* pAllocator
 );
 

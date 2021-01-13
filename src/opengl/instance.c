@@ -35,8 +35,7 @@ CtsResult ctsCreateInstance(
     queueFamilyProperties->queueFlags = 
         CTS_QUEUE_GRAPHICS_BIT | 
         CTS_QUEUE_COMPUTE_BIT  | 
-        CTS_QUEUE_TRANSFER_BIT | 
-        CTS_QUEUE_SPARSE_BINDING_BIT; 
+        CTS_QUEUE_TRANSFER_BIT; 
 
     instance->surface = NULL;
     *pInstance = instance;
@@ -44,18 +43,18 @@ CtsResult ctsCreateInstance(
 }
 
 CtsResult ctsDestroyInstance(
-    CtsInstance pInstance,
+    CtsInstance instance,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pInstance != NULL) {
-        ctsFree(pAllocator, pInstance);
+    if (instance != NULL) {
+        ctsFree(pAllocator, instance);
     }
 
     return CTS_SUCCESS;
 }
 
 CtsResult ctsEnumeratePhysicalDevices(
-    CtsInstance pInstance,
+    CtsInstance instance,
     uint32_t* pPhysicalDeviceCount,
     CtsPhysicalDevice* pPhysicalDevices
 ) {
@@ -64,14 +63,14 @@ CtsResult ctsEnumeratePhysicalDevices(
     }
 
     if (pPhysicalDevices != NULL) {
-        *pPhysicalDevices = &pInstance->physicalDevice;
+        *pPhysicalDevices = &instance->physicalDevice;
     }
 
     return CTS_SUCCESS;
 }
 
 CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
-    CtsPhysicalDevice pPhysicalDevice,
+    CtsPhysicalDevice physicalDevice,
     uint32_t* pQueueFamilyPropertyCount,
     CtsQueueFamilyProperties* pQueueFamilyProperties
 ) {
@@ -80,7 +79,7 @@ CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
     }
 
     if (pQueueFamilyProperties != NULL) {
-        *pQueueFamilyProperties = pPhysicalDevice->instance->queueFamilyProperties;
+        *pQueueFamilyProperties = physicalDevice->instance->queueFamilyProperties;
     }
 
     return CTS_SUCCESS;

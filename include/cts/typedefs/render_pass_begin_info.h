@@ -13,12 +13,12 @@ extern "C" {
 
 typedef struct CtsRenderPassBeginInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsRenderPass renderPass;
     CtsFramebuffer framebuffer;
     CtsRect2D renderArea;
     uint32_t clearValueCount;
-    const CtsClearValue* clearValues;
+    const CtsClearValue* pClearValues;
 } CtsRenderPassBeginInfo;
 
 #ifdef __cplusplus

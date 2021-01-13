@@ -13,7 +13,7 @@ typedef struct CtsBufferView* CtsBufferView;
 
 typedef struct CtsBufferViewCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsBuffer buffer;
     CtsAttribType format;
     CtsDeviceSize offset;

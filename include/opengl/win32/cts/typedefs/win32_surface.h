@@ -10,7 +10,7 @@ extern "C" {
 
 typedef struct CtsWin32SurfaceCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsWin32SurfaceCreateFlags flags;
     HINSTANCE hinstance;
     HWND hwnd;

@@ -14,8 +14,8 @@ typedef struct CtsMapMemory {
     CtsDeviceSize offset;
     CtsDeviceSize size;
     CtsMemoryMapFlags flags;
-    void** data;
-    CtsResult* result;
+    void** ppData;
+    CtsResult* pResult;
 } CtsMapMemory;
 
 #ifdef __cplusplus

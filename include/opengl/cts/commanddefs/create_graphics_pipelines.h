@@ -13,10 +13,10 @@ typedef struct CtsCreateGraphicsPipelines {
     CtsDevice device;
     CtsPipelineCache pipelineCache;
     uint32_t createInfoCount;
-    const CtsGraphicsPipelineCreateInfo* createInfos;
-    const CtsAllocationCallbacks* allocator;
-    CtsPipeline* pipelines;
-    CtsResult* result;
+    const CtsGraphicsPipelineCreateInfo* pCreateInfos;
+    const CtsAllocationCallbacks* pAllocator;
+    CtsPipeline* pPipelines;
+    CtsResult* pResult;
 } CtsCreateGraphicsPipelines;
 
 #ifdef __cplusplus

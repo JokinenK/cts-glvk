@@ -10,10 +10,10 @@ extern "C" {
 typedef struct CtsCreateSampler {
     CtsCmdBase base;
     CtsDevice device;
-    const CtsSamplerCreateInfo* createInfo;
-    const CtsAllocationCallbacks* allocator;
-    CtsSampler* sampler;
-    CtsResult* result;
+    const CtsSamplerCreateInfo* pCreateInfo;
+    const CtsAllocationCallbacks* pAllocator;
+    CtsSampler* pSampler;
+    CtsResult* pResult;
 } CtsCreateSampler;
 
 #ifdef __cplusplus

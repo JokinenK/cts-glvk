@@ -7,15 +7,15 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateSampler(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsSamplerCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsSampler* pSampler
 );
 
 void ctsDestroySampler(
-    CtsDevice pDevice,
-    CtsSampler pSampler,
+    CtsDevice device,
+    CtsSampler sampler,
     const CtsAllocationCallbacks* pAllocator
 );
 

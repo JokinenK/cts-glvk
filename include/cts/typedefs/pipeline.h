@@ -20,47 +20,47 @@ typedef struct CtsPipelineCache* CtsPipelineCache;
 
 typedef struct CtsPipelineShaderStageCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsShaderType stage;
     CtsShaderModule module;
-    const char* name;
-    const CtsSpecializationInfo* specializationInfo;
+    const char* pName;
+    const CtsSpecializationInfo* pSpecializationInfo;
 } CtsPipelineShaderStageCreateInfo;
 
 typedef struct CtsPipelineVertexInputStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t vertexBindingDescriptionCount;
-    const CtsVertexInputBindingDescription* vertexBindingDescriptions;
+    const CtsVertexInputBindingDescription* pVertexBindingDescriptions;
     uint32_t vertexAttributeDescriptionCount;
-    const CtsVertexInputAttributeDescription* vertexAttributeDescriptions;
+    const CtsVertexInputAttributeDescription* pVertexAttributeDescriptions;
 } CtsPipelineVertexInputStateCreateInfo;
 
 typedef struct CtsPipelineInputAssemblyStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsPolygonMode polygonMode;
     bool primitiveRestartEnable;
 } CtsPipelineInputAssemblyStateCreateInfo;
 
 typedef struct CtsPipelineTessellationStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t patchControlPoints;
 } CtsPipelineTessellationStateCreateInfo;
 
 typedef struct CtsPipelineViewportStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t viewportCount;
-    const CtsViewport* viewports;
+    const CtsViewport* pViewports;
     uint32_t scissorCount;
-    const CtsRect2D* scissors;
+    const CtsRect2D* pScissors;
 } CtsPipelineViewportStateCreateInfo;
 
 typedef struct CtsPipelineRasterizationStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     bool depthClampEnable;
     bool rasterizerDiscardEnable;
     CtsPolygonMode polygonMode;
@@ -75,18 +75,18 @@ typedef struct CtsPipelineRasterizationStateCreateInfo {
 
 typedef struct CtsPipelineMultisampleStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsSampleCountFlagBits rasterizationSamples;
     bool sampleShadingEnable;
     float minSampleShading;
-    const uint32_t* sampleMask;
+    const uint32_t* pSampleMask;
     bool alphaToCoverageEnable;
     bool alphaToOneEnable;
 } CtsPipelineMultisampleStateCreateInfo;
 
 typedef struct CtsPipelineDepthStencilStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     bool depthTestEnable;
     bool depthWriteEnable;
     CtsCompareOperator depthCompareOp;
@@ -100,7 +100,7 @@ typedef struct CtsPipelineDepthStencilStateCreateInfo {
 
 typedef struct CtsPipelineColorBlendAttachmentState {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     bool blendEnable;
     CtsBlendFunc srcColorBlendFactor;
     CtsBlendFunc dstColorBlendFactor;
@@ -113,19 +113,19 @@ typedef struct CtsPipelineColorBlendAttachmentState {
 
 typedef struct CtsPipelineColorBlendStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     bool logicOpEnable;
     CtsLogicOp logicOp;
     uint32_t attachmentCount;
-    const CtsPipelineColorBlendAttachmentState* attachments;
+    const CtsPipelineColorBlendAttachmentState* pAttachments;
     float blendConstants[4];
 } CtsPipelineColorBlendStateCreateInfo;
 
 typedef struct CtsPipelineDynamicStateCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t dynamicStateCount;
-    const CtsDynamicState* dynamicStates;
+    const CtsDynamicState* pDynamicStates;
 } CtsPipelineDynamicStateCreateInfo;
 
 #ifdef __cplusplus

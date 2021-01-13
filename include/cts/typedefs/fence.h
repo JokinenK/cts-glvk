@@ -11,7 +11,7 @@ extern "C" {
 typedef struct CtsFence* CtsFence;
 typedef struct CtsFenceCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     CtsFenceCreateFlags flags;
 } CtsFenceCreateInfo;
 

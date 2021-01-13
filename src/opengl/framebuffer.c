@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 CtsResult ctsCreateFramebuffer(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsFramebufferCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFramebuffer* pFramebuffer
@@ -21,44 +21,44 @@ CtsResult ctsCreateFramebuffer(
     CtsResult result;
     CtsCreateFramebuffer cmd;
     cmd.base.type = CTS_COMMAND_WAIT_FOR_FENCES;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.createInfo = pCreateInfo;
-    cmd.allocator = pAllocator;
-    cmd.framebuffer = pFramebuffer;
-    cmd.result = &result;
+    cmd.device = device;
+    cmd.pCreateInfo = pCreateInfo;
+    cmd.pAllocator = pAllocator;
+    cmd.pFramebuffer = pFramebuffer;
+    cmd.pResult = &result;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 
     return result;
 }
 
 void ctsDestroyFramebuffer(
-    CtsDevice pDevice,
-    CtsFramebuffer pFramebuffer,
+    CtsDevice device,
+    CtsFramebuffer framebuffer,
     const CtsAllocationCallbacks* pAllocator
 ) {
     CtsDestroyFramebuffer cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_FENCE;
-    cmd.base.next = NULL;
+    cmd.base.pNext = NULL;
 
-    cmd.device = pDevice;
-    cmd.framebuffer = pFramebuffer;
-    cmd.allocator = pAllocator;
+    cmd.device = device;
+    cmd.framebuffer = framebuffer;
+    cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(pDevice->queue, &cmd.base, pDevice->dispatchSemaphore);
-    ctsWaitSemaphores(1, &pDevice->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
+    ctsWaitSemaphores(1, &device->dispatchSemaphore);
 }
 
 CtsResult ctsCreateFramebufferImpl(
-    CtsDevice pDevice,
+    CtsDevice device,
     const CtsFramebufferCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsFramebuffer* pFramebuffer
 ) {
-    (void) pDevice;
+    (void) device;
     (void) pCreateInfo->flags;
     (void) pCreateInfo->width;
     (void) pCreateInfo->height;
@@ -86,7 +86,7 @@ CtsResult ctsCreateFramebufferImpl(
     );
     
     if (framebuffer->attachments == NULL) {
-        ctsDestroyFramebufferImpl(pDevice, framebuffer, pAllocator);
+        ctsDestroyFramebufferImpl(device, framebuffer, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
@@ -94,7 +94,7 @@ CtsResult ctsCreateFramebufferImpl(
     
     uint32_t colorAttachmentCount = 0;
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
-        CtsImageView attachment = pCreateInfo->attachments[i];
+        CtsImageView attachment = pCreateInfo->pAttachments[i];
 
         if (attachment->imageUsage & CTS_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
             GLenum buffer = GL_COLOR_ATTACHMENT0 + colorAttachmentCount++;
@@ -126,17 +126,17 @@ CtsResult ctsCreateFramebufferImpl(
 }
 
 void ctsDestroyFramebufferImpl(
-    CtsDevice pDevice,
-    CtsFramebuffer pFramebuffer,
+    CtsDevice device,
+    CtsFramebuffer framebuffer,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    (void) pDevice;
+    (void) device;
 
-    if (pFramebuffer != NULL) {
-        glDeleteFramebuffers(1, &pFramebuffer->handle);
+    if (framebuffer != NULL) {
+        glDeleteFramebuffers(1, &framebuffer->handle);
 
-        ctsFree(pAllocator, pFramebuffer->attachments);
-        ctsFree(pAllocator, pFramebuffer);
+        ctsFree(pAllocator, framebuffer->attachments);
+        ctsFree(pAllocator, framebuffer);
     }
 }
 

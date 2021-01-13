@@ -11,11 +11,11 @@ extern "C" {
 typedef struct CtsPipelineLayout* CtsPipelineLayout;
 typedef struct CtsPipelineLayoutCreateInfo {
     CtsStructureType sType;
-    const void* next;
+    const void* pNext;
     uint32_t setLayoutCount;
-    const CtsDescriptorSetLayout* setLayouts;
+    const CtsDescriptorSetLayout* pSetLayouts;
     uint32_t pushConstantRangeCount;
-    const CtsPushConstantRange* pushConstantRanges;
+    const CtsPushConstantRange* pPushConstantRanges;
 } CtsPipelineLayoutCreateInfo;
 
 #ifdef __cplusplus

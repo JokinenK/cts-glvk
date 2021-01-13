@@ -11,10 +11,10 @@ typedef struct CtsWaitForFences {
     CtsCmdBase base;
     CtsDevice device;
     uint32_t fenceCount;
-    const CtsFence* fences;
+    const CtsFence* pFences;
     CtsBool32 waitAll;
     uint64_t timeout;
-    CtsResult* result;
+    CtsResult* pResult;
 } CtsWaitForFences;
 
 #ifdef __cplusplus
