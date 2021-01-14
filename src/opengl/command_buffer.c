@@ -160,8 +160,8 @@ CtsResult ctsQueueSubmit(
     cmd.fence = fence;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(queue, &cmd.base, queue->device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &queue->device->dispatchSemaphore);
+    CtsDevice device = queue->device;
+    ctsQueueDispatch(queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -1047,7 +1047,8 @@ CtsResult ctsQueueSubmitImpl(
                 queueFinishCmd->commandBuffer = commandBuffer;
 
                 queueItem.cmd = commandBuffer->root;
-                queueItem.semaphore = NULL;
+                queueItem.pFinished = NULL;
+                queueItem.conditionVariable = NULL;
                 ctsQueuePush(queue, &queueItem);
             }
         }

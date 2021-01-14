@@ -18,12 +18,19 @@ typedef struct CtsTextureBinding {
     GLuint handle;
 } CtsTextureBinding;
 
+typedef struct CtsQueueSync {
+    CtsMutex mutex;
+    CtsConditionVariable conditionVariable;
+} CtsQueueSync;
+
 struct CtsDevice {
     bool isRunning;
+
+    CtsSurface surface;
     CtsQueue queue;
 
-    CtsSemaphore initSemaphore;
-    CtsSemaphore dispatchSemaphore;
+    CtsQueueSync init;
+    CtsQueueSync dispatch;
 
     const CtsGlGraphicsPipeline* activeGraphicsPipeline;
     CtsFramebuffer activeFramebuffer;

@@ -56,8 +56,7 @@ CtsResult ctsAllocateDescriptorSets(
     cmd.pDescriptorSets = pDescriptorSets;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -79,8 +78,7 @@ void ctsUpdateDescriptorSets(
     cmd.descriptorCopyCount = descriptorCopyCount;
     cmd.pDescriptorCopies = pDescriptorCopies;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 }
 
 CtsResult ctsFreeDescriptorSets(
@@ -100,8 +98,7 @@ CtsResult ctsFreeDescriptorSets(
     cmd.pDescriptorSets = pDescriptorSets;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }

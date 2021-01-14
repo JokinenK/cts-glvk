@@ -21,7 +21,6 @@ typedef struct CtsSwapchainEntry {
 
 struct CtsSwapchain {
     CtsDevice device;
-    CtsSurface surface;
     uint32_t entryCount;
     CtsSwapchainEntry* pEntries;
 };

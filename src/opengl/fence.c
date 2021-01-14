@@ -27,8 +27,7 @@ CtsResult ctsCreateFence(
     cmd.pFence = pFence;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -48,8 +47,7 @@ CtsResult ctsResetFences(
     cmd.pFences = pFences;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -67,8 +65,7 @@ CtsResult ctsGetFenceStatus(
     cmd.fence = fence;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -92,8 +89,7 @@ CtsResult ctsWaitForFences(
     cmd.timeout = timeout;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -111,8 +107,7 @@ void ctsDestroyFence(
     cmd.fence = fence;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 }
 
 CtsResult ctsCreateFenceImpl(

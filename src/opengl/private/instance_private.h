@@ -9,8 +9,6 @@ extern "C" {
 #endif
 
 struct CtsInstance {
-    CtsSurface surface;
-
     struct CtsPhysicalDevice physicalDevice;
     struct CtsQueueFamilyProperties queueFamilyProperties;
 };

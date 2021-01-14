@@ -75,13 +75,22 @@ void ctsDestroyQueue(
 void ctsQueueDispatch(
     CtsQueue queue,
     const CtsCmdBase* pCmd,
-    CtsSemaphore semaphore
+    CtsMutex mutex,
+    CtsConditionVariable conditionVariable
 ) {
+    bool wait = (conditionVariable != NULL);
+    bool finished = false;
+
     CtsQueueItem queueItem;
     queueItem.cmd = pCmd;
-    queueItem.semaphore = semaphore;
+    queueItem.pFinished = (wait ? &finished : NULL);
+    queueItem.conditionVariable = conditionVariable;
 
     ctsQueuePush(queue, &queueItem);
+
+    while (wait && !finished) {
+        ctsConditionVariableSleep(conditionVariable, mutex);
+    }
 }
 
 bool ctsQueuePush(CtsQueue queue, CtsQueueItem* pQueueItem) {
@@ -119,15 +128,13 @@ bool ctsQueuePop(CtsQueue queue, CtsQueueItem* pQueueItem) {
 
 static bool waitForSurface(CtsQueue queue) {
     CtsDevice device = queue->device;
-    CtsPhysicalDevice physicalDevice = device->physicalDevice;
-    CtsInstance instance = physicalDevice->instance;
 
-    while (device->isRunning && instance->surface == NULL) {
+    while (device->isRunning && device->surface == NULL) {
         ctsConditionVariableSleep(queue->conditionVariable, queue->mutex);
     }
 
-    if (instance->surface != NULL) {
-        ctsSurfaceMakeCurrent(instance->surface);
+    if (device->surface != NULL) {
+        ctsSurfaceMakeCurrent(device->surface);
         return true;
     }
     
@@ -162,8 +169,12 @@ static void workerEntry(void* pArgs) {
             cmd = cmd->pNext;
         }
 
-        if (queueItem.semaphore != NULL) {
-            ctsSignalSemaphores(1, &queueItem.semaphore);
+        if (queueItem.pFinished != NULL) {
+            *queueItem.pFinished = true;
+        }
+
+        if (queueItem.conditionVariable != NULL) {
+            ctsConditionVariableWakeAll(queueItem.conditionVariable);
         }
     }
 }

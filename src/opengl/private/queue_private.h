@@ -6,7 +6,6 @@
 #include <cts/typedefs/queue.h>
 #include <cts/typedefs/device.h>
 #include <cts/allocator.h>
-#include <cts/semaphore.h>
 #include <cts/mutex.h>
 #include <cts/thread.h>
 #include <cts/condition_variable.h>
@@ -22,7 +21,8 @@ typedef struct CtsQueueCreateInfo {
 
 typedef struct CtsQueueItem {
     const CtsCmdBase* cmd;
-    CtsSemaphore semaphore;
+    bool* pFinished;
+    CtsConditionVariable conditionVariable;
 } CtsQueueItem;
 
 struct CtsQueue {
@@ -50,7 +50,8 @@ void ctsDestroyQueue(
 void ctsQueueDispatch(
     CtsQueue queue,
     const CtsCmdBase* pCommand,
-    CtsSemaphore semaphore
+    CtsMutex mutex,
+    CtsConditionVariable conditionVariable
 );
 
 bool ctsQueuePush(

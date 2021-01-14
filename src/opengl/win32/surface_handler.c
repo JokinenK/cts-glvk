@@ -76,7 +76,6 @@ CtsResult ctsCreateWin32Surface(
         bool initialized = (gladLoadGL() == 1);
         assert(initialized && "Unable to load OpenGL");
 
-        instance->surface = surface;
         *pSurface = surface;
         return CTS_SUCCESS;
     }

@@ -27,8 +27,7 @@ CtsResult ctsCreateImage(
     cmd.pImage = pImage;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -46,8 +45,7 @@ void ctsDestroyImage(
     cmd.image = image;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 }
 
 CtsResult ctsCreateImageImpl(

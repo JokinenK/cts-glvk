@@ -2,6 +2,7 @@
 #include <string.h>
 #include <cts/swapchain.h>
 #include <cts/fullscreen_texture.h>
+#include <private/device_private.h>
 #include <private/fence_private.h>
 #include <private/image_private.h>
 #include <private/swapchain_private.h>
@@ -36,8 +37,8 @@ CtsResult ctsCreateSwapchain(
     //(void) pCreateInfo->compositeAlpha;
     //(void) pCreateInfo->presentMode;
 
+    device->surface = pCreateInfo->surface;
     swapchain->device = device;
-    swapchain->surface = pCreateInfo->surface;
     swapchain->entryCount = pCreateInfo->minImageCount;
     swapchain->pEntries = ctsAllocation(
         pAllocator,
@@ -132,14 +133,16 @@ CtsResult ctsQueuePresent(
     for (uint32_t i = 0; i < pPresentInfo->swapchainCount; ++i) {
         uint32_t imageIndex = pPresentInfo->pImageIndices[i];
         CtsSwapchain swapchain = pPresentInfo->pSwapchains[i];
+
+        CtsDevice device = swapchain->device;
         CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
 
         if (entry->fence != NULL) {
-            ctsWaitForFencesImpl(swapchain->device, 1, &entry->fence, true, UINT64_MAX);
+            ctsWaitForFencesImpl(device, 1, &entry->fence, true, UINT64_MAX);
         }
         
-        ctsDrawFSTexture(queue->device, entry->image);
-        ctsSurfaceSwapBuffers(swapchain->surface);
+        ctsDrawFSTexture(device, entry->image);
+        ctsSurfaceSwapBuffers(device->surface);
 
         if (entry->semaphore != NULL) {
             ctsSignalSemaphores(1, &entry->semaphore);

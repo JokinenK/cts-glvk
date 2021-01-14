@@ -26,8 +26,7 @@ CtsResult ctsAllocateMemory(
     cmd.pMemory = pMemory;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 
     return result;
 }
@@ -53,9 +52,7 @@ CtsResult ctsMapMemory(
     cmd.ppData = ppData;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
-
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
     return result;
 }
 
@@ -70,8 +67,7 @@ void ctsUnmapMemory(
     cmd.device = device;
     cmd.memory = memory;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 }
 
 void ctsFreeMemory(
@@ -87,8 +83,7 @@ void ctsFreeMemory(
     cmd.memory = memory;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
 }
 
 CtsResult ctsAllocateMemoryImpl(

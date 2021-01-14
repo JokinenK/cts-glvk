@@ -25,6 +25,7 @@ CtsResult ctsCreateDevice(
     }
 
     device->isRunning = true;
+    device->surface = NULL;
     device->activeDynamicState = 0;
     device->activeIndexBuffer = NULL;
     device->activeVertexInputState = NULL;
@@ -42,9 +43,13 @@ CtsResult ctsCreateDevice(
     queueCreateInfo.size = 32;
     ctsCreateQueue(&queueCreateInfo, pAllocator, &device->queue);
 
-    CtsSemaphoreCreateInfo semaphoreCreateInfo;
-    ctsCreateSemaphore(device, &semaphoreCreateInfo, pAllocator, &device->initSemaphore);
-    ctsCreateSemaphore(device, &semaphoreCreateInfo, pAllocator, &device->dispatchSemaphore);
+    CtsMutexCreateInfo mutexCreateInfo;
+    ctsCreateMutex(&mutexCreateInfo, pAllocator, &device->init.mutex);
+    ctsCreateMutex(&mutexCreateInfo, pAllocator, &device->dispatch.mutex);
+
+    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
+    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &device->init.conditionVariable);
+    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &device->dispatch.conditionVariable);
 
     *pDevice = device;
     return CTS_SUCCESS;
@@ -71,13 +76,16 @@ void ctsDestroyDevice(
     if (device != NULL) {
         device->isRunning = false;
 
-        ctsSignalSemaphores(1, &device->initSemaphore);
-        ctsSignalSemaphores(1, &device->dispatchSemaphore);
+        ctsConditionVariableWakeAll(device->init.conditionVariable);
+        ctsConditionVariableWakeAll(device->dispatch.conditionVariable);
 
-        ctsDestroySemaphore(device, device->initSemaphore, pAllocator);
-        ctsDestroySemaphore(device, device->dispatchSemaphore, pAllocator);
+        ctsDestroyConditionVariable(device->init.conditionVariable, pAllocator);
+        ctsDestroyConditionVariable(device->dispatch.conditionVariable, pAllocator);
+
+        ctsDestroyMutex(device->init.mutex, pAllocator);
+        ctsDestroyMutex(device->dispatch.mutex, pAllocator);
+
         ctsDestroyQueue(device->queue, pAllocator);
-
         ctsFree(pAllocator, device);
     }
 }

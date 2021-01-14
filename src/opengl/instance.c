@@ -37,7 +37,7 @@ CtsResult ctsCreateInstance(
         CTS_QUEUE_COMPUTE_BIT  | 
         CTS_QUEUE_TRANSFER_BIT; 
 
-    instance->surface = NULL;
+
     *pInstance = instance;
     return CTS_SUCCESS;
 }
