@@ -7,42 +7,36 @@
 extern "C" {
 #endif
 
-bool ctsCreateMutexes(
+CtsResult ctsCreateMutexes(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t mutexCount,
-    CtsMutex* pMutexes
+    CtsMutex* pMutex
 ) {
-    for (uint32_t i = 0; i < mutexCount; ++i) {
-        CtsMutex mutex = ctsAllocation(
-            pAllocator,
-            sizeof(struct CtsMutex),
-            alignof(struct CtsMutex),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
+    CtsMutex mutex = ctsAllocation(
+        pAllocator,
+        sizeof(struct CtsMutex),
+        alignof(struct CtsMutex),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
 
-        if (!mutex) {
-            return false;
-        }
-
-        InitializeCriticalSection(&mutex->criticalSection);
-        pMutexes[i] = mutex;
+    if (mutex == NULL) {
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    return true;
+    InitializeCriticalSection(&mutex->criticalSection);
+    *pMutex = mutex;
+
+    return CTS_SUCCESS;
 }
 
-bool ctsDestroyMutex(
+void ctsDestroyMutex(
     CtsMutex mutex,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (mutex) {
+    if (mutex != NULL) {
         DeleteCriticalSection(&mutex->criticalSection);
         ctsFree(pAllocator, mutex);
-        return true;
     }
-
-    return false;
 }
 
 void ctsMutexLock(

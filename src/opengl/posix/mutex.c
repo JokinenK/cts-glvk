@@ -7,60 +7,54 @@
 extern "C" {
 #endif
 
-bool ctsCreateMutexes(
+CtsResult ctsCreateMutexes(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t mutexCount,
-    CtsMutex* pMutexes
+    CtsMutex* pMutex
 ) {
-    for (uint32_t i = 0; i < mutexCount; ++i) {
-        CtsMutex mutex = ctsAllocation(
-            pAllocator,
-            sizeof(struct CtsMutex),
-            alignof(struct CtsMutex),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
+    CtsMutex mutex = ctsAllocation(
+        pAllocator,
+        sizeof(struct CtsMutex),
+        alignof(struct CtsMutex),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
 
-        if (!mutex) {
-            return false;
-        }
-
-        pthread_mutex_init(&mutex->mutex, NULL);
-        pMutexes[i] = mutex;
+    if (mutex == NULL) {
+        return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    return true;
+    pthread_mutex_init(&mutex->mutex, NULL);
+    *pMutex = mutex;
+
+    return CTS_SUCCESS;
 }
 
-bool ctsDestroyMutex(
+void ctsDestroyMutex(
     CtsMutex mutex,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pMutex) {
-        pthread_mutex_destroy(&pMutex->mutex);
+    if (mutex != NULL) {
+        pthread_mutex_destroy(&mutex->mutex);
         ctsFree(pAllocator, pMutex);
-        return true;
     }
-
-    return false;
 }
 
 void ctsMutexLock(
     CtsMutex mutex
 ) {
-    pthread_mutex_lock(&pMutex->mutex);
+    pthread_mutex_lock(&mutex->mutex);
 }
 
 bool ctsMutexTryLock(
     CtsMutex mutex
 ) {
-    return (pthread_mutex_trylock(&pMutex->mutex) == 0);
+    return (pthread_mutex_trylock(&mutex->mutex) == 0);
 }
 
 void ctsMutexUnlock(
     CtsMutex mutex
 ) {
-    pthread_mutex_unlock(&pMutex->mutex);
+    pthread_mutex_unlock(&mutex->mutex);
 }
 
 #ifdef __cplusplus

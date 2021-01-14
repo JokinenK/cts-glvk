@@ -3,20 +3,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <cts/allocator.h>
+#include <cts/typedefs/enums.h>
 #include <cts/typedefs/mutex.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-bool ctsCreateMutexes(
+CtsResult ctsCreateMutex(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
-    uint32_t mutexCount,
-    CtsMutex* pMutexes
+    CtsMutex* pMutex
 );
 
-bool ctsDestroyMutex(
+void ctsDestroyMutex(
     CtsMutex mutex,
     const CtsAllocationCallbacks* pAllocator
 );
