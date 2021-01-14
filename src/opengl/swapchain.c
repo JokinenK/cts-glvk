@@ -37,7 +37,6 @@ CtsResult ctsCreateSwapchain(
     //(void) pCreateInfo->compositeAlpha;
     //(void) pCreateInfo->presentMode;
 
-    device->surface = pCreateInfo->surface;
     swapchain->device = device;
     swapchain->entryCount = pCreateInfo->minImageCount;
     swapchain->pEntries = ctsAllocation(
@@ -74,6 +73,10 @@ CtsResult ctsCreateSwapchain(
     }
 
     ctsInitFSTextureHelper();
+
+    device->surface = pCreateInfo->surface;
+    ctsConditionVariableWakeAll(device->init.conditionVariable);
+
     *pSwapchain = swapchain;
 
     return CTS_SUCCESS;
