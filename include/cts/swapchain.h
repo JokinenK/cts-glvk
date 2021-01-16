@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#define CTS_SWAPCHAIN_EXTENSION_NAME "CTS_swapchain"
+
 CtsResult ctsCreateSwapchain(
     CtsDevice device,
     const CtsSwapchainCreateInfo* pCreateInfo,

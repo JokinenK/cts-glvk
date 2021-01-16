@@ -151,6 +151,7 @@ static const CtsFormatData sFormats[] = {
     { GL_BGRA,            GL_BYTE,                           GL_RGBA8_SNORM        }, // CTS_FORMAT_B8G8R8A8_SNORM 
     { GL_BGRA_INTEGER,    GL_UNSIGNED_BYTE,                  GL_RGBA8UI            }, // CTS_FORMAT_B8G8R8A8_UINT 
     { GL_BGRA_INTEGER,    GL_BYTE,                           GL_RGBA8I             }, // CTS_FORMAT_B8G8R8A8_SINT 
+    { GL_BGRA,            GL_BYTE,                           GL_SRGB8_ALPHA8       }, // CTS_FORMAT_R8G8B8A8_SRGB 
 
     { GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV,       GL_RGBA8              }, // CTS_FORMAT_A8B8G8R8_UNORM_PACK32,
     { GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV,       GL_RGBA8_SNORM        }, // CTS_FORMAT_A8B8G8R8_SNORM_PACK32,

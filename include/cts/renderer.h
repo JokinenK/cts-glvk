@@ -11,9 +11,11 @@
 #include <cts/image_view.h>
 #include <cts/image.h>
 #include <cts/instance.h>
+#include <cts/macros.h>
 #include <cts/pipeline_layout.h>
 #include <cts/pipeline.h>
 #include <cts/render_pass.h>
 #include <cts/semaphore.h>
 #include <cts/shader_module.h>
+#include <cts/surface.h>
 #include <cts/swapchain.h>

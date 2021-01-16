@@ -30,6 +30,13 @@ CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
     CtsQueueFamilyProperties* pQueueFamilyProperties
 );
 
+CtsResult ctsEnumerateDeviceExtensionProperties(
+    CtsPhysicalDevice physicalDevice,
+    const char* pLayerName,
+    uint32_t* pPropertyCount,
+    CtsExtensionProperties* pProperties
+);
+
 #ifdef __cplusplus
 }
 #endif

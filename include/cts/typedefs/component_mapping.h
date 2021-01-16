@@ -8,7 +8,7 @@ extern "C" {
 
 typedef struct CtsComponentMapping {
     CtsComponentSwizzle r;
-    CtsComponentSwizzle h;
+    CtsComponentSwizzle g;
     CtsComponentSwizzle b;
     CtsComponentSwizzle a;
 } CtsComponentMapping;

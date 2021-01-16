@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdbool.h>
-#include <cts/surface_handler.h>
+#include <cts/surface.h>
+#include <cts/typedefs/bool.h>
+#include <cts/typedefs/physical_device.h>
 #include <private/surface_private.h>
 #include <private/instance_private.h>
 
@@ -91,6 +93,62 @@ CtsResult ctsDestroyWin32Surface(
         wglMakeCurrent(NULL, NULL);
         wglDeleteContext(surface->context);
         ctsFree(pAllocator, surface);
+    }
+}
+
+CtsResult ctsGetPhysicalDeviceSurfaceSupport(
+    CtsPhysicalDevice physicalDevice,
+    uint32_t queueFamilyIndex,
+    CtsSurface surface,
+    CtsBool32* pSupported
+) {
+    *pSupported = true;
+}
+
+CtsResult ctsGetPhysicalDeviceSurfaceCapabilities(
+    CtsPhysicalDevice physicalDevice,
+    CtsSurface surface,
+    CtsSurfaceCapabilities* pSurfaceCapabilities
+) {
+    pSurfaceCapabilities->minImageCount = 1;
+    pSurfaceCapabilities->maxImageCount = 2;
+    pSurfaceCapabilities->currentExtent = (CtsExtent2D){0xFFFFFFFF, 0xFFFFFFFF};
+    pSurfaceCapabilities->minImageExtent = (CtsExtent2D){1, 1};
+    pSurfaceCapabilities->maxImageExtent = (CtsExtent2D){8192, 8192};
+    pSurfaceCapabilities->maxImageArrayLayers = 1;
+}
+
+CtsResult ctsGetPhysicalDeviceSurfaceFormats(
+    CtsPhysicalDevice physicalDevice,
+    CtsSurface surface,
+    uint32_t* pSurfaceFormatCount,
+    CtsSurfaceFormat* pSurfaceFormats
+) {
+    if (pSurfaceFormatCount != NULL) {
+        *pSurfaceFormatCount = 2;
+    }
+
+    if (pSurfaceFormats != NULL) {
+        pSurfaceFormats[0].format = CTS_FORMAT_B8G8R8A8_UNORM;
+        pSurfaceFormats[0].colorSpace = CTS_COLOR_SPACE_SRGB_NONLINEAR;
+
+        pSurfaceFormats[1].format = CTS_FORMAT_B8G8R8A8_SRGB;
+        pSurfaceFormats[1].colorSpace = CTS_COLOR_SPACE_SRGB_NONLINEAR;
+    }
+}
+
+CtsResult ctsGetPhysicalDeviceSurfacePresentModes(
+    CtsPhysicalDevice physicalDevice,
+    CtsSurface surface,
+    uint32_t* pPresentModeCount,
+    CtsPresentMode* pPresentModes
+) {
+    if (pPresentModeCount != NULL) {
+        *pPresentModeCount = 1;
+    }
+
+    if (pPresentModes != NULL) {
+        *pPresentModes = CTS_PRESENT_MODE_FIFO;
     }
 }
 

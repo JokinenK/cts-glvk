@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/allocator.h>
 #include <cts/typedefs/access_flags.h>
+#include <cts/typedefs/application_info.h>
 #include <cts/typedefs/attachment_description.h>
 #include <cts/typedefs/attachment_description_flags.h>
 #include <cts/typedefs/attachment_reference.h>
@@ -39,6 +39,7 @@
 #include <cts/typedefs/enums.h>
 #include <cts/typedefs/event_create_flags.h>
 #include <cts/typedefs/event.h>
+#include <cts/typedefs/extension_properties.h>
 #include <cts/typedefs/extent.h>
 #include <cts/typedefs/fence_create_flags.h>
 #include <cts/typedefs/fence.h>
@@ -62,6 +63,7 @@
 #include <cts/typedefs/memory_barrier.h>
 #include <cts/typedefs/mutex.h>
 #include <cts/typedefs/offset.h>
+#include <cts/typedefs/physical_device_features.h>
 #include <cts/typedefs/physical_device.h>
 #include <cts/typedefs/pipeline_layout.h>
 #include <cts/typedefs/pipeline_stage_flags.h>
@@ -92,6 +94,8 @@
 #include <cts/typedefs/subpass_dependency.h>
 #include <cts/typedefs/subpass_description_flags.h>
 #include <cts/typedefs/subpass_description.h>
+#include <cts/typedefs/surface_capabilities.h>
+#include <cts/typedefs/surface_format.h>
 #include <cts/typedefs/surface.h>
 #include <cts/typedefs/swapchain.h>
 #include <cts/typedefs/thread.h>

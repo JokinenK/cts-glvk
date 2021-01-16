@@ -2,6 +2,7 @@
 #include <cts/instance.h>
 #include <private/instance_private.h>
 #include <private/physical_device_private.h>
+#include <private/swapchain_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,6 +84,29 @@ CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
     }
 
     return CTS_SUCCESS;
+}
+
+CtsResult ctsEnumerateDeviceExtensionProperties(
+    CtsPhysicalDevice physicalDevice,
+    const char* pLayerName,
+    uint32_t* pPropertyCount,
+    CtsExtensionProperties* pProperties
+) {
+    static const CtsExtensionProperties* properties[] = {
+        &swapchainExtensionProperties,
+    };
+
+    static uint32_t propertyCount = CTS_ARRAY_SIZE(properties);
+
+    if (pPropertyCount != NULL) {
+        *pPropertyCount = propertyCount;
+    }
+
+    if (pProperties != NULL) {
+        for (uint32_t i = 0; i < propertyCount; ++i) {
+            pProperties[i] = *properties[i];
+        }
+    }
 }
 
 #ifdef __cplusplus

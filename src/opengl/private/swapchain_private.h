@@ -1,16 +1,23 @@
 #pragma once
 
 #include <stdint.h>
+#include <cts/swapchain.h>
 #include <cts/typedefs/bool.h>
 #include <cts/typedefs/device.h>
 #include <cts/typedefs/image.h>
 #include <cts/typedefs/fence.h>
 #include <cts/typedefs/semaphore.h>
 #include <cts/typedefs/surface.h>
+#include <cts/typedefs/extension_properties.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+const CtsExtensionProperties swapchainExtensionProperties = {
+    .extensionName = CTS_SWAPCHAIN_EXTENSION_NAME,
+    .specVersion = 1,
+};
 
 typedef struct CtsSwapchainEntry {
     CtsImage image;
