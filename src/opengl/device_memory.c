@@ -226,10 +226,7 @@ void ctsUnmapMemoryImpl(
         glBindBuffer(GL_PIXEL_PACK_BUFFER, memory->handle);
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        
-        if (memory->propertyFlags & CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-            flushMemoryRange(memory, 0, memory->size);
-        }
+        flushMemoryRange(memory, 0, memory->size);
     } else {
         /* Unmappable image, do nothing */
     }

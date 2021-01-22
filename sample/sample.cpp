@@ -441,8 +441,8 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto vertShaderCode = readFile("shader.vert");
-        auto fragShaderCode = readFile("shader.frag");
+        auto vertShaderCode = readFile("shaders/shader.vert");
+        auto fragShaderCode = readFile("shaders/shader.frag"); 
 
         CtsShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         CtsShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -725,10 +725,12 @@ private:
         CtsDeviceSize bufferSize = sizeof(UniformBufferObject);
 
         mUniformBuffers.resize(mSwapChainImages.size());
-        mUniformBuffersMemory.resize(mSwapChainImages.size()); 
+        mUniformBuffersMemory.resize(mSwapChainImages.size());
+        mUniformBuffersData.resize(mSwapChainImages.size());
 
         for (size_t i = 0; i < mSwapChainImages.size(); ++i) {
             createBuffer(bufferSize, CTS_BUFFER_USAGE_UNIFORM_BUFFER_BIT, CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
+            ctsMapMemory(mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersData[i]);
         }
     }
 
@@ -965,6 +967,7 @@ private:
         ctsDestroySwapchain(mDevice, mSwapChain, mAllocator);
 
         for (size_t i = 0; i < mSwapChainImages.size(); ++i) {
+            ctsUnmapMemory(mDevice, mUniformBuffersMemory[i]);
             ctsDestroyBuffer(mDevice, mUniformBuffers[i], mAllocator);
             ctsFreeMemory(mDevice, mUniformBuffersMemory[i], mAllocator);
         }
@@ -1311,10 +1314,7 @@ private:
         ubo.proj = glm::perspective(glm::radians(45.0f), mSwapChainExtent.width / (float) mSwapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
-        void* data;
-        ctsMapMemory(mDevice, mUniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
-        memcpy(data, &ubo, sizeof(ubo));
-        ctsUnmapMemory(mDevice, mUniformBuffersMemory[currentImage]);
+        memcpy(mUniformBuffersData[currentImage], &ubo, sizeof(ubo));
     }
 
     void createImage(
@@ -1451,6 +1451,7 @@ private:
 
     std::vector<CtsBuffer> mUniformBuffers;
     std::vector<CtsDeviceMemory> mUniformBuffersMemory;
+    std::vector<void*> mUniformBuffersData;
 
     CtsDescriptorPool mDescriptorPool;
     std::vector<CtsDescriptorSet> mDescriptorSets;

@@ -34,7 +34,7 @@ static const CtsPhysicalDeviceMemoryProperties gPhysicalMemoryProperties = {
             .propertyFlags = CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             .heapIndex = HEAP_INDEX_BUFFERS_DEVICE
         }, {
-            .propertyFlags = CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            .propertyFlags = CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
             .heapIndex = HEAP_INDEX_IMAGES_HOST
         }, {
             .propertyFlags = CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
