@@ -10,7 +10,7 @@ extern "C" {
 typedef struct CtsVertexInputAttributeDescription {
     uint32_t location;
     uint32_t binding;
-    CtsAttribType format;
+    CtsFormat format;
     uint32_t offset;
 } CtsVertexInputAttributeDescription;
 

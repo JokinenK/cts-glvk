@@ -9,32 +9,10 @@
             "name": "(Windows) Example",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/example/cts_example.exe",
+            "program": "${workspaceFolder}/build/sample/cts-sample.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/example",
-            "environment": [],
-            "externalConsole": true
-        },
-        {
-            "name": "(Windows) Export Mesh",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/tools/export_mesh/Debug/cts_tool_export_mesh.exe",
-            "args": ["12221_Cat_v1_l3.obj"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/tools/export_mesh/Debug",
-            "environment": [],
-            "externalConsole": true
-        },
-        {
-            "name": "(Windows) Tests",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/core/Debug/cts-core_test.exe",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/core/Debug",
+            "cwd": "${workspaceFolder}/build/sample",
             "environment": [],
             "externalConsole": true
         }

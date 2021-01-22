@@ -24,6 +24,11 @@ void ctsDestroySemaphore(
     const CtsAllocationCallbacks* pAllocator
 );
 
+CtsResult ctsWaitSemaphore(
+    CtsSemaphore semaphore,
+    uint64_t timeout
+);
+
 void ctsWaitSemaphores(
     uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores

@@ -9,31 +9,26 @@
 extern "C" {
 #endif
 
-typedef struct CtsGlVertexInputAttributeDescription {
-    GLuint location;
-    uint32_t binding;
-    GLenum format;
-    GLuint numComponents;
-    GLsizei offset;
-    GLsizei stride;
-    CtsVertexInputRate inputRate;
-} CtsGlVertexInputAttributeDescription;
-
 typedef struct CtsGlPipelineVertexInputState {
-    uint32_t vertexAttributeDescriptionCount;
-    CtsGlVertexInputAttributeDescription* pVertexAttributeDescriptions;
+    bool initialized;
+    GLuint vao;
+    uint32_t vertexBindingDescriptionCount;
+    CtsVertexInputBindingDescription* pVertexBindingDescriptions;
 } CtsGlPipelineVertexInputState;
 
 typedef struct CtsGlPipelineInputAssemblyState {
-    GLenum polygonMode;
+    bool initialized;
+    GLenum topology;
     bool primitiveRestartEnable;
 } CtsGlPipelineInputAssemblyState;
 
 typedef struct CtsGlPipelineTessellationState {
+    bool initialized;
     uint32_t patchControlPoints;
 } CtsGlPipelineTessellationState;
 
 typedef struct CtsGlPipelineViewportState {
+    bool initialized;
     uint32_t viewportCount;
     uint32_t scissorCount;
     CtsViewport* pViewports;
@@ -41,6 +36,7 @@ typedef struct CtsGlPipelineViewportState {
 } CtsGlPipelineViewportState;
 
 typedef struct CtsGlPipelineRasterizationState {
+    bool initialized;
     bool depthClampEnable;
     bool rasterizerDiscardEnable;
     GLenum polygonMode;
@@ -54,10 +50,12 @@ typedef struct CtsGlPipelineRasterizationState {
 } CtsGlPipelineRasterizationState;
 
 typedef struct CtsGlPipelineMultisampleState {
-  char placeholder;
+    bool initialized;
 } CtsGlPipelineMultisampleState;
 
 typedef struct CtsGlPipelineDepthStencilState {
+    bool initialized;
+
     bool depthTestEnable;
     bool depthWriteEnable;
     GLenum depthCompareOp;
@@ -84,6 +82,7 @@ typedef struct CtsGlPipelineDepthStencilState {
 } CtsGlPipelineDepthStencilState;
 
 typedef struct CtsGlPipelineColorBlendStateAttachment {
+    bool initialized;
     bool blendEnable;
     GLenum srcColorBlendFactor;
     GLenum dstColorBlendFactor;
@@ -95,6 +94,7 @@ typedef struct CtsGlPipelineColorBlendStateAttachment {
 } CtsGlPipelineColorBlendStateAttachment;
 
 typedef struct CtsGlPipelineColorBlendState {
+    bool initialized;
     uint32_t attachmentCount;
     CtsGlPipelineColorBlendStateAttachment* pAttachments;
     float blendConstants[4];

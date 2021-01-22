@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsSurface* CtsSurface;
+typedef struct CtsSurfaceImpl* CtsSurface;
 
 #ifdef __cplusplus
 }

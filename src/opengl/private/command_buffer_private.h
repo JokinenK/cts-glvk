@@ -1,37 +1,30 @@
 #pragma once
 
 #include <cts/typedefs/bool.h>
+#include <cts/typedefs/command_buffer.h>
 #include <cts/typedefs/command_pool.h>
 #include <cts/typedefs/device.h>
 #include <cts/typedefs/enums.h>
 #include <cts/commanddefs/cmd_base.h>
+#include <cts/linear_allocator.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsCommandBuffer {
+struct CtsCommandBufferImpl {
     CtsDevice device;
     CtsCommandPool pool;
+
+    CtsLinearAllocator linearAllocator;
+    CtsAllocationCallbacks allocator;
+
     CtsCmdBase* root;
     CtsCmdBase* current;
     CtsCommandBufferLevel level;
     CtsCommandBufferUsageFlags flags;
     CtsCommandBufferState state;
 };
-
-CtsResult ctsQueueSubmitImpl(
-    CtsQueue queue,
-    uint32_t submitCount,
-    const CtsSubmitInfo* pSubmits,
-    CtsFence fence
-);
-
-void ctsQueueFinishImpl(
-    uint32_t semaphoreCount,
-    const CtsSemaphore* pSemaphores,
-    CtsCommandBuffer commandBuffer
-);
 
 void ctsCmdBeginQueryImpl(
     CtsCommandBuffer commandBuffer,

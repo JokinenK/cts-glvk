@@ -6,11 +6,12 @@
 extern "C" {
 #endif
 
-struct CtsThread {
+struct CtsThreadImpl {
     HANDLE thread;
     DWORD threadId;
     bool joined;
     bool detached;
+    CtsThreadCreateInfo createInfo;
 };
 
 #ifdef __cplusplus

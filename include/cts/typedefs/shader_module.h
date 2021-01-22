@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsShaderModule* CtsShaderModule;
+typedef struct CtsShaderModuleImpl* CtsShaderModule;
 typedef struct CtsShaderModuleCreateInfo {
     CtsStructureType sType;
     const void* pNext;

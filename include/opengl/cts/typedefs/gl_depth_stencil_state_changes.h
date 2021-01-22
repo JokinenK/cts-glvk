@@ -7,11 +7,9 @@ extern "C" {
 #endif
 
 typedef struct CtsGlDepthStencilStateChanges {
-    bool depthTestEnableChanged;
     bool depthWriteEnableChanged;
     bool depthCompareOpChanged;
     bool depthBoundsTestEnableChanged;
-    bool stencilTestEnableChanged;
     bool depthBoundsChanged;
     bool frontFuncChanged;
     bool frontStencilChanged;

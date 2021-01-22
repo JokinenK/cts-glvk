@@ -13,7 +13,7 @@ extern "C" {
 
 typedef CtsFlags CtsSwapchainCreateFlags;
 
-typedef struct CtsSwapchain* CtsSwapchain;
+typedef struct CtsSwapchainImpl* CtsSwapchain;
 typedef struct CtsSwapchainCreateInfo {
     CtsStructureType sType;
     const void* pNext;

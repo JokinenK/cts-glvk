@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <cts/typedefs/framebuffer.h>
 #include <cts/typedefs/render_pass.h>
 #include <cts/typedefs/image_view.h>
 
@@ -8,7 +9,7 @@
 extern "C" {
 #endif
 
-struct CtsFramebuffer {
+struct CtsFramebufferImpl {
     GLuint handle;
     CtsRenderPass renderPass;
     uint32_t attachmentCount;

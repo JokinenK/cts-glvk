@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsConditionVariable* CtsConditionVariable;
+typedef struct CtsConditionVariableImpl* CtsConditionVariable;
 typedef struct CtsConditionVariableCreateInfo {
     char unused;
 } CtsConditionVariableCreateInfo;

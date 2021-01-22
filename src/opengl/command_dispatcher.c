@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stddef.h>
 #include <cts/command_dispatcher.h>
 #include <cts/commands.h>
@@ -11,6 +12,7 @@
 #include <private/image_view_private.h>
 #include <private/pipeline_private.h>
 #include <private/sampler_private.h>
+#include <private/swapchain_private.h>
 
 
 #pragma region StaticVariableDefinitions
@@ -29,10 +31,10 @@ static CtsCommandMetadata* createCommandMetadata();
 static void handleAllocateMemory(const CtsCmdBase* pCmd);
 static void handleMapMemory(const CtsCmdBase* pCmd);
 static void handleUnmapMemory(const CtsCmdBase* pCmd);
+static void handleFlushMappedMemoryRanges(const CtsCmdBase* pCmd);
 static void handleFreeMemory(const CtsCmdBase* pCmd);
 
-static void handleQueueSubmit(const CtsCmdBase* pCmd);
-static void handleQueueFinish(const CtsCmdBase* pCmd);
+static void handleQueuePresent(const CtsCmdBase* pCmd);
 
 static void handleAllocateDescriptorSets(const CtsCmdBase* pCmd);
 static void handleUpdateDescriptorSets(const CtsCmdBase* pCmd);
@@ -50,12 +52,16 @@ static void handleDestroyImage(const CtsCmdBase* pCmd);
 static void handleCreateSampler(const CtsCmdBase* pCmd);
 static void handleDestroySampler(const CtsCmdBase* pCmd);
 
+static void handleCreateSwapchain(const CtsCmdBase* pCmd);
+static void handleDestroySwapchain(const CtsCmdBase* pCmd);
+
 static void handleCreateFramebuffer(const CtsCmdBase* pCmd);
 static void handleDestroyFramebuffer(const CtsCmdBase* pCmd);
 
 static void handleCreateFence(const CtsCmdBase* pCmd);
 static void handleResetFences(const CtsCmdBase* pCmd);
 static void handleGetFenceStatus(const CtsCmdBase* pCmd);
+static void handleSignalFence(const CtsCmdBase* pCmd);
 static void handleWaitForFences(const CtsCmdBase* pCmd);
 static void handleDestroyFence(const CtsCmdBase* pCmd);
 
@@ -112,6 +118,10 @@ const CtsCommandMetadata* ctsGetCommandMetadata(CtsCommandType commandType) {
     initCommandMetadata();
 
     CtsCommandMetadata* result = &gCommandMetadata[commandType];
+    if (result->handler == NULL) {
+        fprintf(stderr, "No handler for command: %d", commandType);
+    }
+
     assert(result->handler != NULL);
     return result;
 }
@@ -172,12 +182,16 @@ static CtsCommandMetadata* createCommandMetadata()
     lookup[CTS_COMMAND_CREATE_SAMPLER]                = (CtsCommandMetadata) { .handler = handleCreateSampler,              .size = sizeof(CtsCreateSampler),              .align = alignof(CtsCreateSampler)              };
     lookup[CTS_COMMAND_DESTROY_SAMPLER]               = (CtsCommandMetadata) { .handler = handleDestroySampler,             .size = sizeof(CtsDestroySampler),             .align = alignof(CtsDestroySampler)             };
 
+    lookup[CTS_COMMAND_CREATE_SWAPCHAIN]              = (CtsCommandMetadata) { .handler = handleCreateSwapchain,            .size = sizeof(CtsCreateSwapchain),            .align = alignof(CtsCreateSwapchain)            };
+    lookup[CTS_COMMAND_DESTROY_SWAPCHAIN]             = (CtsCommandMetadata) { .handler = handleDestroySwapchain,           .size = sizeof(CtsDestroySwapchain),           .align = alignof(CtsDestroySwapchain)           };
+
     lookup[CTS_COMMAND_CREATE_FRAMEBUFFER]            = (CtsCommandMetadata) { .handler = handleCreateFramebuffer,          .size = sizeof(CtsCreateFramebuffer),          .align = alignof(CtsCreateFramebuffer)          };
     lookup[CTS_COMMAND_DESTROY_FRAMEBUFFER]           = (CtsCommandMetadata) { .handler = handleDestroyFramebuffer,         .size = sizeof(CtsDestroyFramebuffer),         .align = alignof(CtsDestroyFramebuffer)         };
 
     lookup[CTS_COMMAND_CREATE_FENCE]                  = (CtsCommandMetadata) { .handler = handleCreateFence,                .size = sizeof(CtsCreateFence),                .align = alignof(CtsCreateFence)                };
     lookup[CTS_COMMAND_RESET_FENCES]                  = (CtsCommandMetadata) { .handler = handleResetFences,                .size = sizeof(CtsResetFences),                .align = alignof(CtsResetFences)                };
     lookup[CTS_COMMAND_GET_FENCE_STATUS]              = (CtsCommandMetadata) { .handler = handleGetFenceStatus,             .size = sizeof(CtsGetFenceStatus),             .align = alignof(CtsGetFenceStatus)             };
+    lookup[CTS_COMMAND_SIGNAL_FENCE]                  = (CtsCommandMetadata) { .handler = handleSignalFence,                .size = sizeof(CtsSignalFence),                .align = alignof(CtsSignalFence)                };
     lookup[CTS_COMMAND_WAIT_FOR_FENCES]               = (CtsCommandMetadata) { .handler = handleWaitForFences,              .size = sizeof(CtsWaitForFences),              .align = alignof(CtsWaitForFences)              };
     lookup[CTS_COMMAND_DESTROY_FENCE]                 = (CtsCommandMetadata) { .handler = handleDestroyFence,               .size = sizeof(CtsDestroyFence),               .align = alignof(CtsDestroyFence)               };
 
@@ -188,10 +202,10 @@ static CtsCommandMetadata* createCommandMetadata()
     lookup[CTS_COMMAND_ALLOCATE_MEMORY]               = (CtsCommandMetadata) { .handler = handleAllocateMemory,             .size = sizeof(CtsAllocateMemory),             .align = alignof(CtsAllocateMemory)             };
     lookup[CTS_COMMAND_MAP_MEMORY]                    = (CtsCommandMetadata) { .handler = handleMapMemory,                  .size = sizeof(CtsMapMemory),                  .align = alignof(CtsMapMemory)                  };
     lookup[CTS_COMMAND_UNMAP_MEMORY]                  = (CtsCommandMetadata) { .handler = handleUnmapMemory,                .size = sizeof(CtsUnmapMemory),                .align = alignof(CtsUnmapMemory)                };
+    lookup[CTS_COMMAND_FLUSH_MAPPED_MEMORY_RANGES]    = (CtsCommandMetadata) { .handler = handleFlushMappedMemoryRanges,    .size = sizeof(CtsFlushMappedMemoryRanges),    .align = alignof(CtsFlushMappedMemoryRanges)    };
     lookup[CTS_COMMAND_FREE_MEMORY]                   = (CtsCommandMetadata) { .handler = handleFreeMemory,                 .size = sizeof(CtsFreeMemory),                 .align = alignof(CtsFreeMemory)                 };
 
-    lookup[CTS_COMMAND_QUEUE_SUBMIT]                  = (CtsCommandMetadata) { .handler = handleQueueSubmit,                .size = sizeof(CtsQueueSubmit),                .align = alignof(CtsQueueSubmit)                };
-    lookup[CTS_COMMAND_QUEUE_FINISH]                  = (CtsCommandMetadata) { .handler = handleQueueFinish,                .size = sizeof(CtsQueueFinish),                .align = alignof(CtsQueueFinish)                };
+    lookup[CTS_COMMAND_QUEUE_PRESENT]                 = (CtsCommandMetadata) { .handler = handleQueuePresent,               .size = sizeof(CtsQueuePresent),               .align = alignof(CtsQueuePresent)               };
 
     lookup[CTS_COMMAND_CMD_BEGIN_QUERY]               = (CtsCommandMetadata) { .handler = handleCmdBeginQuery,              .size = sizeof(CtsCmdBeginQuery),              .align = alignof(CtsCmdBeginQuery)              };
     lookup[CTS_COMMAND_CMD_BEGIN_RENDER_PASS]         = (CtsCommandMetadata) { .handler = handleCmdBeginRenderPass,         .size = sizeof(CtsCmdBeginRenderPass),         .align = alignof(CtsCmdBeginRenderPass)         };
@@ -257,19 +271,19 @@ static void handleUnmapMemory(const CtsCmdBase* pCmd) {
     ctsUnmapMemoryImpl(cmd->device, cmd->memory);
 }
 
+static void handleFlushMappedMemoryRanges(const CtsCmdBase* pCmd) {
+    const CtsFlushMappedMemoryRanges* cmd = (const CtsFlushMappedMemoryRanges*) pCmd;
+    *cmd->pResult = ctsFlushMappedMemoryRangesImpl(cmd->device, cmd->memoryRangeCount, cmd->pMemoryRanges);
+}
+
 static void handleFreeMemory(const CtsCmdBase* pCmd) {
     const CtsFreeMemory* cmd = (const CtsFreeMemory*) pCmd;
     ctsFreeMemoryImpl(cmd->device, cmd->memory, cmd->pAllocator);
 }
 
-static void handleQueueSubmit(const CtsCmdBase* pCmd) {
-    const CtsQueueSubmit* cmd = (const CtsQueueSubmit*) pCmd;
-    *cmd->pResult = ctsQueueSubmitImpl(cmd->queue, cmd->submitCount, cmd->pSubmits, cmd->fence);
-}
-
-static void handleQueueFinish(const CtsCmdBase* pCmd) {
-    const CtsQueueFinish* cmd = (const CtsQueueFinish*) pCmd;
-    ctsQueueFinishImpl(cmd->semaphoreCount, cmd->pSemaphores, cmd->commandBuffer);
+static void handleQueuePresent(const CtsCmdBase* pCmd) {
+    const CtsQueuePresent* cmd = (const CtsQueuePresent*) pCmd;
+    *cmd->pResult = ctsQueuePresentImpl(cmd->queue, cmd->pPresentInfo);
 }
 
 static void handleAllocateDescriptorSets(const CtsCmdBase* pCmd) {
@@ -327,6 +341,16 @@ static void handleDestroySampler(const CtsCmdBase* pCmd) {
     ctsDestroySamplerImpl(cmd->device, cmd->sampler, cmd->pAllocator);
 }
 
+static void handleCreateSwapchain(const CtsCmdBase* pCmd) {
+    const CtsCreateSwapchain* cmd = (const CtsCreateSwapchain*) pCmd;
+    *cmd->pResult = ctsCreateSwapchainImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pSwapchain);
+}
+
+static void handleDestroySwapchain(const CtsCmdBase* pCmd) {
+    const CtsDestroySwapchain* cmd = (const CtsDestroySwapchain*) pCmd;
+    ctsDestroySwapchainImpl(cmd->device, cmd->swapchain, cmd->pAllocator);
+}
+
 static void handleCreateFramebuffer(const CtsCmdBase* pCmd) {
     const CtsCreateFramebuffer* cmd = (const CtsCreateFramebuffer*) pCmd;
     *cmd->pResult = ctsCreateFramebufferImpl(cmd->device, cmd->pCreateInfo, cmd->pAllocator, cmd->pFramebuffer);
@@ -350,6 +374,11 @@ static void handleResetFences(const CtsCmdBase* pCmd) {
 static void handleGetFenceStatus(const CtsCmdBase* pCmd) {
     const CtsGetFenceStatus* cmd = (const CtsGetFenceStatus*) pCmd;
     *cmd->pResult = ctsGetFenceStatusImpl(cmd->device, cmd->fence);
+}
+
+static void handleSignalFence(const CtsCmdBase* pCmd) {
+    const CtsSignalFence* cmd = (const CtsSignalFence*) pCmd;
+    ctsSignalFenceFenceImpl(cmd->device, cmd->fence);
 }
 
 static void handleWaitForFences(const CtsCmdBase* pCmd) {
@@ -499,7 +528,7 @@ static void handleCmdPipelineBarrier(const CtsCmdBase* pCmd) {
 
 static void handleCmdPushConstants(const CtsCmdBase* pCmd) {
     const CtsCmdPushConstants* cmd = (const CtsCmdPushConstants*) pCmd;
-    ctsCmdPushConstantsImpl(cmd->commandBuffer, cmd->layout, cmd->stageFlags, cmd->offset, cmd->size, cmd->values);
+    ctsCmdPushConstantsImpl(cmd->commandBuffer, cmd->layout, cmd->stageFlags, cmd->offset, cmd->size, cmd->pValues);
 }
 
 static void handleCmdResetEvent(const CtsCmdBase* pCmd) {

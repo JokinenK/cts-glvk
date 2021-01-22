@@ -27,8 +27,7 @@ CtsResult ctsCreateSampler(
     cmd.pSampler = pSampler;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -46,8 +45,7 @@ void ctsDestroySampler(
     cmd.sampler = sampler;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatchSemaphore);
-    ctsWaitSemaphores(1, &device->dispatchSemaphore);
+    ctsQueueDispatch(device->queue, &cmd.base);
 }
 
 CtsResult ctsCreateSamplerImpl(
@@ -60,8 +58,8 @@ CtsResult ctsCreateSamplerImpl(
 
     CtsSampler sampler = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSampler),
-        alignof(struct CtsSampler),
+        sizeof(struct CtsSamplerImpl),
+        alignof(struct CtsSamplerImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

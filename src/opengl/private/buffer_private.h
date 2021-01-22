@@ -7,11 +7,12 @@
 extern "C" {
 #endif
 
-struct CtsBuffer {
+struct CtsBufferImpl {
     CtsDeviceMemory memory;
-    GLenum type;
     GLsizei size;
+    GLenum type;
     GLsizei offset;
+    CtsBufferUsageFlags usage;
 };
 
 #ifdef __cplusplus

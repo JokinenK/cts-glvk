@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stddef.h>
 #include <cts/buffer.h>
 #include <cts/type_mapper.h>
@@ -18,8 +19,8 @@ CtsResult ctsCreateBuffer(
     
     CtsBuffer buffer = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsBuffer),
-        alignof(struct CtsBuffer),
+        sizeof(struct CtsBufferImpl),
+        alignof(struct CtsBufferImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     ); 
 
@@ -27,28 +28,13 @@ CtsResult ctsCreateBuffer(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
         
-    //GLenum usage = mapBufferUsage(pCreateInfo->usage);
     buffer->memory = NULL;
-    buffer->type = parseBufferType(pCreateInfo->type);
+    buffer->type = parseBufferUsage(pCreateInfo->usage);
     buffer->size = (GLsizei) pCreateInfo->size;
     buffer->offset = 0;
+    buffer->usage = pCreateInfo->usage;
 
     *pBuffer = buffer;
-    return CTS_SUCCESS;
-}
-
-CtsResult ctsBindBufferMemory(
-    CtsDevice device,
-    CtsBuffer buffer, 
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset
-) {
-    if (buffer->size > memory->size - offset) {
-        return CTS_ERROR_OUT_OF_DEVICE_MEMORY;
-    }
-
-    buffer->memory = memory;
-    buffer->offset = (GLsizei)offset;
     return CTS_SUCCESS;
 }
 

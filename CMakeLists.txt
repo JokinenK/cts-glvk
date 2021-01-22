@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.0)
 project(cts-renderer)
 
 option(CTS_BUILD_TESTS "Build tests" ON)
+option(CTS_BUILD_SAMPLES "Build samples" ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
@@ -11,6 +12,15 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 if(CTS_BUILD_TESTS)
     add_subdirectory(contrib/googletest)
 endif(CTS_BUILD_TESTS)
+
+if(CTS_BUILD_SAMPLES)
+    add_subdirectory(contrib/glm)
+    add_subdirectory(sample)
+
+    list(APPEND INCLUDE_PATHS
+        contrib/stb
+    )
+endif(CTS_BUILD_SAMPLES)
 
 add_subdirectory(contrib/glad)
 
@@ -22,21 +32,26 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_buffer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_dispatcher.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_pool.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/constants.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_pool.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_set_layout.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_set.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/device_memory.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/device.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/framebuffer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fullscreen_texture.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/generic_queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image_view.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/instance.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/physical_device.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline_layout.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/query_pool.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/render_pass.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/sampler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shader_module.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/swapchain.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
@@ -45,31 +60,45 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pool_allocator.c
 )
 
-if(MSVC)
+if(WIN32)
     list(APPEND SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/semaphore.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/thread.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
     )
 elseif(UNIX)
     list(APPEND SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/mutex.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/semaphore.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/thread.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/mutex.c
     )
-endif(MSVC)
+endif(WIN32)
 
 if(WIN32)
     list(APPEND INCLUDE_PATHS
         ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
     )
+    list(APPEND SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/surface.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/time.c
+    )
+    list(APPEND LIBRARIES
+        opengl32
+    )
 elseif(UNIX)
     list(APPEND INCLUDE_PATHS
         ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/posix
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix
+    )
+    list(APPEND SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/surface.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/time.c
+    )
+    list(APPEND LIBRARIES
+        gl
     )
 endif(WIN32)
 

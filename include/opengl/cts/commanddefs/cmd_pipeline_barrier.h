@@ -14,11 +14,11 @@ typedef struct CtsCmdPipelineBarrier {
     CtsPipelineStageFlags dstStageMask;
     CtsDependencyFlags dependencyFlags;
     uint32_t memoryBarrierCount;
-    const CtsMemoryBarrier* pMemoryBarriers;
+    CtsMemoryBarrier* pMemoryBarriers;
     uint32_t bufferMemoryBarrierCount;
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers;
+    CtsBufferMemoryBarrier* pBufferMemoryBarriers;
     uint32_t imageMemoryBarrierCount;
-    const CtsImageMemoryBarrier* pImageMemoryBarriers;
+    CtsImageMemoryBarrier* pImageMemoryBarriers;
 } CtsCmdPipelineBarrier;
 
 #ifdef __cplusplus

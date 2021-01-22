@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsQueue* CtsQueue;
+typedef struct CtsQueueImpl* CtsQueue;
 
 #ifdef __cplusplus
 }

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsCommandPool* CtsCommandPool;
+typedef struct CtsCommandPoolImpl* CtsCommandPool;
 
 typedef struct CtsCommandPoolCreateInfo {
     CtsStructureType sType;

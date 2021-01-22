@@ -17,8 +17,8 @@ CtsResult ctsCreateShaderModule(
 
     CtsShaderModule shaderModule = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsShaderModule),
-        alignof(struct CtsShaderModule),
+        sizeof(struct CtsShaderModuleImpl),
+        alignof(struct CtsShaderModuleImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsSampler* CtsSampler;
+typedef struct CtsSamplerImpl* CtsSampler;
 
 typedef struct CtsSamplerCreateInfo {
     CtsStructureType sType;
@@ -25,7 +25,7 @@ typedef struct CtsSamplerCreateInfo {
     bool anisotropyEnable;
     float maxAnisotropy;
     bool compareEnable;
-    CtsCompareOperator compareOp;
+    CtsCompareOp compareOp;
     float minLod;
     float maxLod;
     CtsBorderColor borderColor;

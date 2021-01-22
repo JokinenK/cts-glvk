@@ -11,13 +11,6 @@ CtsResult ctsCreateBuffer(
     CtsBuffer* pBuffer
 );
 
-CtsResult ctsBindBufferMemory(
-    CtsDevice device,
-    CtsBuffer buffer, 
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset
-);
-
 void ctsDestroyBuffer(
     CtsDevice device,
     CtsBuffer buffer,

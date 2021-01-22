@@ -17,8 +17,8 @@ CtsResult ctsCreatePipelineLayout(
 
     CtsPipelineLayout pipelineLayout = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsPipelineLayout),
-        alignof(struct CtsPipelineLayout),
+        sizeof(struct CtsPipelineLayoutImpl),
+        alignof(struct CtsPipelineLayoutImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -29,8 +29,8 @@ CtsResult ctsCreatePipelineLayout(
     pipelineLayout->setLayoutCount = pCreateInfo->setLayoutCount;
     pipelineLayout->setLayouts = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsDescriptorSetLayout) * pipelineLayout->setLayoutCount,
-        alignof(struct CtsDescriptorSetLayout),
+        sizeof(struct CtsDescriptorSetLayoutImpl) * pipelineLayout->setLayoutCount,
+        alignof(struct CtsDescriptorSetLayoutImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

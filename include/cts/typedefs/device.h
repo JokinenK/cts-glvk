@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsDevice* CtsDevice;
+typedef struct CtsDeviceImpl* CtsDevice;
 typedef struct CtsDeviceCreateInfo {
     CtsStructureType sType;
     const void* pNext;

@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsDescriptorSet* CtsDescriptorSet;
+typedef struct CtsDescriptorSetImpl* CtsDescriptorSet;
 
 typedef struct CtsWriteDescriptorSet {
     CtsStructureType sType;

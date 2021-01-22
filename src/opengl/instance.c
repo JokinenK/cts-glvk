@@ -1,8 +1,9 @@
 #include <stddef.h>
 #include <cts/instance.h>
+#include <cts/mutex.h>
+#include <cts/condition_variable.h>
 #include <private/instance_private.h>
 #include <private/physical_device_private.h>
-#include <private/swapchain_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,8 +16,8 @@ CtsResult ctsCreateInstance(
 ) {
     CtsInstance instance = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsInstance),
-        alignof(struct CtsInstance),
+        sizeof(struct CtsInstanceImpl),
+        alignof(struct CtsInstanceImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_INSTANCE
     ); 
 
@@ -27,17 +28,11 @@ CtsResult ctsCreateInstance(
     CtsPhysicalDevice physicalDevice = &instance->physicalDevice;
     physicalDevice->instance = instance;
 
-    CtsQueueFamilyProperties* queueFamilyProperties = &instance->queueFamilyProperties;
-    queueFamilyProperties->queueCount = 1;
-    queueFamilyProperties->timestampValidBits = 1;
-    queueFamilyProperties->minImageTransferGranularity.width = 0;
-    queueFamilyProperties->minImageTransferGranularity.height = 0;
-    queueFamilyProperties->minImageTransferGranularity.depth = 0;
-    queueFamilyProperties->queueFlags = 
-        CTS_QUEUE_GRAPHICS_BIT | 
-        CTS_QUEUE_COMPUTE_BIT  | 
-        CTS_QUEUE_TRANSFER_BIT; 
+    CtsMutexCreateInfo mutexCreateInfo;
+    ctsCreateMutex(&mutexCreateInfo, pAllocator, &physicalDevice->mutex);
 
+    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
+    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &physicalDevice->conditionVariable);
 
     *pInstance = instance;
     return CTS_SUCCESS;
@@ -48,6 +43,9 @@ CtsResult ctsDestroyInstance(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (instance != NULL) {
+        ctsConditionVariableWakeAll(instance->physicalDevice.conditionVariable);
+        ctsDestroyConditionVariable(instance->physicalDevice.conditionVariable, pAllocator);
+        ctsDestroyMutex(instance->physicalDevice.mutex, pAllocator);
         ctsFree(pAllocator, instance);
     }
 
@@ -68,45 +66,6 @@ CtsResult ctsEnumeratePhysicalDevices(
     }
 
     return CTS_SUCCESS;
-}
-
-CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
-    CtsPhysicalDevice physicalDevice,
-    uint32_t* pQueueFamilyPropertyCount,
-    CtsQueueFamilyProperties* pQueueFamilyProperties
-) {
-    if (pQueueFamilyPropertyCount != NULL) {
-        *pQueueFamilyPropertyCount = 1;
-    }
-
-    if (pQueueFamilyProperties != NULL) {
-        *pQueueFamilyProperties = physicalDevice->instance->queueFamilyProperties;
-    }
-
-    return CTS_SUCCESS;
-}
-
-CtsResult ctsEnumerateDeviceExtensionProperties(
-    CtsPhysicalDevice physicalDevice,
-    const char* pLayerName,
-    uint32_t* pPropertyCount,
-    CtsExtensionProperties* pProperties
-) {
-    static const CtsExtensionProperties* properties[] = {
-        &swapchainExtensionProperties,
-    };
-
-    static uint32_t propertyCount = CTS_ARRAY_SIZE(properties);
-
-    if (pPropertyCount != NULL) {
-        *pPropertyCount = propertyCount;
-    }
-
-    if (pProperties != NULL) {
-        for (uint32_t i = 0; i < propertyCount; ++i) {
-            pProperties[i] = *properties[i];
-        }
-    }
 }
 
 #ifdef __cplusplus

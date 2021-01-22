@@ -16,7 +16,7 @@ typedef struct CtsGlDescriptorSetLayoutBinding {
     const CtsSampler* immutableSamplers;
 } CtsGlDescriptorSetLayoutBinding;
 
-struct CtsDescriptorSetLayout {
+struct CtsDescriptorSetLayoutImpl {
     uint32_t bindingCount;
     CtsGlDescriptorSetLayoutBinding* bindings;
 };

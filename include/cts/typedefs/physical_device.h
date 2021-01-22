@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsPhysicalDevice* CtsPhysicalDevice;
+typedef struct CtsPhysicalDeviceImpl* CtsPhysicalDevice;
 
 #ifdef __cplusplus
 }

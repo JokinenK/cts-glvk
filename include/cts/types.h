@@ -7,8 +7,10 @@
 #include <cts/typedefs/attachment_reference.h>
 #include <cts/typedefs/bool.h>
 #include <cts/typedefs/buffer_copy.h>
+#include <cts/typedefs/buffer_create_flags.h>
 #include <cts/typedefs/buffer_image_copy.h>
 #include <cts/typedefs/buffer_memory_barrier.h>
+#include <cts/typedefs/buffer_usage_flags.h>
 #include <cts/typedefs/buffer_view.h>
 #include <cts/typedefs/buffer.h>
 #include <cts/typedefs/clear_attachment.h>
@@ -26,6 +28,7 @@
 #include <cts/typedefs/command_pool.h>
 #include <cts/typedefs/component_mapping.h>
 #include <cts/typedefs/condition_variable.h>
+#include <cts/typedefs/cull_mode_flags.h>
 #include <cts/typedefs/dependency_flags.h>
 #include <cts/typedefs/descriptor_pool_create_flags.h>
 #include <cts/typedefs/descriptor_pool_size.h>
@@ -50,6 +53,7 @@
 #include <cts/typedefs/image_aspect_flags.h>
 #include <cts/typedefs/image_blit.h>
 #include <cts/typedefs/image_copy.h>
+#include <cts/typedefs/image_create_flags.h>
 #include <cts/typedefs/image_memory_barrier.h>
 #include <cts/typedefs/image_resolve.h>
 #include <cts/typedefs/image_subresource_layers.h>
@@ -59,12 +63,21 @@
 #include <cts/typedefs/image.h>
 #include <cts/typedefs/instance_create_flags.h>
 #include <cts/typedefs/instance.h>
+#include <cts/typedefs/mapped_memory_range.h>
 #include <cts/typedefs/memory_allocate_info.h>
 #include <cts/typedefs/memory_barrier.h>
+#include <cts/typedefs/memory_heap_flags.h>
+#include <cts/typedefs/memory_heap.h>
+#include <cts/typedefs/memory_map_flags.h>
+#include <cts/typedefs/memory_property_flags.h>
+#include <cts/typedefs/memory_requirements.h>
+#include <cts/typedefs/memory_type.h>
 #include <cts/typedefs/mutex.h>
 #include <cts/typedefs/offset.h>
 #include <cts/typedefs/physical_device_features.h>
+#include <cts/typedefs/physical_device_memory_properties.h>
 #include <cts/typedefs/physical_device.h>
+#include <cts/typedefs/pipeline_input_assembly_state_create_flags.h>
 #include <cts/typedefs/pipeline_layout.h>
 #include <cts/typedefs/pipeline_stage_flags.h>
 #include <cts/typedefs/pipeline.h>
@@ -82,6 +95,7 @@
 #include <cts/typedefs/render_pass_begin_info.h>
 #include <cts/typedefs/render_pass_create_flags.h>
 #include <cts/typedefs/render_pass.h>
+#include <cts/typedefs/sample_count_flags.h>
 #include <cts/typedefs/sampler.h>
 #include <cts/typedefs/semaphore.h>
 #include <cts/typedefs/shader_module.h>

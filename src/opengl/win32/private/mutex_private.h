@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-struct CtsMutex {
+struct CtsMutexImpl {
     CRITICAL_SECTION criticalSection;
 };
 

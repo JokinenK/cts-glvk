@@ -11,10 +11,8 @@ extern "C" {
 
 static DWORD WINAPI threadEntry(LPVOID pArgs)
 {
-    CtsThreadCreateInfo createInfo;
-    memcpy(&createInfo, pArgs, sizeof(CtsThreadCreateInfo));
-
-    createInfo.pfEntryPoint(createInfo.pArgs);
+    CtsThreadCreateInfo* pCreateInfo = pArgs;
+    pCreateInfo->pfEntryPoint(pCreateInfo->pArgs);
     return 0;
 }
 
@@ -25,8 +23,8 @@ CtsResult ctsCreateThread(
 ) {
     CtsThread thread = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsThread),
-        alignof(struct CtsThread),
+        sizeof(struct CtsThreadImpl),
+        alignof(struct CtsThreadImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -36,11 +34,12 @@ CtsResult ctsCreateThread(
 
     thread->joined = false;
     thread->detached = false;
+    memcpy(&thread->createInfo, pCreateInfo, sizeof(CtsThreadCreateInfo));
     thread->thread = CreateThread(
         NULL,                 /* default security attributes */
         0,                    /* default stack size */    
         threadEntry,          /* thread function */
-        (LPVOID) pCreateInfo, /* parameter to thread function */
+        (LPVOID) &thread->createInfo, /* parameter to thread function */
         0,                    /* default creation flags */ 
         &thread->threadId
     );

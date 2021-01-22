@@ -2,14 +2,21 @@
 
 #include <stdbool.h>
 #include <glad/glad.h>
+#include <cts/fence.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsFence {
+struct CtsFenceImpl {
     GLsync sync;
+    GLint status;
 };
+
+void ctsSignalFence(
+    CtsDevice device,
+    CtsFence fence
+);
 
 CtsResult ctsCreateFenceImpl(
     CtsDevice device,
@@ -25,6 +32,11 @@ CtsResult ctsResetFencesImpl(
 );
 
 CtsResult ctsGetFenceStatusImpl(
+    CtsDevice device,
+    CtsFence fence
+);
+
+void ctsSignalFenceFenceImpl(
     CtsDevice device,
     CtsFence fence
 );

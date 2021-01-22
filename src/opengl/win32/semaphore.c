@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <climits>
+#include <limits.h>
 #include <cts/align.h>
 #include <cts/allocator.h>
 #include <cts/semaphore.h>
@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateSemaphores(
+CtsResult ctsCreateSemaphore(
     CtsDevice device,
     const CtsSemaphoreCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
@@ -17,8 +17,8 @@ CtsResult ctsCreateSemaphores(
 ) {
     CtsSemaphore semaphore = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSemaphore),
-        alignof(struct CtsSemaphore),
+        sizeof(struct CtsSemaphoreImpl),
+        alignof(struct CtsSemaphoreImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -46,6 +46,21 @@ void ctsDestroySemaphore(
         CloseHandle(semaphore->semaphore); 
         ctsFree(pAllocator, semaphore);
     }
+}
+
+CtsResult ctsWaitSemaphore(
+    CtsSemaphore semaphore,
+    uint64_t timeout
+) {
+    DWORD timeoutMillis = (timeout < UINT64_MAX)
+        ? (DWORD)(timeout / 1000000ULL)
+        : INFINITE;
+
+    if (WaitForSingleObject(semaphore->semaphore, timeoutMillis) == WAIT_OBJECT_0) {
+        return CTS_SUCCESS;
+    }
+
+    return CTS_TIMEOUT;
 }
 
 void ctsWaitSemaphores(

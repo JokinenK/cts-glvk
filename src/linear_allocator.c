@@ -8,11 +8,10 @@ typedef struct CtsLinearAllocatorPool {
 	void* begin;
 	void* end;
 	void* current;
-	void* prev;
 	struct CtsLinearAllocatorPool* next;
 } CtsLinearAllocatorPool;
 
-struct CtsLinearAllocator {
+struct CtsLinearAllocatorImpl {
 	const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize growSize;
     CtsLinearAllocatorPool* begin;
@@ -77,7 +76,7 @@ static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator instance)
 {
 	CtsLinearAllocatorPool* pool = ctsAllocation(
 		instance->pAllocator,
-		sizeof(CtsLinearAllocatorPool),
+		instance->growSize,
 		alignof(CtsLinearAllocatorPool),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
@@ -86,7 +85,6 @@ static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator instance)
 		pool->begin = (char*)pool + sizeof(CtsLinearAllocatorPool);
 		pool->end = (char*)pool + instance->growSize;
 		pool->current = pool->begin;
-		pool->prev = pool->begin;
 		pool->next = NULL;
 
 		return pool;
@@ -99,8 +97,8 @@ bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllo
 {	
 	CtsLinearAllocator instance = ctsAllocation(
 		pCreateInfo->pAllocator,
-		sizeof(struct CtsLinearAllocator),
-		alignof(struct CtsLinearAllocator),
+		sizeof(struct CtsLinearAllocatorImpl),
+		alignof(struct CtsLinearAllocatorImpl),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
 
@@ -117,7 +115,8 @@ bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllo
 		ctsFree(pCreateInfo->pAllocator, instance);
 		return false;
 	}
-	
+
+    *pInstance = instance;	
 	return true;
 }
 
@@ -152,10 +151,10 @@ void* ctsLinearAllocatorAlloc(CtsLinearAllocator instance, size_t size, size_t a
 
 	while (pool != NULL) {	
 		if (canFit(pool, alignedSize)) {
-			pool->prev = pool->current;
+			void* pPtr = pool->current;
 			pool->current = (char*)pool->current + alignedSize;
-			
-			return pool->prev;
+
+			return pPtr;
 		}
 
 		if (pool->next == NULL) {
@@ -170,17 +169,7 @@ void* ctsLinearAllocatorAlloc(CtsLinearAllocator instance, size_t size, size_t a
 
 void* ctsLinearAllocatorRealloc(CtsLinearAllocator instance, void* pOrigPtr, size_t size, size_t align)
 {
-	if (pOrigPtr == NULL) {
-		return ctsLinearAllocatorAlloc(instance, size, align);
-	}
-	
-	size_t alignedSize = size;
-	if (instance->current->prev == pOrigPtr) {
-		instance->current->current = (char*)instance->current->prev + alignedSize;
-		return pOrigPtr;
-	}
-
-	return ctsLinearAllocatorAlloc(instance, size, align);
+	return NULL;
 }
 
 void ctsLinearAllocatorFree(CtsLinearAllocator instance, void* pPtr)
@@ -193,7 +182,6 @@ void ctsLinearAllocatorReset(CtsLinearAllocator instance)
 
 	while (pool != NULL) {
 		pool->current = pool->begin;
-		pool->prev = pool->begin;
 		pool = pool->next;
 	}
 
@@ -202,8 +190,12 @@ void ctsLinearAllocatorReset(CtsLinearAllocator instance)
 
 void ctsLinearAllocatorTrim(CtsLinearAllocator instance)
 {
-	CtsLinearAllocatorPool* pool = instance->current->next;
+	CtsLinearAllocatorPool* pool = instance->current;
 	CtsLinearAllocatorPool* prev;
+
+	if (pool->current != pool->begin) {
+		pool = pool->next;
+	}
 
 	while (pool != NULL) {
 		prev = pool;

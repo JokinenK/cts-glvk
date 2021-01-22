@@ -1,12 +1,13 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <cts/typedefs/sampler.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsSampler {
+struct CtsSamplerImpl {
     GLuint handle;
 };
 

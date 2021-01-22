@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsLinearAllocator* CtsLinearAllocator;
+typedef struct CtsLinearAllocatorImpl* CtsLinearAllocator;
 typedef struct CtsLinearAllocatorCreateInfo {
     const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize growSize;

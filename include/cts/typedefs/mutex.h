@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsMutex* CtsMutex;
+typedef struct CtsMutexImpl* CtsMutex;
 typedef struct CtsMutexCreateInfo {
     char unused;
 } CtsMutexCreateInfo;

@@ -20,6 +20,19 @@ void ctsDestroyCommandPool(
     const CtsAllocationCallbacks* pAllocator
 );
 
+CtsResult ctsAllocateCommandBuffers(
+    CtsDevice device,
+    const CtsCommandBufferAllocateInfo* pAllocateInfo,
+    CtsCommandBuffer* pCommandBuffers
+);
+
+void ctsFreeCommandBuffers(
+    CtsDevice device,
+    CtsCommandPool commandPool,
+    uint32_t commandBufferCount,
+    const CtsCommandBuffer* pCommandBuffers
+);
+
 #ifdef __cplusplus
 }
 #endif

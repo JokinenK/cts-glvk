@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <cts/align.h>
 #include <cts/allocator.h>
-#include <cts/Pool_allocator.h>
+#include <cts/pool_allocator.h>
 
 typedef struct CtsPoolAllocatorBlock {
 	struct CtsPoolAllocatorBlock* next;
@@ -12,7 +12,7 @@ typedef struct CtsPoolAllocatorPool {
 	struct CtsPoolAllocatorPool* next;
 } CtsPoolAllocatorPool;
 
-struct CtsPoolAllocator {
+struct CtsPoolAllocatorImpl {
 	const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize blockSize;
     CtsDeviceSize growSize;
@@ -24,7 +24,7 @@ static CtsPoolAllocatorPool* allocatePool(CtsPoolAllocator instance)
 {
 	CtsPoolAllocatorPool* pool = ctsAllocation(
 		instance->pAllocator,
-		sizeof(CtsPoolAllocatorPool),
+		instance->growSize,
 		alignof(CtsPoolAllocatorPool),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
@@ -114,8 +114,8 @@ bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorC
 {	
 	CtsPoolAllocator instance = ctsAllocation(
 		pCreateInfo->pAllocator,
-		sizeof(struct CtsPoolAllocator),
-		alignof(struct CtsPoolAllocator),
+		sizeof(struct CtsPoolAllocatorImpl),
+		alignof(struct CtsPoolAllocatorImpl),
 		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
 
@@ -124,15 +124,12 @@ bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorC
 	}
 
 	instance->growSize = pCreateInfo->growSize;
+    instance->blockSize = pCreateInfo->blockSize;
 	instance->pAllocator = pCreateInfo->pAllocator;
-	instance->pools = allocatePool(instance);
-    instance->blocks = splitPoolIntoBlocks(instance, instance->pools);
-
-	if (instance->pools == NULL) {
-		ctsFree(pCreateInfo->pAllocator, instance);
-		return false;
-	}
+	instance->pools = NULL;
+    instance->blocks = NULL;
 	
+    *pInstance = instance;
 	return true;
 }
 
@@ -169,7 +166,7 @@ void* ctsPoolAllocatorAlloc(CtsPoolAllocator instance, size_t size, size_t align
     if (instance->blocks == NULL) {
         CtsPoolAllocatorPool* prevPool = instance->pools;
         instance->pools = allocatePool(instance);
-        instance->pools->next = prevPool;
+		instance->pools->next = prevPool;
         instance->blocks = splitPoolIntoBlocks(instance, instance->pools);
     }
     

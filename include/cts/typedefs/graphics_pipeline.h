@@ -13,7 +13,7 @@ typedef struct CtsGraphicsPipelineCreateInfo {
     CtsStructureType sType;
     const void* pNext;
     uint32_t stageCount;
-    const CtsPipelineShaderStageCreateInfo* stages;
+    const CtsPipelineShaderStageCreateInfo* pStages;
     const CtsPipelineVertexInputStateCreateInfo* pVertexInputState;
     const CtsPipelineInputAssemblyStateCreateInfo* pInputAssemblyState;
     const CtsPipelineTessellationStateCreateInfo* pTessellationState;

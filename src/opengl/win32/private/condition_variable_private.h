@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-struct CtsConditionVariable {
+struct CtsConditionVariableImpl {
     CONDITION_VARIABLE conditionVariable;
 };
 

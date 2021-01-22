@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsImageView* CtsImageView;
+typedef struct CtsImageViewImpl* CtsImageView;
 
 typedef struct CtsImageViewCreateInfo {
     CtsStructureType sType;

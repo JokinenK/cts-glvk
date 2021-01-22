@@ -9,13 +9,13 @@
 extern "C" {
 #endif
 
-typedef struct CtsBufferView* CtsBufferView;
+typedef struct CtsBufferViewImpl* CtsBufferView;
 
 typedef struct CtsBufferViewCreateInfo {
     CtsStructureType sType;
     const void* pNext;
     CtsBuffer buffer;
-    CtsAttribType format;
+    CtsFormat format;
     CtsDeviceSize offset;
     CtsDeviceSize range;
 } CtsBufferViewCreateInfo;

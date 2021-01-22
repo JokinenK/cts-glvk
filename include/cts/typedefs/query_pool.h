@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsQueryPool* CtsQueryPool;
+typedef struct CtsQueryPoolImpl* CtsQueryPool;
 
 typedef struct CtsQueryPoolCreateInfo {
     CtsStructureType sType;

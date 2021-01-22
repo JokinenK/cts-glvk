@@ -16,28 +16,34 @@ extern "C" {
 #define SHADER_MODULE_COUNT 2
 
 static const char gVsShaderSource[] = 
+    "#version 330\n"
+    "#extension GL_ARB_separate_shader_objects : enable\n"
+    "\n"
     "layout(location = 0) out vec2 uv;\n"
     "\n"
     "void main() {\n"
     "    float x = float(((uint(gl_VertexID) + 2u) / 3u) % 2u);\n"
-    "    float y = float(((uint(gl_VertexID) + 1u) / 3u) % 2u);\n"
+    "    float y = 1.0f - float(((uint(gl_VertexID) + 1u) / 3u) % 2u);\n"
     "\n"
     "    gl_Position = vec4(-1.0f + x * 2.0f, -1.0f + y * 2.0f, 0.0f, 1.0f);\n"
     "    uv = vec2(x, y);\n"
     "}\n";
 
 static const char gFsShaderSource[] = 
+    "#version 330\n"
+    "#extension GL_ARB_separate_shader_objects : enable\n"
+    "\n"
     "layout(location = 0) in vec2 uv;\n"
     "layout(location = 0) out vec4 fragColor;\n"
     "\n"
     "uniform sampler2D sampler;\n"
     "\n"
     "void main() {\n"
-    "    fragColor = vec4(texture2D(sampler, uv), 1);\n"
+    "    fragColor = texture(sampler, uv);\n"
     "}\n";
 
 static int gReferenceCount = 0;
-static GLenum gShaderProgram = GL_INVALID_ENUM;
+static GLuint gShaderProgram = GL_INVALID_VALUE;
 struct ShaderData {
     GLenum handle;
     GLenum type;
@@ -49,13 +55,14 @@ struct ShaderData {
 };
 
 CtsResult ctsInitFSTextureHelper() {
-    if (++gReferenceCount > 1) {
+    if (gReferenceCount++ > 0) {
         return CTS_SUCCESS;
     }
     
     GLint success;
     GLchar buffer[512];
 
+    glEnable(GL_FRAMEBUFFER_SRGB); 
     gShaderProgram = glCreateProgram();
 
     for (uint32_t i = 0; i < SHADER_MODULE_COUNT; ++i) {
@@ -84,8 +91,10 @@ CtsResult ctsInitFSTextureHelper() {
         return CTS_NOT_READY;
     }
 
-    GLint samplerLocation = glGetUniformLocation(gShaderProgram, "sampler");
-    glUniform1i(samplerLocation, 0);
+    glUseProgram(gShaderProgram);
+    glUniform1i(glGetUniformLocation(gShaderProgram, "sampler"), 0);
+    glUseProgram(0);
+    glActiveTexture(GL_TEXTURE0);
     
     return CTS_SUCCESS;
 }
@@ -94,25 +103,35 @@ CtsResult ctsDrawFSTexture(
     CtsDevice device,
     CtsImage image
 ) {
-    GLuint prevProgram = (device->activeGraphicsPipeline != NULL)
-        ? device->activeGraphicsPipeline->shader.handle
-        : 0u;
-
     GLuint prevFramebuffer = (device->activeFramebuffer != NULL)
         ? device->activeFramebuffer->handle
         : 0u;
 
-    GLenum prevTextureTarget = device->activeTextures[0].target;
-    GLint prevTextureHandle = device->activeTextures[0].handle;
+    GLuint prevProgram = device->state.program;
+    GLenum prevTarget = device->state.texture[0].target;
+    GLint prevTexture = device->state.texture[0].texture;
+    GLboolean prevCullFace = device->state.cullFace;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glUseProgram(gShaderProgram);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, image->handle);
-    glDrawArrays(GL_POINT, 0, 4);
+
+    if (prevCullFace) {
+        glDisable(GL_CULL_FACE);
+    }
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    if (prevCullFace) {
+        glEnable(GL_CULL_FACE);
+    }
+
+    glBindTexture(prevTarget, prevTexture);
     glUseProgram(prevProgram);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFramebuffer);
-    glBindTexture(prevTextureTarget, prevTextureHandle);
 
     return CTS_SUCCESS;
 }

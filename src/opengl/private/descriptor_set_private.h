@@ -4,15 +4,16 @@
 #include <cts/typedefs/descriptor_set.h>
 #include <cts/typedefs/descriptor.h>
 #include <cts/typedefs/gl_enums.h>
+#include <cts/typedefs/gl_descriptor.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsDescriptorSet {
+struct CtsDescriptorSetImpl {
     CtsDescriptorSetLayout layout;
     uint32_t descriptorCount;
-    CtsDescriptor* descriptors;
+    CtsGlDescriptor* descriptors;
 };
 
 CtsResult ctsAllocateDescriptorSetsImpl(

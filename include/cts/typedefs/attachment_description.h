@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <cts/typedefs/enums.h>
 #include <cts/typedefs/attachment_description_flags.h>
+#include <cts/typedefs/sample_count_flags.h>
 
 #ifdef __cplusplus
 extern "C" {

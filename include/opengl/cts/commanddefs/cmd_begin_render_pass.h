@@ -10,7 +10,7 @@ extern "C" {
 typedef struct CtsCmdBeginRenderPass {
     CtsCmdBase base;
     CtsCommandBuffer commandBuffer;
-    const CtsRenderPassBeginInfo* pRenderPassBegin;
+    CtsRenderPassBeginInfo* pRenderPassBegin;
     CtsSubpassContents contents;
 } CtsCmdBeginRenderPass;
 

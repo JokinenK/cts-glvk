@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsPoolAllocator* CtsPoolAllocator;
+typedef struct CtsPoolAllocatorImpl* CtsPoolAllocator;
 typedef struct CtsPoolAllocatorCreateInfo {
     const CtsAllocationCallbacks* pAllocator;
 	CtsDeviceSize blockSize;

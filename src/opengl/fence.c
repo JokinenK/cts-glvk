@@ -27,7 +27,7 @@ CtsResult ctsCreateFence(
     cmd.pFence = pFence;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -47,7 +47,7 @@ CtsResult ctsResetFences(
     cmd.pFences = pFences;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -65,9 +65,23 @@ CtsResult ctsGetFenceStatus(
     cmd.fence = fence;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
+}
+
+void ctsSignalFence(
+    CtsDevice device,
+    CtsFence fence
+) {
+    CtsSignalFence cmd;
+    cmd.base.type = CTS_COMMAND_SIGNAL_FENCE;
+    cmd.base.pNext = NULL;
+
+    cmd.device = device;
+    cmd.fence = fence;
+
+    ctsQueueDispatch(device->queue, &cmd.base);
 }
 
 CtsResult ctsWaitForFences(
@@ -89,7 +103,7 @@ CtsResult ctsWaitForFences(
     cmd.timeout = timeout;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -107,7 +121,7 @@ void ctsDestroyFence(
     cmd.fence = fence;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 }
 
 CtsResult ctsCreateFenceImpl(
@@ -120,8 +134,8 @@ CtsResult ctsCreateFenceImpl(
 
     CtsFence fence = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsFence),
-        alignof(struct CtsFence),
+        sizeof(struct CtsFenceImpl),
+        alignof(struct CtsFenceImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -129,9 +143,10 @@ CtsResult ctsCreateFenceImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    fence->sync = (pCreateInfo->flags == CTS_FENCE_CREATE_SIGNALED_BIT)
-        ? NULL
-        : glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    fence->sync = NULL;
+    fence->status = (pCreateInfo->flags == CTS_FENCE_CREATE_SIGNALED_BIT)
+        ? GL_SIGNALED
+        : GL_UNSIGNALED;
 
     *pFence = fence;
     return CTS_SUCCESS;
@@ -145,11 +160,12 @@ CtsResult ctsResetFencesImpl(
     for (uint32_t i = 0; i < fenceCount; ++i) {
         CtsFence fence = pFences[i];
 
-        if (glIsSync(fence->sync)) {
+        if (fence->sync != NULL) {
             glDeleteSync(fence->sync);
         }
 
-        fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        fence->sync = NULL;
+        fence->status = GL_UNSIGNALED;
     }
 
     return CTS_SUCCESS;
@@ -161,16 +177,23 @@ CtsResult ctsGetFenceStatusImpl(
 ) {
     (void) device;
 
-    if (!glIsSync(fence->sync)) {
+    if (fence->status == GL_SIGNALED) {
         return CTS_SUCCESS;
     }
 
-    GLint status;
-    glGetSynciv(fence->sync, GL_SYNC_STATUS, sizeof(GLint), NULL, &status);
-
-    return (status == GL_SIGNALED)
+    glGetSynciv(fence->sync, GL_SYNC_STATUS, sizeof(GLint), NULL, &fence->status);
+    return (fence->status == GL_SIGNALED)
         ? CTS_SUCCESS
         : CTS_NOT_READY;
+}
+
+void ctsSignalFenceFenceImpl(
+    CtsDevice device,
+    CtsFence fence
+) {
+    if (fence->sync == NULL) {
+        fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    }
 }
 
 CtsResult ctsWaitForFencesImpl(
@@ -181,7 +204,7 @@ CtsResult ctsWaitForFencesImpl(
     uint64_t timeout
 ) {
     uint64_t begin = ctsGetCurrentTimeNs();
-    int64_t timeRemaining = timeout;
+    uint64_t timeRemaining = timeout;
     uint32_t signaledCount;
     uint64_t timeoutPerFence;
 
@@ -191,9 +214,18 @@ CtsResult ctsWaitForFencesImpl(
         timeoutPerFence = (uint64_t)timeRemaining / fenceCount;
 
         for (uint32_t i = 0; i < fenceCount; ++i) {
-            GLenum result = glClientWaitSync(pFences[i]->sync, 0, timeoutPerFence);
-            if (result == GL_CONDITION_SATISFIED || result == GL_ALREADY_SIGNALED) {
+            if (pFences[i]->status == GL_SIGNALED) {
                 ++signaledCount;
+                continue;
+            }
+            
+            if (pFences[i]->sync != NULL) {
+                GLenum result = glClientWaitSync(pFences[i]->sync, 0, timeoutPerFence);
+
+                if (result == GL_CONDITION_SATISFIED || result == GL_ALREADY_SIGNALED) {
+                    pFences[i]->status = GL_SIGNALED;
+                    ++signaledCount;
+                }
             }
         }
 
@@ -213,10 +245,7 @@ void ctsDestroyFenceImpl(
     (void) device;
 
     if (fence != NULL) {
-        if (glIsSync(fence->sync)) {
-            glDeleteSync(fence->sync);
-        }
-
+        glDeleteSync(fence->sync);
         ctsFree(pAllocator, fence);
     }
 }

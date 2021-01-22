@@ -24,19 +24,6 @@ CtsResult ctsEnumeratePhysicalDevices(
     CtsPhysicalDevice* pPhysicalDevices
 );
 
-CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
-    CtsPhysicalDevice physicalDevice,
-    uint32_t* pQueueFamilyPropertyCount,
-    CtsQueueFamilyProperties* pQueueFamilyProperties
-);
-
-CtsResult ctsEnumerateDeviceExtensionProperties(
-    CtsPhysicalDevice physicalDevice,
-    const char* pLayerName,
-    uint32_t* pPropertyCount,
-    CtsExtensionProperties* pProperties
-);
-
 #ifdef __cplusplus
 }
 #endif

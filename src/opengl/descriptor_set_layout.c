@@ -16,8 +16,8 @@ CtsResult ctsCreateDescriptorSetLayout(
 
     CtsDescriptorSetLayout descriptorSetLayout = ctsAllocation(
         pAllocator,
-        sizeof(CtsDescriptorSetLayout),
-        alignof(CtsDescriptorSetLayout),
+        sizeof(struct CtsDescriptorSetLayoutImpl),
+        alignof(struct CtsDescriptorSetLayoutImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -28,8 +28,8 @@ CtsResult ctsCreateDescriptorSetLayout(
     descriptorSetLayout->bindingCount = pCreateInfo->bindingCount;
     descriptorSetLayout->bindings = ctsAllocation(
         pAllocator,
-        sizeof(CtsDescriptorSetLayoutBinding) * descriptorSetLayout->bindingCount,
-        alignof(CtsDescriptorSetLayoutBinding),
+        sizeof(CtsGlDescriptorSetLayoutBinding) * descriptorSetLayout->bindingCount,
+        alignof(CtsGlDescriptorSetLayoutBinding),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

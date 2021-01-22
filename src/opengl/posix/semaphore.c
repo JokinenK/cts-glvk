@@ -19,8 +19,8 @@ CtsResult ctsCreateSemaphore(
 ) {
     CtsSemaphore semaphore = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSemaphore),
-        alignof(struct CtsSemaphore),
+        sizeof(struct CtsSemaphoreImpl),
+        alignof(struct CtsSemaphoreImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -39,9 +39,9 @@ void ctsDestroySemaphore(
     CtsSemaphore semaphore,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pSemaphore != NULL) {
-        sem_destroy(&pSemaphore->semaphore); 
-        ctsFree(pAllocator, pSemaphore);
+    if (semaphore != NULL) {
+        sem_destroy(&semaphore->semaphore); 
+        ctsFree(pAllocator, semaphore);
     }
 }
 
@@ -61,10 +61,10 @@ void ctsSignalSemaphores(
     int value;
 
     for (uint32_t i = 0; i < semaphoreCount; ++i) {
-        sem_getvalue(&pSemaphore->semaphore, &value);
+        sem_getvalue(&pSemaphores[i]->semaphore, &value);
 
         if (value < SEMAPHORE_MAX_VALUE) {
-            sem_post(&pSemaphore->semaphore); 
+            sem_post(&pSemaphores[i]->semaphore); 
         }
     }
 }

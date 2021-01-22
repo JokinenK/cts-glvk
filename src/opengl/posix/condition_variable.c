@@ -7,15 +7,15 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateConditionVariables(
+CtsResult ctsCreateConditionVariable(
     const CtsConditionVariableCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsConditionVariable* pConditionVariable
 ) {
     CtsConditionVariable conditionVariable = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsConditionVariable),
-        alignof(struct CtsConditionVariable),
+        sizeof(struct CtsConditionVariableImpl),
+        alignof(struct CtsConditionVariableImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

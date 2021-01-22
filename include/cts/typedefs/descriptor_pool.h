@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsDescriptorPool* CtsDescriptorPool;
+typedef struct CtsDescriptorPoolImpl* CtsDescriptorPool;
 
 typedef struct CtsDescriptorPoolCreateInfo {
     CtsStructureType sType;

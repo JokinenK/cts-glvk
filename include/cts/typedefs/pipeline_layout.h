@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsPipelineLayout* CtsPipelineLayout;
+typedef struct CtsPipelineLayoutImpl* CtsPipelineLayout;
 typedef struct CtsPipelineLayoutCreateInfo {
     CtsStructureType sType;
     const void* pNext;

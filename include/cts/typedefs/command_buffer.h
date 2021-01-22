@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsCommandBuffer* CtsCommandBuffer;
+typedef struct CtsCommandBufferImpl* CtsCommandBuffer;
 
 typedef struct CtsCommandBufferAllocateInfo {
     CtsStructureType sType;

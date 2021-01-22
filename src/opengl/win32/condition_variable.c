@@ -1,3 +1,4 @@
+#define _WIN32_WINNT 0x0601
 #include <windows.h>
 #include <cts/condition_variable.h>
 #include <private/condition_variable_private.h>
@@ -7,15 +8,15 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateConditionVariables(
+CtsResult ctsCreateConditionVariable(
     const CtsConditionVariableCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsConditionVariable* pConditionVariable
 ) {
     CtsConditionVariable conditionVariable = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsConditionVariable),
-        alignof(struct CtsConditionVariable),
+        sizeof(struct CtsConditionVariableImpl),
+        alignof(struct CtsConditionVariableImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

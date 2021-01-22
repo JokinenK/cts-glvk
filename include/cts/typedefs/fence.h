@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsFence* CtsFence;
+typedef struct CtsFenceImpl* CtsFence;
 typedef struct CtsFenceCreateInfo {
     CtsStructureType sType;
     const void* pNext;

@@ -7,15 +7,15 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateMutexes(
+CtsResult ctsCreateMutex(
     const CtsMutexCreateInfo* pCreateInfo,
     const CtsAllocationCallbacks* pAllocator,
     CtsMutex* pMutex
 ) {
     CtsMutex mutex = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsMutex),
-        alignof(struct CtsMutex),
+        sizeof(struct CtsMutexImpl),
+        alignof(struct CtsMutexImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

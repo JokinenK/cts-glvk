@@ -14,7 +14,7 @@ typedef struct CtsCmdPushConstants {
     CtsShaderStageFlags stageFlags;
     uint32_t offset;
     uint32_t size;
-    const void* values;
+    const void* pValues;
 } CtsCmdPushConstants;
 
 #ifdef __cplusplus

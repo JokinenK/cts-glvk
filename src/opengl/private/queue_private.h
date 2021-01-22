@@ -8,7 +8,9 @@
 #include <cts/allocator.h>
 #include <cts/mutex.h>
 #include <cts/thread.h>
+#include <cts/generic_queue.h>
 #include <cts/condition_variable.h>
+#include <cts/queue.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,19 +23,20 @@ typedef struct CtsQueueCreateInfo {
 
 typedef struct CtsQueueItem {
     const CtsCmdBase* cmd;
-    bool* pFinished;
-    CtsConditionVariable conditionVariable;
+    volatile bool* pFinished;
 } CtsQueueItem;
 
-struct CtsQueue {
+struct CtsQueueImpl {
     CtsDevice device;
     CtsThread thread;
-    size_t head;
-    size_t tail;
-    size_t size;
-    CtsQueueItem* data;
-    CtsMutex mutex;
-    CtsConditionVariable conditionVariable;
+
+    CtsGenericQueue queue;
+
+    CtsMutex queueMutex;
+    CtsMutex threadMutex;
+
+    CtsConditionVariable queueCondVar;
+    CtsConditionVariable threadCondVar;
 };
 
 CtsResult ctsCreateQueue(
@@ -49,19 +52,16 @@ void ctsDestroyQueue(
 
 void ctsQueueDispatch(
     CtsQueue queue,
-    const CtsCmdBase* pCommand,
-    CtsMutex mutex,
-    CtsConditionVariable conditionVariable
-);
-
-bool ctsQueuePush(
-    CtsQueue queue,
-    CtsQueueItem* pQueueItem
+    const CtsCmdBase* pCmd
 );
 
 bool ctsQueuePop(
     CtsQueue queue,
     CtsQueueItem* pQueueItem
+);
+
+bool ctsQueueEmpty(
+    CtsQueue queue
 );
 
 #ifdef __cplusplus

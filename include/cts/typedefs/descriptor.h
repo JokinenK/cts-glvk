@@ -11,8 +11,6 @@
 extern "C" {
 #endif
 
-typedef struct CtsDescriptor* CtsDescriptor;
-
 typedef struct CtsDescriptorImageInfo {
     CtsSampler sampler;
     CtsImageView imageView;

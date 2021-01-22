@@ -2,14 +2,14 @@
 
 #include <stdbool.h>
 #include <glad/glad.h>
-#include <cts/types.h>
+#include <cts/typedefs/pipeline.h>
 #include <cts/typedefs/gl_pipeline.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsPipeline {
+struct CtsPipelineImpl {
     CtsPipelineBindPoint bindPoint;
 
     union {

@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-struct CtsBufferView {
+struct CtsBufferViewImpl {
     GLuint handle;
     GLenum format;
     CtsBuffer buffer;

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsFramebuffer* CtsFramebuffer;
+typedef struct CtsFramebufferImpl* CtsFramebuffer;
 
 typedef struct CtsFramebufferCreateInfo {
     CtsStructureType sType;

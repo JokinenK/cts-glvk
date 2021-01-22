@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <cts/allocator.h>
 
 void* ctsAllocation(
@@ -7,14 +8,19 @@ void* ctsAllocation(
     size_t align,
     CtsSystemAllocationScope scope
 ) {
+    void* ptr = NULL;
+
     if (pAllocator) {
-        return pAllocator->allocation(pAllocator->userData, size, align, scope);
+        ptr = pAllocator->allocation(pAllocator->userData, size, align, scope);
     } else {
-        return malloc(size);
+        ptr = malloc(size);
     }
+
+    memset(ptr, 0, size);
+    return ptr;
 }
 
-void* ctsReallocate(
+void* ctsReallocation(
     const CtsAllocationCallbacks* pAllocator,
     void* pOriginal,
     size_t size,

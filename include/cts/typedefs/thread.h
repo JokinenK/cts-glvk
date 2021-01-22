@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsThread* CtsThread;
+typedef struct CtsThreadImpl* CtsThread;
 typedef struct CtsThreadCreateInfo {
     void(*pfEntryPoint)(void* pArgs);
     void* pArgs;

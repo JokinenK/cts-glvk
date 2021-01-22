@@ -5,20 +5,17 @@
 #include <cts/commands.h>
 #include <cts/command_dispatcher.h>
 #include <cts/type_mapper.h>
-#include <cts/typedefs/gl_color_blend_state_changes.h>
-#include <cts/typedefs/gl_depth_stencil_state_changes.h>
 #include <cts/typedefs/gl_enums.h>
 #include <cts/typedefs/gl_pipeline.h>
-#include <cts/typedefs/gl_rasterization_state_changes.h>
 #include <cts/typedefs/gl_shader.h>
 #include <cts/typedefs/gl_texture.h>
+#include <cts/typedefs/gl_descriptor.h>
 #include <private/command_buffer_private.h>
 #include <private/command_pool_private.h>
 #include <private/buffer_private.h>
 #include <private/buffer_view_private.h>
 #include <private/device_memory_private.h>
 #include <private/device_private.h>
-#include <private/descriptor_private.h>
 #include <private/descriptor_set_private.h>
 #include <private/descriptor_set_layout_private.h>
 #include <private/fence_private.h>
@@ -34,8 +31,23 @@
 extern "C" {
 #endif
 
+static void* advance(void* pPtr, size_t amount);
 static bool hasFlag(CtsFlags flags, CtsFlags flag);
-static void bindTexture(CtsDevice device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsTextureBinding* pPrevious);
+
+static bool shouldUpdateBool(bool enable, bool* pCurrent, bool* pPrevious);
+static bool shouldUpdateHandle(GLuint handle, GLuint* pCurrent, GLuint* pPrevious);
+static void enableFeature(GLenum feature, bool enable);
+static void enableFeatureIndexed(GLenum feature, uint32_t index, bool enable);
+static void enableDepthClamp(CtsDevice device, bool enable, bool* pPrevious);
+static void enableRasterizerDiscard(CtsDevice device, bool enable, bool* pPrevious);
+static void enableCullFace(CtsDevice device, bool enable, bool* pPrevious);
+static void enableDepthTest(CtsDevice device, bool enable, bool* pPrevious);
+static void enableStencilTest(CtsDevice device, bool enable, bool* pPrevious);
+static void enableBlend(CtsDevice device, uint32_t index, bool enable, bool* pPrevious);
+static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious);
+
+static void bindTexture(CtsDevice device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsGlTextureBinding* pPrevious);
+static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious);
 static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber);
 static void bindDynamicState(CtsDevice device, CtsFlags pState);
 static void bindVertexInputState(CtsDevice device, CtsGlPipelineVertexInputState* pState);
@@ -47,62 +59,7 @@ static void bindMultisampleState(CtsDevice device, CtsGlPipelineMultisampleState
 static void bindDepthStencilState(CtsDevice device, CtsGlPipelineDepthStencilState* pState);
 static void bindColorBlendState(CtsDevice device, CtsGlPipelineColorBlendState* pState);
 
-CtsResult ctsAllocateCommandBuffers(
-    CtsDevice device,
-    const CtsCommandBufferAllocateInfo* pAllocateInfo,
-    CtsCommandBuffer* pCommandBuffers
-) {
-    CtsResult result = CTS_SUCCESS;
-    uint32_t i = 0;
-
-    const CtsAllocationCallbacks* allocator = &pAllocateInfo->commandPool->poolAllocator;
-
-    for (; i < pAllocateInfo->commandBufferCount; ++i) {
-        CtsCommandBuffer commandBuffer = ctsAllocation(
-            allocator,
-            sizeof(struct CtsCommandBuffer),
-            alignof(struct CtsCommandBuffer),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-        );
-
-        if (commandBuffer == NULL) {
-            result = CTS_ERROR_OUT_OF_HOST_MEMORY;
-            break;
-        }
-
-        commandBuffer->device = device;
-        commandBuffer->pool = pAllocateInfo->commandPool;
-        commandBuffer->root = NULL;
-        commandBuffer->current = NULL;
-        commandBuffer->level = pAllocateInfo->level;
-        commandBuffer->state = CTS_COMMAND_BUFFER_STATE_INITIAL;
-
-        pCommandBuffers[i] = commandBuffer;
-    }
-
-    for (; i < pAllocateInfo->commandBufferCount; ++i) {
-        pCommandBuffers[i] = NULL;
-    }
-
-    return result;
-}
-
-void ctsFreeCommandBuffers(
-    CtsDevice device,
-    CtsCommandPool commandPool,
-    uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
-) {
-    const CtsAllocationCallbacks* allocator = &commandPool->poolAllocator;
-
-    for (uint32_t i = 0; i < commandBufferCount; ++i) {
-        CtsCommandBuffer commandBuffer = pCommandBuffers[i];
-        commandBuffer->root = NULL;
-        commandBuffer->current = NULL;
-        commandBuffer->state = CTS_COMMAND_BUFFER_STATE_INVALID;
-        ctsFree(allocator, commandBuffer);
-    }
-}
+static void* allocateCommand(CtsCommandBuffer commandBuffer, CtsCommandType commandType, size_t extraDataLen);
 
 CtsResult ctsBeginCommandBuffer(
     CtsCommandBuffer commandBuffer,
@@ -130,6 +87,12 @@ CtsResult ctsResetCommandBuffer(
         commandBuffer->state = CTS_COMMAND_BUFFER_STATE_RECORDING;
     }
 
+    ctsLinearAllocatorReset(commandBuffer->linearAllocator);
+
+    if (flags & CTS_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT) {
+        ctsLinearAllocatorTrim(commandBuffer->linearAllocator);    
+    }
+
     return CTS_SUCCESS;
 }
 
@@ -143,27 +106,42 @@ CtsResult ctsEndCommandBuffer(
     return CTS_SUCCESS;
 }
 
+
 CtsResult ctsQueueSubmit(
     CtsQueue queue,
     uint32_t submitCount,
     const CtsSubmitInfo* pSubmits,
     CtsFence fence
 ) {
-    CtsResult result;
-    CtsQueueSubmit cmd;
-    cmd.base.type = CTS_COMMAND_QUEUE_SUBMIT;
-    cmd.base.pNext = NULL;
+    for (uint32_t i = 0; i < submitCount; ++i) {
+        const CtsSubmitInfo* submit = &pSubmits[i];
 
-    cmd.queue = queue,
-    cmd.submitCount = submitCount;
-    cmd.pSubmits = pSubmits;
-    cmd.fence = fence;
-    cmd.pResult = &result;
+        // TODO: Handle waitDstStageMask
+        ctsWaitSemaphores(submit->waitSemaphoreCount, submit->pWaitSemaphores);
 
-    CtsDevice device = queue->device;
-    ctsQueueDispatch(queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+        for (uint32_t j = 0; j < submit->commandBufferCount; ++j) {
+            CtsCommandBuffer commandBuffer = submit->pCommandBuffers[j];
 
-    return result;
+            if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_EXECUTABLE) {
+                commandBuffer->state = CTS_COMMAND_BUFFER_STATE_PENDING;
+
+                ctsQueueDispatch(queue, commandBuffer->root);
+                ctsSignalSemaphores(submit->signalSemaphoreCount, submit->pSignalSemaphores);
+
+                if (fence != NULL) {
+                    ctsSignalFence(commandBuffer->device, fence);
+                }
+
+                if (commandBuffer->flags & CTS_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) {
+                    commandBuffer->state = CTS_COMMAND_BUFFER_STATE_INVALID;
+                } else {
+                    commandBuffer->state = CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
+                }
+            }
+        }
+    }
+   
+    return CTS_SUCCESS;
 }
 
 void ctsCmdBeginQuery(
@@ -172,9 +150,10 @@ void ctsCmdBeginQuery(
     uint32_t query,
     CtsQueryControlFlags flags
 ) {
-    CtsCmdBeginQuery* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdBeginQuery* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BEGIN_QUERY
+        CTS_COMMAND_CMD_BEGIN_QUERY,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -188,9 +167,10 @@ void ctsCmdEndQuery(
     CtsQueryPool queryPool,
     uint32_t query
 ) {
-    CtsCmdEndQuery* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdEndQuery* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_END_QUERY
+        CTS_COMMAND_CMD_END_QUERY,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -203,22 +183,34 @@ void ctsCmdBeginRenderPass(
     const CtsRenderPassBeginInfo* pRenderPassBegin,
     CtsSubpassContents contents
 ) {
-    CtsCmdBeginRenderPass* cmd = ctsCommandBufferAllocateCommand(
+    size_t renderPassBeginSize = sizeof(CtsRenderPassBeginInfo);
+    size_t clearValueSize = pRenderPassBegin->clearValueCount * sizeof(CtsClearValue);
+
+    CtsCmdBeginRenderPass* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BEGIN_RENDER_PASS
+        CTS_COMMAND_CMD_BEGIN_RENDER_PASS,
+        renderPassBeginSize + clearValueSize
     );
 
+    void* pRenderPassBeginCopy = advance(cmd, sizeof(CtsCmdBeginRenderPass));
+    void* pClearValuesCopy = advance(pRenderPassBeginCopy, renderPassBeginSize);
+
+    memcpy(pRenderPassBeginCopy, pRenderPassBegin, renderPassBeginSize);
+    memcpy(pClearValuesCopy, pRenderPassBegin->pClearValues, clearValueSize);
+
     cmd->commandBuffer = commandBuffer;
-    cmd->pRenderPassBegin = pRenderPassBegin;
+    cmd->pRenderPassBegin = pRenderPassBeginCopy;
+    cmd->pRenderPassBegin->pClearValues = pClearValuesCopy;
     cmd->contents = contents;
 }
 
 void ctsCmdEndRenderPass(
     CtsCommandBuffer commandBuffer
 ) {
-    CtsCmdEndRenderPass* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdEndRenderPass* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_END_RENDER_PASS
+        CTS_COMMAND_CMD_END_RENDER_PASS,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -231,21 +223,31 @@ void ctsCmdBindDescriptorSets(
     uint32_t firstSet,
     uint32_t descriptorSetCount,
     const CtsDescriptorSet* pDescriptorSets,
-    uint32_t pDynamicOffsetCount,
+    uint32_t dynamicOffsetCount,
     const uint32_t* pDynamicOffsets
 ) {
-    CtsCmdBindDescriptorSets* cmd = ctsCommandBufferAllocateCommand(
+    size_t descriptorSetSize = descriptorSetCount * sizeof(CtsDescriptorSet);
+    size_t dynamicOffsetSize = dynamicOffsetCount * sizeof(uint32_t);
+
+    CtsCmdBindDescriptorSets* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_DESCRIPTOR_SETS
+        CTS_COMMAND_CMD_BIND_DESCRIPTOR_SETS,
+        descriptorSetSize + dynamicOffsetSize
     );
+
+    void* pDescriptorSetsCopy = advance(cmd, sizeof(CtsCmdBindDescriptorSets));
+    void* pDynamicOffsetsCopy = advance(pDescriptorSetsCopy, descriptorSetSize);
+
+    memcpy(pDescriptorSetsCopy, pDescriptorSets, descriptorSetSize);
+    memcpy(pDynamicOffsetsCopy, pDynamicOffsets, dynamicOffsetSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->pipelineBindPoint = pipelineBindPoint;
     cmd->firstSet = firstSet;
     cmd->descriptorSetCount = descriptorSetCount;
-    cmd->pDescriptorSets = pDescriptorSets;
-    cmd->dynamicOffsetCount = pDynamicOffsetCount;
-    cmd->pDynamicOffsets = pDynamicOffsets;
+    cmd->pDescriptorSets = pDescriptorSetsCopy;
+    cmd->dynamicOffsetCount = dynamicOffsetCount;
+    cmd->pDynamicOffsets = pDynamicOffsetsCopy;
 }
 
 void ctsCmdBindIndexBuffer(
@@ -254,9 +256,10 @@ void ctsCmdBindIndexBuffer(
     CtsDeviceSize offset,
     CtsIndexType indexType
 ) {
-    CtsCmdBindIndexBuffer* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdBindIndexBuffer* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_INDEX_BUFFER
+        CTS_COMMAND_CMD_BIND_INDEX_BUFFER,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -270,9 +273,10 @@ void ctsCmdBindPipeline(
     CtsPipelineBindPoint pipelineBindPoint,
     CtsPipeline pipeline
 ) {
-    CtsCmdBindPipeline* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdBindPipeline* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_PIPELINE
+        CTS_COMMAND_CMD_BIND_PIPELINE,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -287,16 +291,26 @@ void ctsCmdBindVertexBuffers(
     const CtsBuffer* pBuffers,
     const CtsDeviceSize* pOffsets
 ) {
-    CtsCmdBindVertexBuffers* cmd = ctsCommandBufferAllocateCommand(
+    size_t buffersSize = bindingCount * sizeof(CtsBuffer);
+    size_t offsetsSize = bindingCount * sizeof(CtsDeviceSize);
+
+    CtsCmdBindVertexBuffers* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_VERTEX_BUFFERS
+        CTS_COMMAND_CMD_BIND_VERTEX_BUFFERS,
+        buffersSize + offsetsSize
     );
+
+    void* pBuffersCopy = advance(cmd, sizeof(CtsCmdBindVertexBuffers));
+    void* pOffsetsCopy = advance(pBuffersCopy, buffersSize);
+
+    memcpy(pBuffersCopy, pBuffers, buffersSize);
+    memcpy(pOffsetsCopy, pOffsets, offsetsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->firstBinding = firstBinding;
     cmd->bindingCount = bindingCount;
-    cmd->pBuffers = pBuffers;
-    cmd->pOffsets = pOffsets;
+    cmd->pBuffers = pBuffersCopy;
+    cmd->pOffsets = pOffsetsCopy;
 }
 
 void ctsCmdBlitImage(
@@ -309,10 +323,16 @@ void ctsCmdBlitImage(
     const CtsImageBlit* pRegions,
     CtsFilter filter
 ) {
-    CtsCmdBlitImage* cmd = ctsCommandBufferAllocateCommand(
+    size_t regionsSize = regionCount * sizeof(CtsImageBlit);
+
+    CtsCmdBlitImage* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_BLIT_IMAGE
+        CTS_COMMAND_CMD_BLIT_IMAGE,
+        regionsSize
     );
+
+    void* pRegionsCopy = advance(cmd, sizeof(CtsCmdBlitImage));
+    memcpy(pRegionsCopy, pRegions, regionsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->srcImage = srcImage;
@@ -320,7 +340,7 @@ void ctsCmdBlitImage(
     cmd->dstImage = dstImage;
     cmd->dstImageLayout = dstImageLayout;
     cmd->regionCount = regionCount;
-    cmd->pRegions = pRegions;
+    cmd->pRegions = pRegionsCopy;
     cmd->filter = filter;
 }
 
@@ -331,16 +351,26 @@ void ctsCmdClearAttachments(
     uint32_t rectCount,
     const CtsClearRect* pRects
 ) {
-    CtsCmdClearAttachments* cmd = ctsCommandBufferAllocateCommand(
+    size_t attachmentsSize = attachmentCount * sizeof(CtsClearAttachment);
+    size_t rectsSize = rectCount * sizeof(CtsClearRect);
+
+    CtsCmdClearAttachments* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_CLEAR_ATTACHMENTS
+        CTS_COMMAND_CMD_CLEAR_ATTACHMENTS,
+        attachmentsSize + rectsSize
     );
 
+    void* pAttachmentsCopy = advance(cmd, sizeof(CtsCmdClearAttachments));
+    void* pRectsCopy = advance(pAttachmentsCopy, attachmentsSize);
+    
+    memcpy(pAttachmentsCopy, pAttachments, attachmentsSize);
+    memcpy(pRectsCopy, pRects, rectsSize);
+    
     cmd->commandBuffer = commandBuffer;
     cmd->attachmentCount = attachmentCount;
-    cmd->pAttachments = pAttachments;
+    cmd->pAttachments = pAttachmentsCopy;
     cmd->rectCount = rectCount;
-    cmd->pRects = pRects;
+    cmd->pRects = pRectsCopy;
 }
 
 void ctsCmdClearColorImage(
@@ -351,17 +381,27 @@ void ctsCmdClearColorImage(
     uint32_t rangeCount,
     const CtsImageSubresourceRange* pRanges
 ) {
-    CtsCmdClearColorImage* cmd = ctsCommandBufferAllocateCommand(
+    size_t colorSize = sizeof(CtsClearColorValue);
+    size_t rangesSize = rangeCount * sizeof(CtsImageSubresourceRange);
+
+    CtsCmdClearColorImage* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_CLEAR_COLOR_IMAGE
+        CTS_COMMAND_CMD_CLEAR_COLOR_IMAGE,
+        colorSize + rangesSize
     );
+
+    void* pColorCopy = advance(cmd, sizeof(CtsCmdClearColorImage));
+    void* pRangesCopy = advance(pColorCopy, colorSize);
+
+    memcpy(pColorCopy, pColor, colorSize);
+    memcpy(pRangesCopy, pRanges, rangesSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->image = image;
     cmd->imageLayout = imageLayout;
-    cmd->pColor = pColor;
+    cmd->pColor = pColorCopy;
     cmd->rangeCount = rangeCount;
-    cmd->pRanges = pRanges;
+    cmd->pRanges = pRangesCopy;
 }
 
 void ctsCmdClearDepthStencilImage(
@@ -372,17 +412,27 @@ void ctsCmdClearDepthStencilImage(
     uint32_t rangeCount,
     const CtsImageSubresourceRange* pRanges
 ) {
-    CtsCmdClearDepthStencilImage* cmd = ctsCommandBufferAllocateCommand(
+    size_t depthStencilSize = sizeof(CtsClearDepthStencilValue);
+    size_t rangesSize = rangeCount * sizeof(CtsImageSubresourceRange);
+
+    CtsCmdClearDepthStencilImage* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_CLEAR_DEPTH_STENCIL_IMAGE
+        CTS_COMMAND_CMD_CLEAR_DEPTH_STENCIL_IMAGE,
+        depthStencilSize + rangesSize
     );
+
+    void* pDepthStencilCopy = advance(cmd, sizeof(CtsCmdClearDepthStencilImage));
+    void* pRangesCopy = advance(pDepthStencilCopy, depthStencilSize);
+    
+    memcpy(pDepthStencilCopy, pDepthStencil, depthStencilSize);
+    memcpy(pRangesCopy, pRanges, rangesSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->image = image;
     cmd->imageLayout = imageLayout;
-    cmd->pDepthStencil = pDepthStencil;
+    cmd->pDepthStencil = pDepthStencilCopy;
     cmd->rangeCount = rangeCount;
-    cmd->pRanges = pRanges;
+    cmd->pRanges = pRangesCopy;
 }
 
 void ctsCmdCopyBuffer(
@@ -392,16 +442,22 @@ void ctsCmdCopyBuffer(
     uint32_t regionCount,
     const CtsBufferCopy* pRegions
 ) {
-    CtsCmdCopyBuffer* cmd = ctsCommandBufferAllocateCommand(
+    size_t regionSize = regionCount * sizeof(CtsBufferCopy);
+
+    CtsCmdCopyBuffer* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_BUFFER
+        CTS_COMMAND_CMD_COPY_BUFFER,
+        regionSize
     );
+
+    void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyBuffer));
+    memcpy(pRegionsCopy, pRegions, regionSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->srcBuffer = srcBuffer;
     cmd->dstBuffer = dstBuffer;
     cmd->regionCount = regionCount;
-    cmd->pRegions = pRegions;
+    cmd->pRegions = pRegionsCopy;
 }
 
 void ctsCmdCopyBufferToImage(
@@ -412,16 +468,23 @@ void ctsCmdCopyBufferToImage(
     uint32_t regionCount,
     const CtsBufferImageCopy* pRegions
 ) {
-    CtsCmdCopyBufferToImage* cmd = ctsCommandBufferAllocateCommand(
+    size_t regionSize = regionCount * sizeof(CtsBufferImageCopy);
+
+    CtsCmdCopyBufferToImage* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_BUFFER_TO_IMAGE
+        CTS_COMMAND_CMD_COPY_BUFFER_TO_IMAGE,
+        regionSize
     );
+
+    void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyBufferToImage));
+    memcpy(pRegionsCopy, pRegions, regionSize);
+
     cmd->commandBuffer = commandBuffer;
     cmd->srcBuffer = srcBuffer;
     cmd->dstImage = dstImage;
     cmd->dstImageLayout = dstImageLayout;
     cmd->regionCount = regionCount;
-    cmd->pRegions = pRegions;
+    cmd->pRegions = pRegionsCopy;
 }
 
 void ctsCmdCopyImage(
@@ -433,10 +496,16 @@ void ctsCmdCopyImage(
     uint32_t regionCount,
     const CtsImageCopy* pRegions
 ) {
-    CtsCmdCopyImage* cmd = ctsCommandBufferAllocateCommand(
+    size_t regionsSize = regionCount * sizeof(CtsImageCopy);
+
+    CtsCmdCopyImage* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_IMAGE
+        CTS_COMMAND_CMD_COPY_IMAGE,
+        regionsSize
     );
+
+    void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyImage));
+    memcpy(pRegionsCopy, pRegions, regionsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->srcImage = srcImage;
@@ -444,7 +513,7 @@ void ctsCmdCopyImage(
     cmd->dstImage = dstImage;
     cmd->dstImageLayout = dstImageLayout;
     cmd->regionCount = regionCount;
-    cmd->pRegions = pRegions;
+    cmd->pRegions = pRegionsCopy;
 }
 
 void ctsCmdCopyImageToBuffer(
@@ -455,17 +524,23 @@ void ctsCmdCopyImageToBuffer(
     uint32_t regionCount,
     const CtsBufferImageCopy* pRegions
 ) {
-    CtsCmdCopyImageToBuffer* cmd = ctsCommandBufferAllocateCommand(
+    size_t regionsSize = regionCount * sizeof(CtsBufferImageCopy);
+
+    CtsCmdCopyImageToBuffer* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_IMAGE_TO_BUFFER
+        CTS_COMMAND_CMD_COPY_IMAGE_TO_BUFFER,
+        regionsSize
     );
+
+    void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyImage));
+    memcpy(pRegionsCopy, pRegions, regionsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->srcImage = srcImage;
     cmd->srcImageLayout = srcImageLayout;
     cmd->dstBuffer = dstBuffer;
     cmd->regionCount = regionCount;
-    cmd->pRegions = pRegions;
+    cmd->pRegions = pRegionsCopy;
 }
 
 void ctsCmdCopyQueryPoolResults(
@@ -478,9 +553,10 @@ void ctsCmdCopyQueryPoolResults(
     CtsDeviceSize stride,
     CtsQueryResultFlags flags
 ) {
-    CtsCmdCopyQueryPoolResults* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdCopyQueryPoolResults* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_QUERY_POOL_RESULTS
+        CTS_COMMAND_CMD_COPY_QUERY_POOL_RESULTS,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -499,9 +575,10 @@ void ctsCmdDispatch(
     uint32_t groupCountY,
     uint32_t groupCountZ
 ) {
-    CtsCmdDispatch* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdDispatch* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_DISPATCH
+        CTS_COMMAND_CMD_DISPATCH,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -515,9 +592,10 @@ void ctsCmdDispatchIndirect(
     CtsBuffer buffer,
     CtsDeviceSize offset
 ) {
-    CtsCmdDispatchIndirect* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdDispatchIndirect* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_DISPATCH_INDIRECT
+        CTS_COMMAND_CMD_DISPATCH_INDIRECT,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -532,9 +610,10 @@ void ctsCmdDraw(
     uint32_t firstVertex,
     uint32_t firstInstance
 ) {
-    CtsCmdDraw* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdDraw* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW
+        CTS_COMMAND_CMD_DRAW,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -552,9 +631,10 @@ void ctsCmdDrawIndexed(
     int32_t vertexOffset,
     uint32_t firstInstance
 ) {
-    CtsCmdDrawIndexed* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdDrawIndexed* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW_INDEXED
+        CTS_COMMAND_CMD_DRAW_INDEXED,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -572,9 +652,10 @@ void ctsCmdDrawIndexedIndirect(
     uint32_t drawCount,
     uint32_t stride
 ) {
-    CtsCmdDrawIndexedIndirect* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdDrawIndexedIndirect* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW_INDEXED_INDIRECT
+        CTS_COMMAND_CMD_DRAW_INDEXED_INDIRECT,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -591,9 +672,10 @@ void ctsCmdDrawIndirect(
     uint32_t drawCount,
     uint32_t stride
 ) {
-    CtsCmdDrawIndirect* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdDrawIndirect* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW_INDIRECT
+        CTS_COMMAND_CMD_DRAW_INDIRECT,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -608,14 +690,20 @@ void ctsCmdExecuteCommands(
     uint32_t commandBufferCount,
     const CtsCommandBuffer* pCommandBuffers
 ) {
-    CtsCmdExecuteCommands* cmd = ctsCommandBufferAllocateCommand(
+    size_t commandBuffersSize = commandBufferCount * sizeof(CtsCommandBuffer);
+
+    CtsCmdExecuteCommands* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_EXECUTE_COMMANDS
+        CTS_COMMAND_CMD_EXECUTE_COMMANDS,
+        commandBuffersSize
     );
+
+    void* pCommandBuffersCopy = advance(cmd, sizeof(CtsCmdExecuteCommands));
+    memcpy(pCommandBuffersCopy, pCommandBuffers, commandBuffersSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->commandBufferCount = commandBufferCount;
-    cmd->pCommandBuffers = pCommandBuffers;
+    cmd->pCommandBuffers = pCommandBuffersCopy;
 }
 
 void ctsCmdFillBuffer(
@@ -625,9 +713,10 @@ void ctsCmdFillBuffer(
     CtsDeviceSize size,
     uint32_t data
 ) {
-    CtsCmdFillBuffer* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdFillBuffer* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_FILL_BUFFER
+        CTS_COMMAND_CMD_FILL_BUFFER,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -641,9 +730,10 @@ void ctsCmdNextSubpass(
     CtsCommandBuffer commandBuffer,
     CtsSubpassContents contents
 ) {
-    CtsCmdNextSubpass* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdNextSubpass* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_NEXT_SUBPASS
+        CTS_COMMAND_CMD_NEXT_SUBPASS,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -662,21 +752,34 @@ void ctsCmdPipelineBarrier(
     uint32_t imageMemoryBarrierCount,
     const CtsImageMemoryBarrier* pImageMemoryBarriers
 ) {
-    CtsCmdPipelineBarrier* cmd = ctsCommandBufferAllocateCommand(
+    size_t memoryBarrierSize = memoryBarrierCount * sizeof(CtsMemoryBarrier);
+    size_t bufferMemoryBarrierSize = bufferMemoryBarrierCount * sizeof(CtsBufferMemoryBarrier);
+    size_t imageMemoryBarrierSize = imageMemoryBarrierCount * sizeof(CtsImageMemoryBarrier);
+
+    CtsCmdPipelineBarrier* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_PIPELINE_BARRIER
+        CTS_COMMAND_CMD_PIPELINE_BARRIER,
+        memoryBarrierSize + bufferMemoryBarrierSize + imageMemoryBarrierSize
     );
+
+    void* pMemoryBarriersCopy = advance(cmd, sizeof(CtsCmdPipelineBarrier));
+    void* pBufferMemoryBarriersCopy = advance(pMemoryBarriersCopy, memoryBarrierSize);
+    void* pImageMemoryBarriersCopy = advance(pBufferMemoryBarriersCopy, bufferMemoryBarrierSize);
+
+    memcpy(pMemoryBarriersCopy, pMemoryBarriers, memoryBarrierSize);
+    memcpy(pBufferMemoryBarriersCopy, pBufferMemoryBarriers, bufferMemoryBarrierSize);
+    memcpy(pImageMemoryBarriersCopy, pImageMemoryBarriers, imageMemoryBarrierSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->srcStageMask = srcStageMask;
     cmd->dstStageMask = dstStageMask;
     cmd->dependencyFlags = dependencyFlags;
     cmd->memoryBarrierCount = memoryBarrierCount;
-    cmd->pMemoryBarriers = pMemoryBarriers;
+    cmd->pMemoryBarriers = pMemoryBarriersCopy;
     cmd->bufferMemoryBarrierCount = bufferMemoryBarrierCount;
-    cmd->pBufferMemoryBarriers = pBufferMemoryBarriers;
+    cmd->pBufferMemoryBarriers = pBufferMemoryBarriersCopy;
     cmd->imageMemoryBarrierCount = imageMemoryBarrierCount;
-    cmd->pImageMemoryBarriers = pImageMemoryBarriers;
+    cmd->pImageMemoryBarriers = pImageMemoryBarriersCopy;
 }
 
 void ctsCmdPushConstants(
@@ -685,19 +788,23 @@ void ctsCmdPushConstants(
     CtsShaderStageFlags stageFlags,
     uint32_t offset,
     uint32_t size,
-    const void* values
+    const void* pValues
 ) {
-    CtsCmdPushConstants* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdPushConstants* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_PUSH_CONSTANTS
+        CTS_COMMAND_CMD_PUSH_CONSTANTS,
+        size
     );
+
+    void* pValuesCopy = advance(cmd, sizeof(CtsCmdPushConstants));
+    memcpy(pValuesCopy, pValues, size);
 
     cmd->commandBuffer = commandBuffer;
     cmd->layout = layout;
     cmd->stageFlags = stageFlags;
     cmd->offset = offset;
     cmd->size = size;
-    cmd->values = values;
+    cmd->pValues = pValuesCopy;
 }
 
 void ctsCmdResetEvent(
@@ -705,9 +812,10 @@ void ctsCmdResetEvent(
     CtsEvent event,
     CtsPipelineStageFlags stageMask
 ) {
-    CtsCmdResetEvent* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdResetEvent* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_RESET_EVENT
+        CTS_COMMAND_CMD_RESET_EVENT,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -721,9 +829,10 @@ void ctsCmdResetQueryPool(
     uint32_t firstQuery,
     uint32_t queryCount
 ) {
-    CtsCmdResetQueryPool* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdResetQueryPool* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_RESET_QUERY_POOL
+        CTS_COMMAND_CMD_RESET_QUERY_POOL,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -741,10 +850,16 @@ void ctsCmdResolveImage(
     uint32_t regionCount,
     const CtsImageResolve* pRegions
 ) {
-    CtsCmdResolveImage* cmd = ctsCommandBufferAllocateCommand(
+    size_t regionsSize = regionCount * sizeof(CtsImageBlit);
+
+    CtsCmdResolveImage* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_RESOLVE_IMAGE
+        CTS_COMMAND_CMD_RESOLVE_IMAGE,
+        regionsSize
     );
+
+    void* pRegionsCopy = advance(cmd, sizeof(CtsCmdBlitImage));
+    memcpy(pRegionsCopy, pRegions, regionsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->srcImage = srcImage;
@@ -752,16 +867,18 @@ void ctsCmdResolveImage(
     cmd->dstImage = dstImage;
     cmd->dstImageLayout = dstImageLayout;
     cmd->regionCount = regionCount;
-    cmd->pRegions = pRegions;
+    cmd->pRegions = pRegionsCopy;
 }
 
 void ctsCmdSetBlendConstants(
     CtsCommandBuffer commandBuffer,
     const float blendConstants[4]
 ) {
-    CtsCmdSetBlendConstants* cmd = ctsCommandBufferAllocateCommand(
+    // TODO: This might need attention
+    CtsCmdSetBlendConstants* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_BLEND_CONSTANTS
+        CTS_COMMAND_CMD_SET_BLEND_CONSTANTS,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -774,9 +891,10 @@ void ctsCmdSetDepthBias(
     float depthBiasClamp,
     float depthBiasSlopeFactor
 ) {
-    CtsCmdSetDepthBias* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetDepthBias* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_DEPTH_BIAS
+        CTS_COMMAND_CMD_SET_DEPTH_BIAS,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -790,9 +908,10 @@ void ctsCmdSetDepthBounds(
     float minDepthBounds,
     float maxDepthBounds
 ) {
-    CtsCmdSetDepthBounds* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetDepthBounds* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_DEPTH_BOUNDS
+        CTS_COMMAND_CMD_SET_DEPTH_BOUNDS,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -804,9 +923,10 @@ void ctsCmdSetDeviceMask(
     CtsCommandBuffer commandBuffer,
     uint32_t deviceMask
 ) {
-    CtsCmdSetDeviceMask* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetDeviceMask* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_DEVICE_MASK
+        CTS_COMMAND_CMD_SET_DEVICE_MASK,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -818,9 +938,10 @@ void ctsCmdSetEvent(
     CtsEvent event,
     CtsPipelineStageFlags stageMask
 ) {
-    CtsCmdSetEvent* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetEvent* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_EVENT
+        CTS_COMMAND_CMD_SET_EVENT,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -832,9 +953,10 @@ void ctsCmdSetLineWidth(
     CtsCommandBuffer commandBuffer,
     float lineWidth
 ) {
-    CtsCmdSetLineWidth* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetLineWidth* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_LINE_WIDTH
+        CTS_COMMAND_CMD_SET_LINE_WIDTH,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -847,15 +969,21 @@ void ctsCmdSetScissor(
     uint32_t scissorCount,
     const CtsRect2D* pScissors
 ) {
-    CtsCmdSetScissor* cmd = ctsCommandBufferAllocateCommand(
+    size_t scissorsSize = scissorCount * sizeof(CtsRect2D);
+
+    CtsCmdSetScissor* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_SCISSOR
+        CTS_COMMAND_CMD_SET_SCISSOR,
+        scissorsSize
     );
+
+    void* pScissorsCopy = advance(cmd, sizeof(CtsCmdSetScissor));
+    memcpy(pScissorsCopy, pScissors, scissorsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->firstScissor = firstScissor;
     cmd->scissorCount = scissorCount;
-    cmd->pScissors = pScissors;
+    cmd->pScissors = pScissorsCopy;
 }
 
 void ctsCmdSetStencilCompareMask(
@@ -863,9 +991,10 @@ void ctsCmdSetStencilCompareMask(
     CtsStencilFaceFlags faceMask,
     uint32_t compareMask
 ) {
-    CtsCmdSetStencilCompareMask* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetStencilCompareMask* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_STENCIL_COMPARE_MASK
+        CTS_COMMAND_CMD_SET_STENCIL_COMPARE_MASK,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -878,9 +1007,10 @@ void ctsCmdSetStencilReference(
     CtsStencilFaceFlags faceMask,
     uint32_t reference
 ) {
-    CtsCmdSetStencilReference* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetStencilReference* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_STENCIL_REFERENCE
+        CTS_COMMAND_CMD_SET_STENCIL_REFERENCE,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -893,9 +1023,10 @@ void ctsCmdSetStencilWriteMask(
     CtsStencilFaceFlags faceMask,
     uint32_t writeMask
 ) {
-    CtsCmdSetStencilWriteMask* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdSetStencilWriteMask* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_STENCIL_WRITE_MASK
+        CTS_COMMAND_CMD_SET_STENCIL_WRITE_MASK,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
@@ -909,15 +1040,21 @@ void ctsCmdSetViewport(
     uint32_t viewportCount,
     const CtsViewport* pViewports
 ) {
-    CtsCmdSetViewport* cmd = ctsCommandBufferAllocateCommand(
+    size_t viewportsSize = viewportCount * sizeof(CtsViewport);
+
+    CtsCmdSetViewport* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_VIEWPORT
+        CTS_COMMAND_CMD_SET_VIEWPORT,
+        viewportsSize
     );
+
+    void* pViewportsCopy = advance(cmd, sizeof(CtsCmdSetViewport));
+    memcpy(pViewportsCopy, pViewports, viewportsSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->firstViewport = firstViewport;
     cmd->viewportCount = viewportCount;
-    cmd->pViewports = pViewports;
+    cmd->pViewports = pViewportsCopy;
 }
 
 void ctsCmdUpdateBuffer(
@@ -927,16 +1064,20 @@ void ctsCmdUpdateBuffer(
     CtsDeviceSize dataSize,
     const void* pData
 ) {
-    CtsCmdUpdateBuffer* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdUpdateBuffer* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_UPDATE_BUFFER
+        CTS_COMMAND_CMD_UPDATE_BUFFER,
+        dataSize
     );
+
+    void* pDataCopy = advance(cmd, sizeof(CtsCmdUpdateBuffer));
+    memcpy(pDataCopy, pData, dataSize); 
 
     cmd->commandBuffer = commandBuffer;
     cmd->dstBuffer = dstBuffer;
     cmd->dstOffset = dstOffset;
     cmd->dataSize = dataSize;
-    cmd->pData = pData;
+    cmd->pData = pDataCopy;
 }
 
 void ctsCmdWaitEvents(
@@ -952,10 +1093,23 @@ void ctsCmdWaitEvents(
     uint32_t imageMemoryBarrierCount,
     const CtsImageMemoryBarrier* pImageMemoryBarriers
 ) {
-    CtsCmdWaitEvents* cmd = ctsCommandBufferAllocateCommand(
+    size_t memoryBarriersSize = memoryBarrierCount * sizeof(CtsMemoryBarrier);
+    size_t bufferMemoryBarriersSize = bufferMemoryBarrierCount * sizeof(CtsBufferMemoryBarrier);
+    size_t imageMemoryBarriersSize = imageMemoryBarrierCount * sizeof(CtsImageMemoryBarrier);
+
+    CtsCmdWaitEvents* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_WAIT_EVENTS
+        CTS_COMMAND_CMD_WAIT_EVENTS,
+        memoryBarriersSize + bufferMemoryBarriersSize + imageMemoryBarriersSize
     );
+
+    void* pMemoryBarriersCopy = advance(cmd, sizeof(CtsCmdWaitEvents));
+    void* pBufferMemoryBarriersCopy = advance(pMemoryBarriersCopy, memoryBarriersSize);
+    void* pImageMemoryBarriersCopy = advance(pBufferMemoryBarriersCopy, bufferMemoryBarriersSize);
+
+    memcpy(pMemoryBarriersCopy, pMemoryBarriers, memoryBarriersSize);
+    memcpy(pBufferMemoryBarriersCopy, pBufferMemoryBarriers, bufferMemoryBarriersSize);
+    memcpy(pImageMemoryBarriersCopy, pImageMemoryBarriers, imageMemoryBarriersSize);
 
     cmd->commandBuffer = commandBuffer;
     cmd->eventCount = eventCount;
@@ -963,11 +1117,11 @@ void ctsCmdWaitEvents(
     cmd->srcStageMask = srcStageMask;
     cmd->dstStageMask = dstStageMask;
     cmd->memoryBarrierCount = memoryBarrierCount;
-    cmd->pMemoryBarriers = pMemoryBarriers;
+    cmd->pMemoryBarriers = pMemoryBarriersCopy;
     cmd->bufferMemoryBarrierCount = bufferMemoryBarrierCount;
-    cmd->pBufferMemoryBarriers = pBufferMemoryBarriers;
+    cmd->pBufferMemoryBarriers = pBufferMemoryBarriersCopy;
     cmd->imageMemoryBarrierCount = imageMemoryBarrierCount;
-    cmd->pImageMemoryBarriers = pImageMemoryBarriers;
+    cmd->pImageMemoryBarriers = pImageMemoryBarriersCopy;
 }
 
 void ctsCmdWriteTimestamp(
@@ -976,101 +1130,16 @@ void ctsCmdWriteTimestamp(
     CtsQueryPool queryPool,
     uint32_t query
 ) {
-    CtsCmdWriteTimestamp* cmd = ctsCommandBufferAllocateCommand(
+    CtsCmdWriteTimestamp* cmd = allocateCommand(
         commandBuffer,
-        CTS_COMMAND_CMD_WRITE_TIMESTAMP
+        CTS_COMMAND_CMD_WRITE_TIMESTAMP,
+        0
     );
 
     cmd->commandBuffer = commandBuffer;
     cmd->pipelineStage = pipelineStage;
     cmd->queryPool = queryPool;
     cmd->query = query;
-}
-
-void* ctsCommandBufferAllocateCommand(
-    CtsCommandBuffer commandBuffer,
-    CtsCommandType commandType
-) {
-    assert(commandBuffer->state == CTS_COMMAND_BUFFER_STATE_RECORDING);
-
-    const CtsCommandMetadata* metadata = ctsGetCommandMetadata(commandType);
-    CtsCmdBase* cmd = ctsAllocation(
-        &commandBuffer->pool->poolAllocator,
-        metadata->size,
-        metadata->align,
-        CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND
-    );
-
-    cmd->type = commandType;
-    cmd->pNext = NULL;
-
-    if (commandBuffer->root == NULL) {
-        commandBuffer->root = cmd;
-    } else {
-        commandBuffer->current->pNext = cmd;
-    }
-    
-    commandBuffer->current = cmd;
-    return cmd;
-}
-
-CtsResult ctsQueueSubmitImpl(
-    CtsQueue queue,
-    uint32_t submitCount,
-    const CtsSubmitInfo* pSubmits,
-    CtsFence fence
-) {
-    if (fence != NULL) {
-        ctsWaitForFencesImpl(queue->device, 1, &fence, true, UINT64_MAX);
-    }
-
-    CtsQueueItem queueItem;
-    for (uint32_t i = 0; i < submitCount; ++i) {
-        const CtsSubmitInfo* submit = &pSubmits[i];
-
-        // TODO: Handle waitDstStageMask
-        ctsWaitSemaphores(submit->waitSemaphoreCount, submit->pWaitSemaphores);
-
-        for (uint32_t j = 0; j < submit->commandBufferCount; ++j) {
-            CtsCommandBuffer commandBuffer = submit->pCommandBuffers[j];
-
-            if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_EXECUTABLE) {
-                commandBuffer->state = CTS_COMMAND_BUFFER_STATE_PENDING;
-
-                CtsQueueFinish* queueFinishCmd = ctsCommandBufferAllocateCommand(
-                    commandBuffer,
-                    CTS_COMMAND_QUEUE_FINISH
-                );
-
-                queueFinishCmd->semaphoreCount = submit->signalSemaphoreCount;
-                queueFinishCmd->pSemaphores = submit->pSignalSemaphores;
-                queueFinishCmd->commandBuffer = commandBuffer;
-
-                queueItem.cmd = commandBuffer->root;
-                queueItem.pFinished = NULL;
-                queueItem.conditionVariable = NULL;
-                ctsQueuePush(queue, &queueItem);
-            }
-        }
-    }
-   
-    return CTS_SUCCESS;
-}
-
-void ctsQueueFinishImpl(
-    uint32_t semaphoreCount,
-    const CtsSemaphore* pSemaphores,
-    CtsCommandBuffer commandBuffer
-) {
-    if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_PENDING) {
-        if (commandBuffer->flags & CTS_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) {
-            commandBuffer->state = CTS_COMMAND_BUFFER_STATE_INVALID;
-        } else {
-            commandBuffer->state = CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
-        }
-
-        ctsSignalSemaphores(semaphoreCount, pSemaphores);
-    }
 }
 
 void ctsCmdBeginQueryImpl(
@@ -1154,6 +1223,7 @@ void ctsCmdBindDescriptorSetsImpl(
     (void) pDynamicOffsets;
 
     CtsDevice device = commandBuffer->device;
+    const CtsGlShader* shader = &device->activeGraphicsPipeline->shader;
 
     for (uint32_t i = firstSet; i < descriptorSetCount; ++i) {
         CtsDescriptorSet descriptorSet = pDescriptorSets[i];
@@ -1161,7 +1231,7 @@ void ctsCmdBindDescriptorSetsImpl(
 
         for (uint32_t j = 0; j < layout->bindingCount; ++j) {
             const CtsGlDescriptorSetLayoutBinding* binding = &layout->bindings[j];
-            CtsDescriptor descriptor = descriptorSet->descriptors[binding->binding];
+            CtsGlDescriptor* descriptor = &descriptorSet->descriptors[binding->binding];
 
             switch (descriptor->type) {
                 case CTS_DESCRIPTOR_TYPE_SAMPLER:
@@ -1169,7 +1239,7 @@ void ctsCmdBindDescriptorSetsImpl(
                 case CTS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
                 case CTS_DESCRIPTOR_TYPE_STORAGE_IMAGE:
                 case CTS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
-                    CtsDescriptorImageView* imageViewContainer = &descriptor->imageViewContainer;
+                    CtsGlDescriptorImageView* imageViewContainer = &descriptor->imageViewContainer;
                     CtsImageView imageView = imageViewContainer->imageView;
                     CtsSampler sampler = imageViewContainer->sampler;
 
@@ -1178,13 +1248,13 @@ void ctsCmdBindDescriptorSetsImpl(
                     }
 
                     if (sampler != NULL) {
-                        glBindSampler(binding->binding, sampler->handle);
+                        bindSampler(device, binding->binding, sampler->handle, NULL);
                     }
                 } break;
 
                 case CTS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
                 case CTS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: {
-                    CtsDescriptorBufferView* bufferViewContainer = &descriptor->bufferViewContainer;
+                    CtsGlDescriptorBufferView* bufferViewContainer = &descriptor->bufferViewContainer;
                     CtsBufferView bufferView = bufferViewContainer->bufferView;
 
                     if (bufferView != NULL) {
@@ -1203,12 +1273,18 @@ void ctsCmdBindDescriptorSetsImpl(
                 case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER:
                 case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
                 case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: {
-                    CtsDescriptorBuffer* bufferContainer = &descriptor->bufferContainer;
+                    CtsGlDescriptorBuffer* bufferContainer = &descriptor->bufferContainer;
                     CtsBuffer buffer = bufferContainer->buffer;
 
                     if (buffer != NULL) {
                         glBindBuffer(buffer->type, buffer->memory->handle);
-                        glBindBufferRange(buffer->type, binding->binding, buffer->memory->handle, bufferContainer->offset, bufferContainer->range);
+                        glBindBufferRange(
+                            buffer->type,
+                            binding->binding,
+                            buffer->memory->handle,
+                            bufferContainer->offset + buffer->offset,
+                            bufferContainer->range
+                        );
                     }
                 } break;
 
@@ -1228,8 +1304,13 @@ void ctsCmdBindIndexBufferImpl(
 ) {
     CtsDevice device = commandBuffer->device;
 
-    device->activeIndexBuffer = buffer;
-    glBindBuffer(buffer->type, buffer->memory->handle);
+    device->activeIndexBuffer.buffer = buffer;
+    device->activeIndexBuffer.offset = 0;
+    device->activeIndexBuffer.indexType = (indexType == CTS_INDEX_TYPE_UINT16)
+        ? GL_UNSIGNED_SHORT
+        : GL_UNSIGNED_INT;
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->memory->handle);
 }
 
 void ctsCmdBindPipelineImpl(
@@ -1241,18 +1322,21 @@ void ctsCmdBindPipelineImpl(
 
     if (pipeline->bindPoint == CTS_PIPELINE_BIND_POINT_GRAPHICS) {
         CtsGlGraphicsPipeline* graphicsPipeline = pipeline->graphics;
-        
-        bindDynamicState(device, graphicsPipeline->dynamicState);
-        bindVertexInputState(device, &graphicsPipeline->vertexInputState);
-        bindInputAssemblyState(device, &graphicsPipeline->inputAssemblyState);
-        bindTessellationState(device, &graphicsPipeline->tessellationState);
-        bindViewportState(device, &graphicsPipeline->viewportState);
-        bindRasterizationState(device, &graphicsPipeline->rasterizationState);
-        bindMultisampleState(device, &graphicsPipeline->multisampleState);
-        bindDepthStencilState(device, &graphicsPipeline->depthStencilState);
-        bindColorBlendState(device, &graphicsPipeline->colorBlendState);
 
-        device->activeGraphicsPipeline = graphicsPipeline;
+        if (device->activeGraphicsPipeline != graphicsPipeline) {
+            device->activeGraphicsPipeline = graphicsPipeline;
+            
+            useProgram(device, graphicsPipeline->shader.handle, NULL);
+            bindDynamicState(device, graphicsPipeline->dynamicState);
+            bindVertexInputState(device, &graphicsPipeline->vertexInputState);
+            bindInputAssemblyState(device, &graphicsPipeline->inputAssemblyState);
+            bindTessellationState(device, &graphicsPipeline->tessellationState);
+            bindViewportState(device, &graphicsPipeline->viewportState);
+            bindRasterizationState(device, &graphicsPipeline->rasterizationState);
+            bindMultisampleState(device, &graphicsPipeline->multisampleState);
+            bindDepthStencilState(device, &graphicsPipeline->depthStencilState);
+            bindColorBlendState(device, &graphicsPipeline->colorBlendState);
+        }
     }
 }
 
@@ -1265,19 +1349,18 @@ void ctsCmdBindVertexBuffersImpl(
 ) {
     CtsDevice device = commandBuffer->device;
 
-    for (uint32_t i = firstBinding; i < bindingCount; ++i) {
-        const CtsBuffer buffer = pBuffers[i];
-        struct CtsGlVertexInputAttributeDescription* description = &device->activeVertexInputState->pVertexAttributeDescriptions[firstBinding + i];
+    for (uint32_t i = 0; i < bindingCount; ++i) {
+        CtsBuffer buffer = pBuffers[i];
+        CtsDeviceSize offset = pOffsets[i];
 
-        glBindBuffer(buffer->type, buffer->memory->handle);
-        glEnableVertexAttribArray(description->location);
-        glVertexAttribPointer(
-            description->location,
-            description->numComponents,
-            description->format,
-            GL_FALSE,
-            description->stride,
-            (GLvoid*)(description->offset + pOffsets[i])
+        const CtsGlPipelineVertexInputState* pVertexInputState = &device->activeGraphicsPipeline->vertexInputState;
+        const CtsVertexInputBindingDescription* vertexBindingDescription = &pVertexInputState->pVertexBindingDescriptions[i + firstBinding];
+
+        glBindVertexBuffer(
+            vertexBindingDescription->binding,
+            buffer->memory->handle,
+            buffer->offset + offset,
+            vertexBindingDescription->stride
         );
     }
 }
@@ -1361,7 +1444,7 @@ void ctsCmdCopyBufferToImageImpl(
     CtsDevice device = commandBuffer->device;
     GLenum target = dstImage->target;
  
-    CtsTextureBinding previous;
+    CtsGlTextureBinding previous;
     bindTexture(device, 0, target, dstImage->handle, &previous);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, srcBuffer->memory->handle);
     
@@ -1380,7 +1463,7 @@ void ctsCmdCopyBufferToImageImpl(
                 region->imageSubresource.mipLevel,
                 region->imageOffset.x,
                 region->imageExtent.width,
-                dstImage->internalFormat,
+                dstImage->format,
                 dstImage->type,
                 (const void*)region->bufferOffset
             );
@@ -1401,7 +1484,7 @@ void ctsCmdCopyBufferToImageImpl(
                 region->imageOffset.y,
                 region->imageExtent.width,
                 region->imageExtent.height,
-                dstImage->internalFormat,
+                dstImage->format,
                 dstImage->type,
                 (const void*)region->bufferOffset
             );
@@ -1419,7 +1502,7 @@ void ctsCmdCopyBufferToImageImpl(
                 region->imageExtent.width,
                 region->imageExtent.height,
                 region->imageExtent.depth,
-                dstImage->internalFormat,
+                dstImage->format,
                 dstImage->type,
                 (const void*)region->bufferOffset
             );
@@ -1428,7 +1511,7 @@ void ctsCmdCopyBufferToImageImpl(
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     }
 
-    bindTexture(device, 0, previous.target, previous.handle, NULL);
+    bindTexture(device, 0, previous.target, previous.texture, NULL);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
@@ -1480,7 +1563,7 @@ void ctsCmdCopyImageToBufferImpl(
     GLenum target = srcImage->target;
     CtsDevice device = commandBuffer->device;
 
-    CtsTextureBinding previous;
+    CtsGlTextureBinding previous;
     bindTexture(device, 0, target, srcImage->handle, &previous);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, dstBuffer->memory->handle);
     
@@ -1528,7 +1611,7 @@ void ctsCmdCopyImageToBufferImpl(
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
     }
 
-    bindTexture(device, 0, previous.target, previous.handle, NULL);
+    bindTexture(device, 0, previous.target, previous.texture, NULL);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
@@ -1572,7 +1655,7 @@ void ctsCmdDrawImpl(
     CtsDevice device = commandBuffer->device;
 
     glDrawArraysInstancedBaseInstance(
-        device->activeInputAssemblyState->polygonMode,
+        device->activeGraphicsPipeline->inputAssemblyState.topology,
         firstVertex,
         vertexCount,
         instanceCount,
@@ -1589,16 +1672,17 @@ void ctsCmdDrawIndexedImpl(
     uint32_t firstInstance
 ) {
     CtsDevice device = commandBuffer->device;
+    CtsGlIndexBuffer* activeIndexBuffer = &device->activeIndexBuffer;
 
-    size_t indexSize = (device->activeIndexBuffer->type == GL_UNSIGNED_SHORT)
+    size_t indexSize = (activeIndexBuffer->indexType == GL_UNSIGNED_SHORT)
         ? sizeof(GLushort)
         : sizeof(GLuint);
 
     glDrawElementsInstancedBaseVertexBaseInstance(
-        device->activeInputAssemblyState->polygonMode,
+        device->activeGraphicsPipeline->inputAssemblyState.topology,
         indexCount,
-        device->activeIndexBuffer->type,
-        (GLvoid*)(firstIndex * indexSize),
+        activeIndexBuffer->indexType,
+        (GLvoid*)(activeIndexBuffer->offset + firstIndex * indexSize),
         instanceCount,
         vertexOffset,
         firstInstance
@@ -1613,10 +1697,12 @@ void ctsCmdDrawIndexedIndirectImpl(
     uint32_t stride
 ) {
     CtsDevice device = commandBuffer->device;
+    CtsGlIndexBuffer* activeIndexBuffer = &device->activeIndexBuffer;
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->memory->handle);
-    glMultiDrawArraysIndirect(
-        device->activeInputAssemblyState->polygonMode,
+    glMultiDrawElementsIndirect(
+        device->activeGraphicsPipeline->inputAssemblyState.topology,
+        activeIndexBuffer->indexType,
         (GLvoid*)offset,
         drawCount,
         stride
@@ -1631,11 +1717,9 @@ void ctsCmdDrawIndirectImpl(
     uint32_t stride
 ) {
     CtsDevice device = commandBuffer->device;
-
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->memory->handle);
-    glMultiDrawElementsIndirect(
-        device->activeInputAssemblyState->polygonMode,
-        device->activeIndexBuffer->type,
+    glMultiDrawArraysIndirect(
+        device->activeGraphicsPipeline->inputAssemblyState.topology,
         (GLvoid*)offset,
         drawCount,
         stride
@@ -1716,7 +1800,7 @@ void ctsCmdPushConstantsImpl(
     CtsShaderStageFlags stageFlags,
     uint32_t offset,
     uint32_t size,
-    const void* values
+    const void* pValues
 ) {
 }
 
@@ -1752,7 +1836,7 @@ void ctsCmdSetBlendConstantsImpl(
 ) {
     CtsDevice device = commandBuffer->device;
 
-    if (hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)) {
+    if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)) {
         glBlendColor(
             blendConstants[0],
             blendConstants[1],
@@ -1796,7 +1880,7 @@ void ctsCmdSetLineWidthImpl(
 ) {
     CtsDevice device = commandBuffer->device;
 
-    if (hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_LINE_WIDTH_BIT)) {
+    if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_LINE_WIDTH_BIT)) {
         glLineWidth(lineWidth);
     }
 }
@@ -1809,7 +1893,7 @@ void ctsCmdSetScissorImpl(
 ) {
     CtsDevice device = commandBuffer->device;
 
-    if (hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_SCISSOR_BIT)) {
+    if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_SCISSOR_BIT)) {
         for (uint32_t i = firstScissor; i < scissorCount; ++i) {
             const CtsRect2D* scissor = &pScissors[i];
             glScissorIndexed(i, scissor->offset.x, scissor->offset.y, scissor->extent.width, scissor->extent.height); 
@@ -1846,10 +1930,14 @@ void ctsCmdSetViewportImpl(
 ) {
     CtsDevice device = commandBuffer->device;
 
-    if (hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
+    if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
         for (uint32_t i = firstViewport; i < viewportCount; ++i) {
             const CtsViewport* viewport = &pViewports[i];
-            glViewportIndexedf(i, viewport->x, viewport->y, viewport->width, viewport->height);
+
+            float y = viewport->y + viewport->height;
+            float height = -viewport->height;
+
+            glViewportIndexedf(i, viewport->x, y, viewport->width, height);
             glDepthRangeIndexed(i, viewport->minDepth, viewport->maxDepth);
         }
     }
@@ -1902,27 +1990,126 @@ void ctsCmdWriteTimestampImpl(
 ) {
 }
 
+static void* advance(void* pPtr, size_t amount) {
+    return (char*)pPtr + amount;
+}
+
 static bool hasFlag(CtsFlags flags, CtsFlagBit flag) {
     return ((flags & flag) == flag);
 }
 
-static void bindTexture(CtsDevice device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsTextureBinding* pPrevious) {
-    glActiveTexture(GL_TEXTURE0 + pSlot);
-    glBindTexture(pTarget, pHandle);
+static bool shouldUpdateBool(bool enable, bool* pCurrent, bool* pPrevious) {
+    if (pPrevious != NULL) {
+        *pPrevious = *pCurrent;
+    }
 
-    CtsTextureBinding* data = &device->activeTextures[pSlot];
+    if (*pCurrent != enable) {
+        *pCurrent = enable;
+        return true;
+    }
+
+    return false;
+}
+
+static bool shouldUpdateHandle(GLuint handle, GLuint* pCurrent, GLuint* pPrevious) {
+    if (pPrevious != NULL) {
+        *pPrevious = *pCurrent;
+    }
+
+    if (*pCurrent != handle) {
+        *pCurrent = handle;
+        return true;
+    }
+
+    return false;
+}
+
+static void enableFeature(GLenum feature, bool enable) {
+    if (enable) {
+        glEnable(feature);
+    } else {
+        glDisable(feature);
+    }
+}
+
+static void enableFeatureIndexed(GLenum feature, uint32_t index, bool enable) {
+    if (enable) {
+        glEnablei(feature, index);
+    } else {
+        glDisablei(feature, index);
+    }
+}
+
+static void enableDepthClamp(CtsDevice device, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.depthClamp, pPrevious)) {
+        enableFeature(GL_DEPTH_CLAMP, enable);
+    }
+}
+
+static void enableRasterizerDiscard(CtsDevice device, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.rasterizerDiscard, pPrevious)) {
+        enableFeature(GL_RASTERIZER_DISCARD, enable);
+    }
+}
+
+static void enableCullFace(CtsDevice device, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.cullFace, pPrevious)) {
+        enableFeature(GL_CULL_FACE, enable);
+    }
+}
+
+static void enableDepthTest(CtsDevice device, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.depthTest, pPrevious)) {
+        enableFeature(GL_DEPTH_TEST, enable);
+    }
+}
+
+static void enableStencilTest(CtsDevice device, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.stencilTest, pPrevious)) {
+        enableFeature(GL_STENCIL_TEST, enable);
+    }
+}
+
+static void enableBlend(CtsDevice device, uint32_t index, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.blend[index], pPrevious)) {
+        enableFeatureIndexed(GL_BLEND, index, enable);
+    }
+}
+
+static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious) {
+    if (shouldUpdateHandle(program, &device->state.program, pPrevious)) {
+        glUseProgram(program);
+    }
+}
+
+static void bindTexture(CtsDevice device, uint32_t unit, GLenum target, uint32_t texture, CtsGlTextureBinding* pPrevious) {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(target, texture);
+
+    CtsGlTextureBinding* data = &device->state.texture[unit];
 
     if (pPrevious != NULL) {
         pPrevious->target = data->target;
-        pPrevious->handle = data->handle;
+        pPrevious->texture = data->texture;
+    }
+    
+    data->target = target;
+    data->texture = texture;
+}
+
+static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious) {
+    glBindSampler(unit, sampler);
+    uint32_t* data = &device->state.sampler[unit];
+
+    if (pPrevious != NULL) {
+        *pPrevious = *data;
     }
 
-    data->handle = pHandle;
-    data->target = pTarget;
+    *data = sampler;
 }
 
 static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber) {
-    const CtsSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
+    const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
 
     (void) subpassDescription->flags;
     (void) subpassDescription->pipelineBindPoint;
@@ -1932,8 +2119,7 @@ static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t 
 
     for (uint32_t i = 0; i < subpassDescription->inputAttachmentCount; ++i) {
         const CtsAttachmentReference* inputAttachment = &subpassDescription->pInputAttachments[i];
-
-        //bindTexture(pDevice, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
+        //bindTexture(device, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
     }
 
     for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
@@ -1949,56 +2135,38 @@ static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t 
 
 static void bindDynamicState(
     CtsDevice device,
-    CtsFlags pState
+    CtsFlags state
 ) {
-    device->activeDynamicState = pState;
+    device->dynamicStateFlags = state;
 }
 
 static void bindVertexInputState(
     CtsDevice device,
     CtsGlPipelineVertexInputState* pState
 ) {
-    if (device->activeVertexInputState == pState) {
-        return;
-    }
-
-    device->activeVertexInputState = pState;
+    glBindVertexArray(pState->vao);
 }
 
 static void bindInputAssemblyState(
     CtsDevice device,
     CtsGlPipelineInputAssemblyState* pState
 ) {
-    if (device->activeInputAssemblyState == pState) {
-        return;
-    }
-
-    device->activeInputAssemblyState = pState;
 }
 
 static void bindTessellationState(
     CtsDevice device,
     CtsGlPipelineTessellationState* pState
 ) {
-    if (device->activeTessellationState == pState) {
-        return;
-    }
-
-    device->activeTessellationState = pState;
 }
 
 static void bindViewportState(
     CtsDevice device,
     CtsGlPipelineViewportState* pState
 ) {
-    if (device->activeViewportState == pState) {
-        return;
-    }
-
     uint32_t viewportCount = pState->viewportCount;
     uint32_t scissorCount = pState->scissorCount;
 
-    if (!hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
+    if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
         for (uint32_t i = 0; i < viewportCount; ++i) {
             CtsViewport* viewport = &pState->pViewports[i];
             glViewportIndexedf(i, viewport->x, viewport->y, viewport->width, viewport->height);
@@ -2006,7 +2174,7 @@ static void bindViewportState(
         }
     }
 
-    if (!hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_SCISSOR_BIT)) {
+    if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_SCISSOR_BIT)) {
         for (uint32_t i = 0; i < scissorCount; ++i) {
             CtsRect2D* scissor = &pState->pScissors[i];
             glScissorIndexed(i, scissor->offset.x, scissor->offset.y, scissor->extent.width, scissor->extent.height);    
@@ -2018,48 +2186,15 @@ static void bindRasterizationState(
     CtsDevice device,
     CtsGlPipelineRasterizationState* pState
 ) {
-    if (device->activeRasterizationState == pState) {
-        return;
-    }
+    enableDepthClamp(device, pState->depthClampEnable, NULL);
+    enableRasterizerDiscard(device, pState->rasterizerDiscardEnable, NULL);
+    enableCullFace(device, pState->cullMode != GL_NONE, NULL);
 
-    CtsGlRasterizationStateChanges changes;
-    parseRasterizationStateChanges(pState, device->activeRasterizationState, &changes);
-    device->activeRasterizationState = pState;
+    glPolygonMode(GL_FRONT_AND_BACK, pState->polygonMode);
+    glCullFace(pState->cullMode);
+    glFrontFace(pState->frontFace);
 
-    if (changes.depthClampEnableChanged) {
-        if (pState->depthClampEnable) {
-            glEnable(GL_DEPTH_CLAMP);
-        } else {
-            glDisable(GL_DEPTH_CLAMP);
-        }
-    }
-    
-    if (changes.rasterizerDiscardEnableChanged) {
-        if (pState->rasterizerDiscardEnable) {
-            glEnable(GL_RASTERIZER_DISCARD);
-        } else {
-            glDisable(GL_RASTERIZER_DISCARD);
-        }
-    }
-    
-    if (changes.polygonModeChanged) {
-        glPolygonMode(GL_FRONT_AND_BACK, pState->polygonMode);
-    }
-
-    if (changes.cullModeChanged) {
-        if (pState->cullMode != GL_NONE) {
-            glEnable(GL_CULL_FACE);
-            glCullFace(pState->cullMode);
-        } else {
-            glDisable(GL_CULL_FACE);
-        }
-    }
-
-    if (changes.frontFaceChanged) {
-        glFrontFace(pState->frontFace);
-    }
-
-    if (!hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_DEPTH_BIAS_BIT) && changes.depthBiasChanged) {
+    if (!hasFlag(device->activeGraphicsPipeline->dynamicState, CTS_GL_DYNAMIC_STATE_DEPTH_BIAS_BIT)) {
         if (pState->depthBiasEnable) {
             glPolygonOffset(pState->depthBiasConstantFactor, 0);
         } else {
@@ -2069,7 +2204,7 @@ static void bindRasterizationState(
         // Not sure how to map depthBiasClamp or depthBiasSlopeFactor
     }
 
-    if (!hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_LINE_WIDTH_BIT) && changes.lineWidthChanged) {
+    if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_LINE_WIDTH_BIT)) {
         glLineWidth(pState->lineWidth);
     }
 }
@@ -2078,113 +2213,59 @@ static void bindMultisampleState(
     CtsDevice device,
     CtsGlPipelineMultisampleState* pState)
 {
-    if (device->activeMultisampleState == pState) {
-        return;
-    }
-
-    device->activeMultisampleState = pState;
 }
 
 static void bindDepthStencilState(
     CtsDevice device,
     CtsGlPipelineDepthStencilState* pState
 ) {
-    if (device->activeDepthStencilState == pState) {
-        return;
-    }
+    enableDepthTest(device, pState->depthTestEnable, NULL);
+    enableStencilTest(device, pState->stencilTestEnable, NULL);
 
-    CtsGlDepthStencilStateChanges changes;
-    parseDepthStencilStateChanges(pState, device->activeDepthStencilState, &changes);
-    device->activeDepthStencilState = pState;
+    glDepthMask(pState->depthWriteEnable ? GL_TRUE : GL_FALSE);
+    glDepthFunc(pState->depthCompareOp);
 
-    if (changes.depthTestEnableChanged) {
-        if (pState->depthTestEnable) {
-            glEnable(GL_DEPTH_TEST);
-        } else {
-            glDisable(GL_DEPTH_TEST);
-        }
-    }
+    (void) pState->depthBoundsTestEnable;
+    (void) pState->minDepthBounds;
+    (void) pState->maxDepthBounds;
 
-    if (changes.depthWriteEnableChanged) {
-        if (pState->depthWriteEnable) {
-            glDepthMask(GL_TRUE);
-        } else {
-            glDepthMask(GL_FALSE);
-        }
-    }
+    glStencilFuncSeparate(
+        GL_FRONT,
+        pState->frontCompareOp,
+        pState->frontReference,
+        pState->frontCompareMask
+    );
 
-    if (changes.depthCompareOpChanged) {
-        glDepthFunc(pState->depthCompareOp);
-    }
+    glStencilOpSeparate(
+        GL_FRONT,
+        pState->frontFailOp,
+        pState->frontDepthFailOp,
+        pState->frontPassOp
+    );
 
-    if (changes.depthBoundsTestEnableChanged) {
-        // TODO: Requires extension
-    }
+    glStencilMaskSeparate(GL_FRONT, pState->frontWriteMask);
+    glStencilFuncSeparate(
+        GL_BACK,
+        pState->backCompareOp,
+        pState->backReference,
+        pState->backCompareMask
+    );
 
-    if (changes.stencilTestEnableChanged) {
-        if (pState->stencilTestEnable) {
-            glEnable(GL_STENCIL_TEST);
-        } else {
-            glDisable(GL_STENCIL_TEST);
-        }
-    }
+    glStencilOpSeparate(
+        GL_BACK,
+        pState->backFailOp,
+        pState->backDepthFailOp,
+        pState->backPassOp
+    );
 
-    if (changes.depthBoundsChanged) {
-        // TODO: Requires extension
-    }
-
-    if (changes.frontFuncChanged) {
-        glStencilFuncSeparate(
-            GL_FRONT,
-            pState->frontCompareOp,
-            pState->frontReference,
-            pState->frontCompareMask);
-    }
-
-    if (changes.frontStencilChanged) {
-        glStencilOpSeparate(
-            GL_FRONT,
-            pState->frontFailOp,
-            pState->frontDepthFailOp,
-            pState->frontPassOp);
-    }
-
-    if (changes.frontFaceWriteMaskChanged) {
-        glStencilMaskSeparate(GL_FRONT, pState->frontWriteMask);
-    }
-
-    if (changes.backFuncChanged) {
-        glStencilFuncSeparate(
-            GL_BACK,
-            pState->backCompareOp,
-            pState->backReference,
-            pState->backCompareMask);
-    }
-
-    if (changes.backStencilChanged) {
-        glStencilOpSeparate(
-            GL_BACK,
-            pState->backFailOp,
-            pState->backDepthFailOp,
-            pState->backPassOp);
-    }
-
-    if (changes.backFaceWriteMaskChanged) {
-        glStencilMaskSeparate(GL_BACK, pState->backWriteMask);
-    }
+    glStencilMaskSeparate(GL_BACK, pState->backWriteMask);
 }
 
 static void bindColorBlendState(
     CtsDevice device,
     CtsGlPipelineColorBlendState* pState
 ) {
-    if (device->activeColorBlendState == pState) {
-        return;
-    }
-
-    if (parseColorBlendStateBlendConstantChanged(pState, device->activeColorBlendState) && 
-        !hasFlag(device->activeDynamicState, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)
-    ) {
+    if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)) {
         glBlendColor(
             pState->blendConstants[0],
             pState->blendConstants[1],
@@ -2193,49 +2274,59 @@ static void bindColorBlendState(
         );
     }
 
-    CtsGlColorBlendStateChanges changes;
     for (uint32_t i = 0; i < pState->attachmentCount; ++i) {
         CtsGlPipelineColorBlendStateAttachment* attachmentState = &pState->pAttachments[i];
+        enableBlend(device, i, attachmentState->blendEnable, NULL);
 
-        parseColorBlendStateChanges(attachmentState, &device->activeColorBlendState->pAttachments[i], &changes);
-        device->activeColorBlendState = pState;
+        glColorMaski(
+            i,
+            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_R_BIT) == CTS_COLOR_COMPONENT_R_BIT,
+            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_G_BIT) == CTS_COLOR_COMPONENT_G_BIT,
+            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_B_BIT) == CTS_COLOR_COMPONENT_B_BIT,
+            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_A_BIT) == CTS_COLOR_COMPONENT_A_BIT
+        );
 
-        if (changes.blendEnableChanged) {
-            if (attachmentState->blendEnable) {
-                glEnablei(GL_BLEND, i);
-            } else {
-                glDisablei(GL_BLEND, i);
-            }
-        }
+        glBlendFuncSeparateiARB(
+            i,
+            attachmentState->srcColorBlendFactor,
+            attachmentState->dstColorBlendFactor,
+            attachmentState->srcAlphaBlendFactor,
+            attachmentState->dstAlphaBlendFactor
+        );
 
-        if (changes.colorWriteMaskChanged) {
-            glColorMaski(
-                i,
-                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_R_BIT) == CTS_COLOR_COMPONENT_R_BIT,
-                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_G_BIT) == CTS_COLOR_COMPONENT_G_BIT,
-                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_B_BIT) == CTS_COLOR_COMPONENT_B_BIT,
-                (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_A_BIT) == CTS_COLOR_COMPONENT_A_BIT
-            );
-        }
-
-        if (changes.blendFactorChanged) {
-            glBlendFuncSeparateiARB(
-                i,
-                attachmentState->srcColorBlendFactor,
-                attachmentState->dstColorBlendFactor,
-                attachmentState->srcAlphaBlendFactor,
-                attachmentState->dstAlphaBlendFactor
-            );
-        }
-
-        if (changes.blendOpChanged) {
-            glBlendEquationSeparateiARB(
-                i,
-                attachmentState->colorBlendOp,
-                attachmentState->alphaBlendOp
-            );
-        }
+        glBlendEquationSeparateiARB(
+            i,
+            attachmentState->colorBlendOp,
+            attachmentState->alphaBlendOp
+        );
     }
+}
+
+
+static void* allocateCommand(
+    CtsCommandBuffer commandBuffer,
+    CtsCommandType commandType,
+    size_t extraDataLen
+) {
+    const CtsCommandMetadata* metadata = ctsGetCommandMetadata(commandType);
+    CtsCmdBase* cmd = ctsAllocation(
+        &commandBuffer->allocator,
+        metadata->size + extraDataLen,
+        metadata->align,
+        CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND
+    );
+
+    cmd->type = commandType;
+    cmd->pNext = NULL;
+
+    if (commandBuffer->root == NULL) {
+        commandBuffer->root = cmd;
+    } else {
+        commandBuffer->current->pNext = cmd;
+    }
+    
+    commandBuffer->current = cmd;
+    return cmd;
 }
 
 #ifdef __cplusplus

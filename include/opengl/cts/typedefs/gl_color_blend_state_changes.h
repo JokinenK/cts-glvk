@@ -7,7 +7,6 @@ extern "C" {
 #endif
 
 typedef struct CtsGlColorBlendStateChanges {
-    bool blendEnableChanged;
     bool colorWriteMaskChanged;
     bool blendFactorChanged;
     bool blendOpChanged;

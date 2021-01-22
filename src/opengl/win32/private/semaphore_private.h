@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-struct CtsSemaphore {
+struct CtsSemaphoreImpl {
     HANDLE semaphore;
 };
 

@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-struct CtsThread {
+struct CtsThreadImpl {
     pthread_t thread;
     bool joined;
     bool detached;

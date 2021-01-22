@@ -14,7 +14,7 @@ static void* threadEntry(void* pArgs)
     struct CtsThreadCreateInfo createInfo;
     memcpy(&createInfo, pArgs, sizeof(CtsThreadCreateInfo));
 
-    createInfo.entryPoint(createInfo.args);
+    createInfo.pfEntryPoint(createInfo.pArgs);
     return NULL;
 }
 
@@ -25,8 +25,8 @@ CtsResult ctsCreateThread(
 ) {
     CtsThread thread = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsThread),
-        alignof(struct CtsThread),
+        sizeof(struct CtsThreadImpl),
+        alignof(struct CtsThreadImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 

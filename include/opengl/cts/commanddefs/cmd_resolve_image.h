@@ -15,7 +15,7 @@ typedef struct CtsCmdResolveImage {
     CtsImage dstImage;
     CtsImageLayout dstImageLayout;
     uint32_t regionCount;
-    const CtsImageResolve* pRegions;
+    CtsImageResolve* pRegions;
 } CtsCmdResolveImage;
 
 #ifdef __cplusplus

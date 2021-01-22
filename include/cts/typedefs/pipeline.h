@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <cts/typedefs/bool.h>
 #include <cts/typedefs/enums.h>
 #include <cts/typedefs/color_component_flags.h>
 #include <cts/typedefs/rect.h>
@@ -10,18 +11,19 @@
 #include <cts/typedefs/viewport.h>
 #include <cts/typedefs/vertex_input.h>
 #include <cts/typedefs/specialization_info.h>
+#include <cts/typedefs/pipeline_input_assembly_state_create_flags.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct CtsPipeline* CtsPipeline;
-typedef struct CtsPipelineCache* CtsPipelineCache;
+typedef struct CtsPipelineImpl* CtsPipeline;
+typedef struct CtsPipelineCacheImpl* CtsPipelineCache;
 
 typedef struct CtsPipelineShaderStageCreateInfo {
     CtsStructureType sType;
     const void* pNext;
-    CtsShaderType stage;
+    CtsShaderStageFlagBits stage;
     CtsShaderModule module;
     const char* pName;
     const CtsSpecializationInfo* pSpecializationInfo;
@@ -39,8 +41,9 @@ typedef struct CtsPipelineVertexInputStateCreateInfo {
 typedef struct CtsPipelineInputAssemblyStateCreateInfo {
     CtsStructureType sType;
     const void* pNext;
-    CtsPolygonMode polygonMode;
-    bool primitiveRestartEnable;
+    CtsPipelineInputAssemblyStateCreateFlags flags;
+    CtsPrimitiveTopology topology;
+    CtsBool32 primitiveRestartEnable;
 } CtsPipelineInputAssemblyStateCreateInfo;
 
 typedef struct CtsPipelineTessellationStateCreateInfo {
@@ -64,7 +67,7 @@ typedef struct CtsPipelineRasterizationStateCreateInfo {
     bool depthClampEnable;
     bool rasterizerDiscardEnable;
     CtsPolygonMode polygonMode;
-    CtsCullMode cullMode;
+    CtsCullModeFlags cullMode;
     CtsFrontFace frontFace;
     bool depthBiasEnable;
     float depthBiasConstantFactor;
@@ -89,7 +92,7 @@ typedef struct CtsPipelineDepthStencilStateCreateInfo {
     const void* pNext;
     bool depthTestEnable;
     bool depthWriteEnable;
-    CtsCompareOperator depthCompareOp;
+    CtsCompareOp depthCompareOp;
     bool depthBoundsTestEnable;
     bool stencilTestEnable;
     CtsStencilOpState front;
@@ -102,11 +105,11 @@ typedef struct CtsPipelineColorBlendAttachmentState {
     CtsStructureType sType;
     const void* pNext;
     bool blendEnable;
-    CtsBlendFunc srcColorBlendFactor;
-    CtsBlendFunc dstColorBlendFactor;
+    CtsBlendFactor srcColorBlendFactor;
+    CtsBlendFactor dstColorBlendFactor;
     CtsBlendOp colorBlendOp;
-    CtsBlendFunc srcAlphaBlendFactor;
-    CtsBlendFunc dstAlphaBlendFactor;
+    CtsBlendFactor srcAlphaBlendFactor;
+    CtsBlendFactor dstAlphaBlendFactor;
     CtsBlendOp alphaBlendOp;
     CtsColorComponentFlags colorWriteMask;
 } CtsPipelineColorBlendAttachmentState;

@@ -16,7 +16,7 @@ typedef struct CtsDescriptorSetLayoutBinding {
     const CtsSampler* pImmutableSamplers;
 } CtsDescriptorSetLayoutBinding;
 
-typedef struct CtsDescriptorSetLayout* CtsDescriptorSetLayout;
+typedef struct CtsDescriptorSetLayoutImpl* CtsDescriptorSetLayout;
 typedef struct CtsDescriptorSetLayoutCreateInfo {
     CtsStructureType sType;
     const void* pNext;

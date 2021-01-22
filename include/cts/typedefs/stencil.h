@@ -8,10 +8,10 @@ extern "C" {
 #endif
 
 typedef struct CtsStencilOpState {
-    CtsStencilAction failOp;
-    CtsStencilAction passOp;
-    CtsStencilAction depthFailOp;
-    CtsStencilAction compareOp;
+    CtsStencilOp failOp;
+    CtsStencilOp passOp;
+    CtsStencilOp depthFailOp;
+    CtsStencilOp compareOp;
     uint32_t compareMask;
     uint32_t writeMask;
     uint32_t reference;

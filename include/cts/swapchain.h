@@ -23,6 +23,20 @@ CtsResult ctsGetSwapchainImages(
     CtsImage* pSwapchainImages
 );
 
+CtsResult ctsAcquireNextImage(
+    CtsDevice device,
+    CtsSwapchain swapchain,
+    uint64_t timeout,
+    CtsSemaphore semaphore,
+    CtsFence fence,
+    uint32_t* pImageIndex
+);
+
+CtsResult ctsQueuePresent(
+    CtsQueue queue,
+    const CtsPresentInfo* pPresentInfo
+);
+
 void ctsDestroySwapchain(
     CtsDevice device,
     CtsSwapchain swapchain,

@@ -5,7 +5,6 @@
 #include <cts/type_mapper.h>
 #include <private/device_private.h>
 #include <private/descriptor_pool_private.h>
-#include <private/descriptor_private.h>
 #include <private/descriptor_set_layout_private.h>
 #include <private/descriptor_set_private.h>
 #include <private/queue_private.h>
@@ -16,29 +15,29 @@ extern "C" {
 
 static void writeImageView(
     CtsDevice device,
-    CtsDescriptorSet pDescriptorSet, 
-    CtsDescriptorType pDescriptorType, 
+    CtsDescriptorSet descriptorSet, 
+    CtsDescriptorType descriptorType, 
     const CtsDescriptorImageInfo* pDescriptorImageInfo, 
-    uint32_t pBinding, 
-    uint32_t pElement
+    uint32_t binding, 
+    uint32_t element
 );
 
 static void writeBufferView(
     CtsDevice device,
-    CtsDescriptorSet pDescriptorSet, 
-    CtsDescriptorType pDescriptorType, 
+    CtsDescriptorSet descriptorSet, 
+    CtsDescriptorType descriptorType, 
     CtsBufferView pBufferView, 
-    uint32_t pBinding, 
-    uint32_t pElement
+    uint32_t binding, 
+    uint32_t element
 );
 
 static void writeBuffer(
     CtsDevice device,
-    CtsDescriptorSet pDescriptorSet, 
-    CtsDescriptorType pDescriptorType, 
+    CtsDescriptorSet descriptorSet, 
+    CtsDescriptorType descriptorType, 
     const CtsDescriptorBufferInfo* pDescriptorBufferInfo, 
-    uint32_t pBinding, 
-    uint32_t pElement
+    uint32_t binding, 
+    uint32_t element
 );
 
 CtsResult ctsAllocateDescriptorSets(
@@ -56,11 +55,11 @@ CtsResult ctsAllocateDescriptorSets(
     cmd.pDescriptorSets = pDescriptorSets;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
-
+ 
 void ctsUpdateDescriptorSets(
     CtsDevice device,
     uint32_t descriptorWriteCount,
@@ -78,7 +77,7 @@ void ctsUpdateDescriptorSets(
     cmd.descriptorCopyCount = descriptorCopyCount;
     cmd.pDescriptorCopies = pDescriptorCopies;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 }
 
 CtsResult ctsFreeDescriptorSets(
@@ -98,7 +97,7 @@ CtsResult ctsFreeDescriptorSets(
     cmd.pDescriptorSets = pDescriptorSets;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -114,7 +113,13 @@ CtsResult ctsAllocateDescriptorSetsImpl(
     uint32_t i = 0;
 
     for (; i < pAllocateInfo->descriptorSetCount; ++i) {
-        CtsDescriptorSet descriptorSet = ctsDescriptorPoolAllocateSet(pAllocateInfo->descriptorPool);
+        CtsDescriptorSet descriptorSet = ctsAllocation(
+            &pAllocateInfo->descriptorPool->allocator,
+            sizeof(struct CtsDescriptorSetImpl),
+            alignof(struct CtsDescriptorSetImpl),
+            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        );
+        
         if (descriptorSet == NULL) {
             result = CTS_ERROR_OUT_OF_HOST_MEMORY;
             break;
@@ -131,9 +136,9 @@ CtsResult ctsAllocateDescriptorSetsImpl(
         descriptorSet->layout = layout;
         descriptorSet->descriptorCount = descriptorCount;
         descriptorSet->descriptors = ctsAllocation(
-            &pAllocateInfo->descriptorPool->linearAllocator,
-            sizeof(struct CtsDescriptor) * descriptorCount,
-            alignof(struct CtsDescriptor),
+            &pAllocateInfo->descriptorPool->allocator,
+            sizeof(CtsGlDescriptor) * descriptorCount,
+            alignof(CtsGlDescriptor),
             CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
@@ -248,7 +253,7 @@ CtsResult ctsFreeDescriptorSetsImpl(
     const CtsDescriptorSet* pDescriptorSets
 ) {
     for (uint32_t i = 0; descriptorSetCount; ++i) {
-        ctsFree(&descriptorPool->linearAllocator, pDescriptorSets[i]);
+        ctsFree(&descriptorPool->allocator, pDescriptorSets[i]);
     }
 
     return CTS_SUCCESS;
@@ -256,31 +261,31 @@ CtsResult ctsFreeDescriptorSetsImpl(
 
 static void writeImageView(
     CtsDevice device,
-    CtsDescriptorSet pDescriptorSet, 
-    CtsDescriptorType pDescriptorType, 
+    CtsDescriptorSet descriptorSet, 
+    CtsDescriptorType descriptorType, 
     const CtsDescriptorImageInfo* pDescriptorImageInfo, 
-    uint32_t pBinding, 
-    uint32_t pElement
+    uint32_t binding, 
+    uint32_t element
 ) {
-    const CtsGlDescriptorSetLayoutBinding* bindLayout = &pDescriptorSet->layout->bindings[pBinding];
-    CtsDescriptor descriptor = pDescriptorSet->descriptors[pElement];
+    const CtsGlDescriptorSetLayoutBinding* bindLayout = &descriptorSet->layout->bindings[binding];
+    CtsGlDescriptor* descriptor = &descriptorSet->descriptors[element];
 
-    assert(pDescriptorType == bindLayout->descriptorType || pDescriptorType == CTS_DESCRIPTOR_TYPE_SAMPLER);
+    assert(descriptorType == bindLayout->descriptorType || descriptorType == CTS_DESCRIPTOR_TYPE_SAMPLER);
 
     CtsImageView imageView = NULL;
     CtsSampler sampler = NULL;
 
-    switch (pDescriptorType) {
+    switch (descriptorType) {
         case CTS_DESCRIPTOR_TYPE_SAMPLER: {
             sampler = bindLayout->immutableSamplers
-                ? bindLayout->immutableSamplers[pElement]
+                ? bindLayout->immutableSamplers[element]
                 : pDescriptorImageInfo->sampler;
         } break;
 
         case CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
             imageView = pDescriptorImageInfo->imageView;
             sampler = bindLayout->immutableSamplers
-                ? bindLayout->immutableSamplers[pElement]
+                ? bindLayout->immutableSamplers[element]
                 : pDescriptorImageInfo->sampler;
         } break;
 
@@ -295,7 +300,7 @@ static void writeImageView(
         } break;
     }
     
-    descriptor->type = pDescriptorType;
+    descriptor->type = descriptorType;
     descriptor->imageViewContainer.imageView = imageView;
     descriptor->imageViewContainer.sampler = sampler;
 }
@@ -303,33 +308,33 @@ static void writeImageView(
 
 static void writeBufferView(
     CtsDevice device,
-    CtsDescriptorSet pDescriptorSet, 
-    CtsDescriptorType pDescriptorType, 
-    CtsBufferView pBufferView, 
-    uint32_t pBinding, 
-    uint32_t pElement
+    CtsDescriptorSet descriptorSet, 
+    CtsDescriptorType descriptorType, 
+    CtsBufferView bufferView, 
+    uint32_t binding, 
+    uint32_t element
 ) {
-    const CtsGlDescriptorSetLayoutBinding* bindLayout = &pDescriptorSet->layout->bindings[pBinding];
-    CtsDescriptor descriptor = pDescriptorSet->descriptors[pElement];
+    const CtsGlDescriptorSetLayoutBinding* bindLayout = &descriptorSet->layout->bindings[binding];
+    CtsGlDescriptor* descriptor = &descriptorSet->descriptors[element];
 
-    assert(pDescriptorType == bindLayout->descriptorType);
+    assert(descriptorType == bindLayout->descriptorType);
 
-    descriptor->type = pDescriptorType;
-    descriptor->bufferViewContainer.bufferView = pBufferView;
+    descriptor->type = descriptorType;
+    descriptor->bufferViewContainer.bufferView = bufferView;
 }
 
 static void writeBuffer(
     CtsDevice device,
-    CtsDescriptorSet pDescriptorSet, 
-    CtsDescriptorType pDescriptorType, 
+    CtsDescriptorSet descriptorSet, 
+    CtsDescriptorType descriptorType, 
     const CtsDescriptorBufferInfo* pDescriptorBufferInfo, 
-    uint32_t pBinding, 
-    uint32_t pElement
+    uint32_t binding, 
+    uint32_t element
 ) {
-    const CtsGlDescriptorSetLayoutBinding* bindLayout = &pDescriptorSet->layout->bindings[pBinding];
-    CtsDescriptor descriptor = pDescriptorSet->descriptors[pElement];
+    const CtsGlDescriptorSetLayoutBinding* bindLayout = &descriptorSet->layout->bindings[binding];
+    CtsGlDescriptor* descriptor = &descriptorSet->descriptors[element];
 
-    assert(pDescriptorType == bindLayout->descriptorType);
+    assert(descriptorType == bindLayout->descriptorType);
 
     CtsBuffer buffer = NULL;
     size_t offset = 0;
@@ -341,7 +346,7 @@ static void writeBuffer(
         range = pDescriptorBufferInfo->range;
     }
 
-    descriptor->type = pDescriptorType;
+    descriptor->type = descriptorType;
     descriptor->bufferContainer.buffer = buffer;
     descriptor->bufferContainer.offset = offset;
     descriptor->bufferContainer.range = range;

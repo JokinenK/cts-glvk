@@ -18,8 +18,8 @@ CtsResult ctsCreateDescriptorPool(
 
     CtsDescriptorPool descriptorPool = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsDescriptorPool),
-        alignof(struct CtsDescriptorPool),
+        sizeof(struct CtsDescriptorPoolImpl),
+        alignof(struct CtsDescriptorPoolImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -30,8 +30,8 @@ CtsResult ctsCreateDescriptorPool(
     CtsLinearAllocatorCreateInfo linearAllocatorCreateInfo;
     linearAllocatorCreateInfo.pAllocator = pAllocator;
     linearAllocatorCreateInfo.growSize = 2ULL * 1024 * 1024; // 2Mb
-    ctsCreateLinearAllocator(&descriptorPool->linearAllocatorInstance, &linearAllocatorCreateInfo);
-    ctsGetLinearAllocatorCallbacks(descriptorPool->linearAllocatorInstance, &descriptorPool->linearAllocator);
+    ctsCreateLinearAllocator(&descriptorPool->linearAllocator, &linearAllocatorCreateInfo);
+    ctsGetLinearAllocatorCallbacks(descriptorPool->linearAllocator, &descriptorPool->allocator);
 
     *pDescriptorPool = descriptorPool;
     return CTS_SUCCESS;
@@ -45,17 +45,6 @@ void ctsDestroyDescriptorPool(
     if (descriptorPool != NULL) {
         ctsFree(pAllocator, descriptorPool);
     }
-}
-
-CtsDescriptorSet ctsDescriptorPoolAllocateSet(
-    CtsDescriptorPool descriptorPool
-) {
-    return ctsAllocation(
-        &descriptorPool->linearAllocator,
-        sizeof(struct CtsDescriptorSet),
-        alignof(struct CtsDescriptorSet),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
-    );
 }
 
 #ifdef __cplusplus

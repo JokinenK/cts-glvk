@@ -2,19 +2,16 @@
 
 #include <cts/allocator.h>
 #include <cts/linear_allocator.h>
+#include <cts/typedefs/descriptor_pool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsDescriptorPool {
-    CtsLinearAllocator linearAllocatorInstance;
-    CtsAllocationCallbacks linearAllocator;
+struct CtsDescriptorPoolImpl {
+    CtsLinearAllocator linearAllocator;
+    CtsAllocationCallbacks allocator; 
 };
-
-CtsDescriptorSet ctsDescriptorPoolAllocateSet(
-    CtsDescriptorPool descriptorPool
-);
 
 #ifdef __cplusplus
 }

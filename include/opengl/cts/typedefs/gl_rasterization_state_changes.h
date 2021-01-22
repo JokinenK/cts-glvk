@@ -7,8 +7,6 @@ extern "C" {
 #endif
 
 typedef struct CtsGlRasterizationStateChanges {
-    bool depthClampEnableChanged;
-    bool rasterizerDiscardEnableChanged;
     bool polygonModeChanged;
     bool cullModeChanged;
     bool frontFaceChanged;

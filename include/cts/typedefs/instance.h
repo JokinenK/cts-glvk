@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsInstance* CtsInstance;
+typedef struct CtsInstanceImpl* CtsInstance;
 
 typedef struct CtsInstanceCreateInfo {
     CtsStructureType sType;

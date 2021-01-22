@@ -28,7 +28,7 @@ CtsResult ctsCreateImageView(
     cmd.pImageView = pImageView;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -46,7 +46,7 @@ void ctsDestroyImageView(
     cmd.imageView = imageView;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 }
 
 CtsResult ctsCreateImageViewImpl(
@@ -59,8 +59,8 @@ CtsResult ctsCreateImageViewImpl(
 
     CtsImageView imageView = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsImageView),
-        alignof(struct CtsImageView),
+        sizeof(struct CtsImageViewImpl),
+        alignof(struct CtsImageViewImpl),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
@@ -71,10 +71,14 @@ CtsResult ctsCreateImageViewImpl(
     CtsFormatData formatData = parseFormat(pCreateInfo->format);
     (void) pCreateInfo->components;
 
+    imageView->image = pCreateInfo->image;
+    imageView->target = parseImageViewType(pCreateInfo->viewType);
+    imageView->viewType = pCreateInfo->viewType;
+
     glGenTextures(1, &imageView->handle);
     glTextureView(
         imageView->handle,
-        pCreateInfo->image->target,
+        imageView->target,
         pCreateInfo->image->handle,
         formatData.internalFormat,
         pCreateInfo->subresourceRange.baseMipLevel,
@@ -82,9 +86,6 @@ CtsResult ctsCreateImageViewImpl(
         pCreateInfo->subresourceRange.baseArrayLayer,
         pCreateInfo->subresourceRange.layerCount
     );
-
-    imageView->imageUsage = pCreateInfo->image->imageUsage;
-    imageView->viewType = pCreateInfo->viewType;
 
     *pImageView = imageView;
     return CTS_SUCCESS;

@@ -149,7 +149,7 @@ CtsResult ctsCreateGraphicsPipelines(
     cmd.pPipelines = pPipelines;
     cmd.pResult = &result;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 
     return result;
 }
@@ -166,7 +166,7 @@ void ctsDestroyPipeline(
     cmd.pipeline = pipeline;
     cmd.pAllocator = pAllocator;
 
-    ctsQueueDispatch(device->queue, &cmd.base, device->dispatch.mutex, device->dispatch.conditionVariable);
+    ctsQueueDispatch(device->queue, &cmd.base);
 }
 
 CtsResult ctsCreateGraphicsPipelinesImpl(
@@ -186,8 +186,8 @@ CtsResult ctsCreateGraphicsPipelinesImpl(
     for (; i < createInfoCount; ++i) {
         CtsPipeline pipeline = ctsAllocation(
             pAllocator,
-            sizeof(struct CtsPipeline),
-            alignof(struct CtsPipeline),
+            sizeof(struct CtsPipelineImpl),
+            alignof(struct CtsPipelineImpl),
             CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
@@ -219,6 +219,10 @@ void ctsDestroyPipelineImpl(
     if (pipeline != NULL) {
         switch (pipeline->bindPoint) {
             case CTS_PIPELINE_BIND_POINT_GRAPHICS: {
+                if (device->activeGraphicsPipeline == pipeline->graphics) {
+                    device->activeGraphicsPipeline = NULL;
+                }
+
                 destroyGraphicsPipeline(pipeline->graphics, pAllocator);
             } break;
         }
@@ -252,7 +256,7 @@ static CtsGlGraphicsPipeline* createGraphicsPipeline(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     ); 
     
-    createShader(pCreateInfo->stageCount, pCreateInfo->stages, pAllocator, &graphicsPipeline->shader);
+    createShader(pCreateInfo->stageCount, pCreateInfo->pStages, pAllocator, &graphicsPipeline->shader);
     createVertexInputState(pCreateInfo->pVertexInputState, pAllocator, &graphicsPipeline->vertexInputState);
     createInputAssemblyState(pCreateInfo->pInputAssemblyState, pAllocator, &graphicsPipeline->inputAssemblyState);
     createTessellationState(pCreateInfo->pTessellationState, pAllocator, &graphicsPipeline->tessellationState);
@@ -285,7 +289,6 @@ static void destroyGraphicsPipeline(
         destroyMultisampleState(&pGraphicsPipeline->multisampleState, pAllocator);
         destroyDepthStencilState(&pGraphicsPipeline->depthStencilState, pAllocator);
         destroyColorBlendState(&pGraphicsPipeline->colorBlendState, pAllocator);
-
         ctsFree(pAllocator, pGraphicsPipeline);
     }
 }
@@ -311,14 +314,15 @@ static void createShader(
 
     GLint success;
     GLchar buffer[512];
-    GLsizei bufferLen;
+    GLuint shaderType;
 
     for (uint32_t i = 0; i < stageCount; ++i) {
         const CtsPipelineShaderStageCreateInfo* pCreateInfo = &pCreateInfos[i];
         CtsGlShaderStage* stage = &pShader->pStages[i];
 
+        shaderType = parseShaderType(pCreateInfo->stage);
         stage->pName = pCreateInfo->pName;
-        stage->handle = glCreateShader(parseShaderType(pCreateInfo->stage));
+        stage->handle = glCreateShader(shaderType);
         const char* source = pCreateInfo->module->code;
         const int sourceLen = (const int)pCreateInfo->module->codeSize;
 
@@ -327,11 +331,12 @@ static void createShader(
         glGetShaderiv(stage->handle, GL_COMPILE_STATUS, &success);
 
         if (success) {
-            glAttachShader(pShader->handle, pShader->handle);
+            glAttachShader(pShader->handle, stage->handle);
         }
         else {
-            glGetShaderInfoLog(pShader->handle, sizeof(buffer), &bufferLen, buffer);
-            fprintf(stderr, "Shader compilation failed for stage %s. Reason %s", stage->pName, buffer);
+            memset(buffer, 0, sizeof(buffer));
+            glGetShaderInfoLog(stage->handle, sizeof(buffer), NULL, buffer);
+            fprintf(stderr, "Shader compilation failed for stage %d named %s. Reason %s", shaderType, stage->pName, buffer);
         }
     }
 
@@ -339,7 +344,7 @@ static void createShader(
     glGetProgramiv(pShader->handle, GL_LINK_STATUS, &success);
 
     if (!success) {
-        glGetProgramInfoLog(pShader->handle, sizeof(buffer), &bufferLen, buffer);
+        glGetProgramInfoLog(pShader->handle, sizeof(buffer), NULL, buffer);
         fprintf(stderr, "Shader linking failed: %s", buffer);
     }
 }
@@ -348,14 +353,12 @@ static void destroyShader(
     CtsGlShader* pInstance,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pInstance != NULL) {
-        for (uint32_t i = 0; i < pInstance->stageCount; ++i) {
-            glDeleteShader(pInstance->pStages[i].handle);
-        }
-
-        glDeleteProgram(pInstance->handle);
-        ctsFree(pAllocator, pInstance->pStages);
+    for (uint32_t i = 0; i < pInstance->stageCount; ++i) {
+        glDeleteShader(pInstance->pStages[i].handle);
     }
+
+    glDeleteProgram(pInstance->handle);
+    ctsFree(pAllocator, pInstance->pStages);
 }
 
 static void createVertexInputState(
@@ -364,40 +367,61 @@ static void createVertexInputState(
     CtsGlPipelineVertexInputState* pVertexInputState
 ) {
     if (pCreateInfo == NULL) {
+        pVertexInputState->initialized = false;
         return;
     }
+    
+    glGenVertexArrays(1, &pVertexInputState->vao);
+    glBindVertexArray(pVertexInputState->vao);
 
-    pVertexInputState->vertexAttributeDescriptionCount = pCreateInfo->vertexAttributeDescriptionCount;
-    pVertexInputState->pVertexAttributeDescriptions = ctsAllocation(
+    pVertexInputState->initialized = true;
+    pVertexInputState->vertexBindingDescriptionCount = pCreateInfo->vertexBindingDescriptionCount;
+    pVertexInputState->pVertexBindingDescriptions = ctsAllocation(
         pAllocator,
-        sizeof(CtsGlVertexInputAttributeDescription) * pCreateInfo->vertexAttributeDescriptionCount,
-        alignof(CtsGlVertexInputAttributeDescription),
+        sizeof(CtsVertexInputBindingDescription) * pCreateInfo->vertexBindingDescriptionCount,
+        alignof(CtsVertexInputBindingDescription),
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
+    memcpy(
+        pVertexInputState->pVertexBindingDescriptions,
+        pCreateInfo->pVertexBindingDescriptions,
+        sizeof(CtsVertexInputBindingDescription) * pCreateInfo->vertexBindingDescriptionCount
+    );
+
     for (uint32_t i = 0; i < pCreateInfo->vertexAttributeDescriptionCount; ++i) {
-        uint32_t binding = pCreateInfo->pVertexAttributeDescriptions[i].binding;
-        CtsAttributeMapping attribute = parseAttributeMapping(pCreateInfo->pVertexAttributeDescriptions[i].format);
+        const CtsVertexInputAttributeDescription* pVertexAttributeDescription = &pCreateInfo->pVertexAttributeDescriptions[i];
+        CtsFormatData formatData = parseFormat(pVertexAttributeDescription->format);
 
-        // From attribute descriptions
-        pVertexInputState->pVertexAttributeDescriptions[i].binding = binding;
-        pVertexInputState->pVertexAttributeDescriptions[i].location = pCreateInfo->pVertexAttributeDescriptions[i].location;
-        pVertexInputState->pVertexAttributeDescriptions[i].format = attribute.type;
-        pVertexInputState->pVertexAttributeDescriptions[i].numComponents = attribute.numComponent;
-        pVertexInputState->pVertexAttributeDescriptions[i].offset = pCreateInfo->pVertexAttributeDescriptions[i].offset;
+        glVertexAttribFormat(
+            pVertexAttributeDescription->location,
+            formatData.numComponents,
+            formatData.type,
+            formatData.normalized,
+            pVertexAttributeDescription->offset
+        );
 
-        // From binding descriptions
-        pVertexInputState->pVertexAttributeDescriptions[i].stride = pCreateInfo->pVertexBindingDescriptions[binding].stride;
-        pVertexInputState->pVertexAttributeDescriptions[i].inputRate = pCreateInfo->pVertexBindingDescriptions[binding].inputRate;
+        glVertexAttribBinding(pVertexAttributeDescription->location, pVertexAttributeDescription->binding);
+        glEnableVertexAttribArray(pVertexAttributeDescription->location);
     }
+
+    glBindVertexArray(0);
 }
 
 static void destroyVertexInputState(
-    CtsGlPipelineVertexInputState* pInstance,
+    CtsGlPipelineVertexInputState* pVertexInputState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pInstance != NULL) {
-        ctsFree(pAllocator, pInstance->pVertexAttributeDescriptions);
+    pVertexInputState->initialized = false;
+    
+    if (pVertexInputState->vao != 0) {
+        glDeleteVertexArrays(1, &pVertexInputState->vao);
+        pVertexInputState->vao = 0;
+    }
+    
+    if (pVertexInputState->pVertexBindingDescriptions != NULL) {
+        ctsFree(pAllocator, pVertexInputState->pVertexBindingDescriptions);
+        pVertexInputState->pVertexBindingDescriptions = NULL;
     }
 }
 
@@ -407,18 +431,20 @@ static void createInputAssemblyState(
     CtsGlPipelineInputAssemblyState* pInputAssemblyState
 ) {
     if (pCreateInfo == NULL) {
+        pInputAssemblyState->initialized = false;
         return;
     }
 
-    pInputAssemblyState->polygonMode = parsePolygonMode(pCreateInfo->polygonMode);
+    pInputAssemblyState->initialized = true;
+    pInputAssemblyState->topology = parsePrimitiveTopology(pCreateInfo->topology);
     pInputAssemblyState->primitiveRestartEnable = pCreateInfo->primitiveRestartEnable;
 }
 
 static void destroyInputAssemblyState(
-    CtsGlPipelineInputAssemblyState* pInstance,
+    CtsGlPipelineInputAssemblyState* pInputAssemblyState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    // Nothing to do
+    pInputAssemblyState->initialized = false;
 }
 
 static void createTessellationState(
@@ -426,17 +452,19 @@ static void createTessellationState(
     const CtsAllocationCallbacks* pAllocator,
     CtsGlPipelineTessellationState* pTesselationState
 ) {
-    // Not implemented yet
     if (pCreateInfo == NULL) {
+        pTesselationState->initialized = false;
         return;
     }
+
+    pTesselationState->initialized = true;
 }
 
 static void destroyTessellationState(
-    CtsGlPipelineTessellationState* pInstance,
+    CtsGlPipelineTessellationState* pTesselationState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    // Not implemented yet
+    pTesselationState->initialized = false;
 }
 
 static void createViewportState(
@@ -445,9 +473,11 @@ static void createViewportState(
     CtsGlPipelineViewportState* pViewportState
 ) {
     if (pCreateInfo == NULL) {
+        pViewportState->initialized = false;
         return;
     }
 
+    pViewportState->initialized = true;
     pViewportState->viewportCount = pCreateInfo->viewportCount;
     pViewportState->pViewports = ctsAllocation(
         pAllocator,
@@ -482,12 +512,19 @@ static void createViewportState(
 }
 
 static void destroyViewportState(
-    CtsGlPipelineViewportState* pInstance,
+    CtsGlPipelineViewportState* pViewportState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pInstance != NULL) {
-        ctsFree(pAllocator, pInstance->pViewports);
-        ctsFree(pAllocator, pInstance->pScissors);
+    pViewportState->initialized = false;
+    
+    if (pViewportState->pViewports != NULL) {
+        ctsFree(pAllocator, pViewportState->pViewports);
+        pViewportState->pViewports = NULL;
+    }
+
+    if (pViewportState->pScissors != NULL) {
+        ctsFree(pAllocator, pViewportState->pScissors);
+        pViewportState->pScissors = NULL;
     }
 }
 
@@ -497,9 +534,11 @@ static void createRasterizationState(
     CtsGlPipelineRasterizationState* pRasterizationState
 ) {
     if (pCreateInfo == NULL) {
+        pRasterizationState->initialized = false;
         return;
     }
 
+    pRasterizationState->initialized = true;
     pRasterizationState->depthClampEnable        = pCreateInfo->depthClampEnable;
     pRasterizationState->rasterizerDiscardEnable = pCreateInfo->rasterizerDiscardEnable;
     pRasterizationState->polygonMode             = parsePolygonMode(pCreateInfo->polygonMode);
@@ -513,10 +552,10 @@ static void createRasterizationState(
 }
 
 static void destroyRasterizationState(
-    CtsGlPipelineRasterizationState* pInstance,
+    CtsGlPipelineRasterizationState* pRasterizationState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    // Nothing to do
+    pRasterizationState->initialized = false;
 }
 
 static void createMultisampleState(
@@ -524,17 +563,19 @@ static void createMultisampleState(
     const CtsAllocationCallbacks* pAllocator,
     CtsGlPipelineMultisampleState* pMultisampleState
 ) {
-    // Not implemented yet
     if (pCreateInfo == NULL) {
+        pMultisampleState->initialized = false;
         return;
     }
+
+    pMultisampleState->initialized = true;
 }
 
 static void destroyMultisampleState(
-    CtsGlPipelineMultisampleState* pInstance,
+    CtsGlPipelineMultisampleState* pMultisampleState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    // Not implemented yet
+    pMultisampleState->initialized = false;
 }
 
 static void createDepthStencilState(
@@ -543,39 +584,41 @@ static void createDepthStencilState(
     CtsGlPipelineDepthStencilState* pDepthStencilState
 ) {
     if (pCreateInfo == NULL) {
+        pDepthStencilState->initialized = false;
         return;
     }
 
+    pDepthStencilState->initialized           = true;
     pDepthStencilState->depthTestEnable       = pCreateInfo->depthBoundsTestEnable;
     pDepthStencilState->depthWriteEnable      = pCreateInfo->depthWriteEnable;
-    pDepthStencilState->depthCompareOp        = parseCompareOperator(pCreateInfo->depthCompareOp);
+    pDepthStencilState->depthCompareOp        = parseCompareOp(pCreateInfo->depthCompareOp);
     pDepthStencilState->depthBoundsTestEnable = pCreateInfo->depthBoundsTestEnable;
     pDepthStencilState->stencilTestEnable     = pCreateInfo->stencilTestEnable;
     pDepthStencilState->minDepthBounds        = pCreateInfo->minDepthBounds;
     pDepthStencilState->maxDepthBounds        = pCreateInfo->maxDepthBounds;
   
-    pDepthStencilState->frontFailOp           = parseStencilAction(pCreateInfo->front.failOp);
-    pDepthStencilState->frontPassOp           = parseStencilAction(pCreateInfo->front.passOp);
-    pDepthStencilState->frontDepthFailOp      = parseStencilAction(pCreateInfo->front.depthFailOp);
-    pDepthStencilState->frontCompareOp        = parseStencilAction(pCreateInfo->front.compareOp);
+    pDepthStencilState->frontFailOp           = parseStencilOp(pCreateInfo->front.failOp);
+    pDepthStencilState->frontPassOp           = parseStencilOp(pCreateInfo->front.passOp);
+    pDepthStencilState->frontDepthFailOp      = parseStencilOp(pCreateInfo->front.depthFailOp);
+    pDepthStencilState->frontCompareOp        = parseStencilOp(pCreateInfo->front.compareOp);
     pDepthStencilState->frontCompareMask      = pCreateInfo->front.compareMask;
     pDepthStencilState->frontWriteMask        = pCreateInfo->front.writeMask;
     pDepthStencilState->frontReference        = pCreateInfo->front.reference;
 
-    pDepthStencilState->backFailOp            = parseStencilAction(pCreateInfo->back.failOp);
-    pDepthStencilState->backPassOp            = parseStencilAction(pCreateInfo->back.passOp);
-    pDepthStencilState->backDepthFailOp       = parseStencilAction(pCreateInfo->back.depthFailOp);
-    pDepthStencilState->backCompareOp         = parseStencilAction(pCreateInfo->back.compareOp);
+    pDepthStencilState->backFailOp            = parseStencilOp(pCreateInfo->back.failOp);
+    pDepthStencilState->backPassOp            = parseStencilOp(pCreateInfo->back.passOp);
+    pDepthStencilState->backDepthFailOp       = parseStencilOp(pCreateInfo->back.depthFailOp);
+    pDepthStencilState->backCompareOp         = parseStencilOp(pCreateInfo->back.compareOp);
     pDepthStencilState->backCompareMask       = pCreateInfo->back.compareMask;
     pDepthStencilState->backWriteMask         = pCreateInfo->back.writeMask;
     pDepthStencilState->backReference         = pCreateInfo->back.reference;
 }
 
 static void destroyDepthStencilState(
-    CtsGlPipelineDepthStencilState* pInstance,
+    CtsGlPipelineDepthStencilState* pDepthStencilState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    // Nothing to do
+    pDepthStencilState->initialized = false;
 }
 
 static void createColorBlendState(
@@ -584,9 +627,11 @@ static void createColorBlendState(
     CtsGlPipelineColorBlendState* pColorBlendState
 ) {
     if (pCreateInfo == NULL) {
+        pColorBlendState->initialized = false;
         return;    
     }
 
+    pColorBlendState->initialized = true;
     pColorBlendState->attachmentCount = pCreateInfo->attachmentCount;
     pColorBlendState->pAttachments = ctsAllocation(
         pAllocator,
@@ -601,22 +646,25 @@ static void createColorBlendState(
         CtsGlPipelineColorBlendStateAttachment* target = &pColorBlendState->pAttachments[i];
         const CtsPipelineColorBlendAttachmentState* source = &pCreateInfo->pAttachments[i];
         target->blendEnable         = source->blendEnable;
-        target->srcColorBlendFactor = parseBlendFunc(source->srcColorBlendFactor);
-        target->dstColorBlendFactor = parseBlendFunc(source->dstColorBlendFactor);
+        target->srcColorBlendFactor = parseBlendFactor(source->srcColorBlendFactor);
+        target->dstColorBlendFactor = parseBlendFactor(source->dstColorBlendFactor);
         target->colorBlendOp        = parseBlendOperation(source->colorBlendOp);
-        target->srcAlphaBlendFactor = parseBlendFunc(source->srcAlphaBlendFactor);
-        target->dstAlphaBlendFactor = parseBlendFunc(source->dstAlphaBlendFactor);
+        target->srcAlphaBlendFactor = parseBlendFactor(source->srcAlphaBlendFactor);
+        target->dstAlphaBlendFactor = parseBlendFactor(source->dstAlphaBlendFactor);
         target->alphaBlendOp        = parseBlendOperation(source->alphaBlendOp);
         target->colorWriteMask      = source->colorWriteMask;
     }
 }
 
 static void destroyColorBlendState(
-    CtsGlPipelineColorBlendState* pInstance,
+    CtsGlPipelineColorBlendState* pColorBlendState,
     const CtsAllocationCallbacks* pAllocator
 ) {
-    if (pInstance->pAttachments != NULL) {
-        ctsFree(pAllocator, pInstance->pAttachments);
+    pColorBlendState->initialized = false;
+
+    if (pColorBlendState->pAttachments != NULL) {
+        ctsFree(pAllocator, pColorBlendState->pAttachments);
+        pColorBlendState->pAttachments = NULL;
     }
 }
 

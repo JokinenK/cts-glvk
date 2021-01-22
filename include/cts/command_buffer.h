@@ -8,19 +8,6 @@
 extern "C" {
 #endif
 
-CtsResult ctsAllocateCommandBuffers(
-    CtsDevice device,
-    const CtsCommandBufferAllocateInfo* pAllocateInfo,
-    CtsCommandBuffer* pCommandBuffers
-);
-
-void ctsFreeCommandBuffers(
-    CtsDevice device,
-    CtsCommandPool commandPool,
-    uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
-);
-
 CtsResult ctsBeginCommandBuffer(
     CtsCommandBuffer commandBuffer,
     const CtsCommandBufferBeginInfo* pBeginInfo
@@ -384,11 +371,6 @@ void ctsCmdWriteTimestamp(
     CtsPipelineStageFlagBits pipelineStage,
     CtsQueryPool queryPool,
     uint32_t query
-);
-
-void* ctsCommandBufferAllocateCommand(
-    CtsCommandBuffer commandBuffer,
-    CtsCommandType commandType
 );
 
 #ifdef __cplusplus

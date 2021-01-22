@@ -1,25 +1,25 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <cts/types.h>
+#include <cts/typedefs/render_pass.h>
+#include <cts/typedefs/gl_render_pass.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsRenderPass {
+struct CtsRenderPassImpl {
     CtsRenderPassCreateFlags flags;
     
     uint32_t attachmentCount;
     CtsAttachmentDescription* pAttachments;
-    
+    GLenum* pDrawBuffers;
+
     uint32_t subpassCount;
-    CtsSubpassDescription* pSubpasses;
+    CtsGlSubpassDescription* pSubpasses;
     
     uint32_t dependencyCount;
     CtsSubpassDependency* pDependencies;
-
-    GLenum* pDrawBuffers;
 };
 
 #ifdef __cplusplus

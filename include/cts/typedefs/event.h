@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsEvent* CtsEvent;
+typedef struct CtsEventImpl* CtsEvent;
 
 typedef struct CtsEventCreateInfo {
     CtsStructureType sType;

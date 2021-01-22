@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <cts/typedefs/pipeline_layout.h>
 #include <cts/typedefs/descriptor_set_layout.h>
 #include <cts/typedefs/push_constant_range.h>
 
@@ -8,7 +9,7 @@
 extern "C" {
 #endif
 
-struct CtsPipelineLayout {
+struct CtsPipelineLayoutImpl {
     uint32_t setLayoutCount;
     CtsDescriptorSetLayout* setLayouts;
     uint32_t pushConstantRangeCount;

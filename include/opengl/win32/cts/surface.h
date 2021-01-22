@@ -15,7 +15,7 @@ CtsResult ctsCreateWin32Surface(
     CtsSurface* pSurface
 );
 
-CtsResult ctsDestroyWin32Surface(
+void ctsDestroyWin32Surface(
     CtsSurface surface,
     const CtsAllocationCallbacks* pAllocator
 );

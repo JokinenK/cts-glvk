@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-typedef struct CtsRenderPass* CtsRenderPass;
+typedef struct CtsRenderPassImpl* CtsRenderPass;
 typedef struct CtsRenderPassCreateInfo {
     CtsStructureType sType;
     const void* pNext;
