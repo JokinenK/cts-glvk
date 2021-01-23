@@ -517,7 +517,7 @@ typedef enum CtsBorderColor {
     CTS_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
     CTS_BORDER_COLOR_INT_OPAQUE_WHITE = 5,
 
-    CTS_NUM_BORDER_COLORS
+    NUM_CTS_BORDER_COLORS
 } CtsBorderColor;
 
 typedef enum CtsCommandBufferState {

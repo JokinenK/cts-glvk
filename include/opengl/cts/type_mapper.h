@@ -27,13 +27,17 @@ const GLenum parseFrontFace(CtsFrontFace value);
 const GLenum parsePrimitiveTopology(CtsPrimitiveTopology value);
 const GLenum parsePolygonMode(CtsPolygonMode value);
 const GLenum parseSamplerAddressMode(CtsSamplerAddressMode value);
-const GLenum parseFilter(CtsFilter value);
+const GLenum parseMinFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode);
+const GLenum parseMagFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode);
 const GLenum parseShaderType(CtsShaderStageFlagBits value);
 const GLenum parseImageType(CtsImageType value, bool isArray);
 const GLenum parseImageViewType(CtsImageViewType value);
 const GLenum parseBufferUsage(CtsBufferUsageFlags value);
 const GLenum parseBlendFactor(CtsBlendFactor value);
 const GLenum parseBlendOperation(CtsBlendOp value);
+const bool isFloatBorderColor(CtsBorderColor borderColor);
+const float* parseBorderColorFloat(CtsBorderColor borderColor);
+const int* parseBorderColorInt(CtsBorderColor borderColor);
 
 const CtsFlags parseDynamicStateFlag(CtsDynamicState value);
 const CtsFormatData parseFormat(CtsFormat value);

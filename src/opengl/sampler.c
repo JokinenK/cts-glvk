@@ -67,21 +67,26 @@ CtsResult ctsCreateSamplerImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    (void) pCreateInfo->compareEnable;
-    (void) pCreateInfo->compareOp;
     (void) pCreateInfo->maxAnisotropy;
-    (void) pCreateInfo->maxLod;
-    (void) pCreateInfo->minLod;
-    (void) pCreateInfo->mipLodBias;
-    (void) pCreateInfo->mipmapMode;
     (void) pCreateInfo->unnormalizedCoordinates;
 
     glGenSamplers(1, &sampler->handle);
     glSamplerParameteri(sampler->handle, GL_TEXTURE_WRAP_S, parseSamplerAddressMode(pCreateInfo->addressModeU));
     glSamplerParameteri(sampler->handle, GL_TEXTURE_WRAP_T, parseSamplerAddressMode(pCreateInfo->addressModeV));
     glSamplerParameteri(sampler->handle, GL_TEXTURE_WRAP_R, parseSamplerAddressMode(pCreateInfo->addressModeW));
-    glSamplerParameteri(sampler->handle, GL_TEXTURE_MIN_FILTER, parseFilter(pCreateInfo->minFilter));
-    glSamplerParameteri(sampler->handle, GL_TEXTURE_MAG_FILTER, parseFilter(pCreateInfo->magFilter));
+    glSamplerParameteri(sampler->handle, GL_TEXTURE_MIN_FILTER, parseMinFilter(pCreateInfo->minFilter, pCreateInfo->mipmapMode));
+    glSamplerParameteri(sampler->handle, GL_TEXTURE_MAG_FILTER, parseMagFilter(pCreateInfo->magFilter, pCreateInfo->mipmapMode));
+    glSamplerParameterf(sampler->handle, GL_TEXTURE_MIN_LOD, pCreateInfo->minLod);
+    glSamplerParameterf(sampler->handle, GL_TEXTURE_MAX_LOD, pCreateInfo->maxLod);
+    glSamplerParameterf(sampler->handle, GL_TEXTURE_LOD_BIAS, pCreateInfo->mipLodBias);
+    glSamplerParameteri(sampler->handle, GL_TEXTURE_COMPARE_MODE, pCreateInfo->compareEnable ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE);
+    glSamplerParameteri(sampler->handle, GL_TEXTURE_COMPARE_FUNC, parseCompareOp(pCreateInfo->compareOp));
+
+    if (isFloatBorderColor(pCreateInfo->borderColor)) {
+        glSamplerParameterfv(sampler->handle, GL_TEXTURE_BORDER_COLOR, parseBorderColorFloat(pCreateInfo->borderColor));
+    } else {
+        glSamplerParameteriv(sampler->handle, GL_TEXTURE_BORDER_COLOR, parseBorderColorInt(pCreateInfo->borderColor));
+    }
 
     *pSampler = sampler;
     return CTS_SUCCESS;

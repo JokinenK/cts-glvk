@@ -72,9 +72,19 @@ static const GLenum sSamplerAddressModes[] = {
     GL_CLAMP_TO_BORDER
 };
 
-static const GLint sFilters[] = {
+static const GLint sMagFilters[] = {
     GL_NEAREST,
     GL_LINEAR
+};
+
+static const GLint sMinFiltersLinear[] = {
+    GL_LINEAR_MIPMAP_NEAREST,
+    GL_LINEAR_MIPMAP_LINEAR
+};
+
+static const GLint sMinFiltersNearest[] = {
+    GL_NEAREST_MIPMAP_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR
 };
 
 static GLenum sImageTypes[] = {
@@ -281,6 +291,33 @@ static const uint32_t sDynamicStates[] = {
     CTS_GL_DYNAMIC_STATE_STENCIL_REFERENCE_BIT
 };
 
+static const bool sBorderColorIsFloat[] = {
+    true,  // CTS_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0,
+    false, // CTS_BORDER_COLOR_INT_TRANSPARENT_BLACK = 1,
+    true,  // CTS_BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2,
+    false, // CTS_BORDER_COLOR_INT_OPAQUE_BLACK = 3,
+    true,  // CTS_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
+    false, // CTS_BORDER_COLOR_INT_OPAQUE_WHITE = 5,
+};
+
+static const float sBorderColorsFloat[][4] = {
+    {0.0f, 0.0f, 0.0f, 0.0f}, // CTS_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0,
+    {0.0f, 0.0f, 0.0f, 0.0f}, // CTS_BORDER_COLOR_INT_TRANSPARENT_BLACK = 1,
+    {0.0f, 0.0f, 0.0f, 1.0f}, // CTS_BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2,
+    {0.0f, 0.0f, 0.0f, 1.0f}, // CTS_BORDER_COLOR_INT_OPAQUE_BLACK = 3,
+    {1.0f, 1.0f, 1.0f, 1.0f}, // CTS_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
+    {1.0f, 1.0f, 1.0f, 1.0f}, // CTS_BORDER_COLOR_INT_OPAQUE_WHITE = 5,
+};
+
+static const int sBorderColorsInt[][4] = {
+    {0, 0, 0, 0}, // CTS_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0,
+    {0, 0, 0, 0}, // CTS_BORDER_COLOR_INT_TRANSPARENT_BLACK = 1,
+    {0, 0, 0, 1}, // CTS_BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2,
+    {0, 0, 0, 1}, // CTS_BORDER_COLOR_INT_OPAQUE_BLACK = 3,
+    {1, 1, 1, 1}, // CTS_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
+    {1, 1, 1, 1}, // CTS_BORDER_COLOR_INT_OPAQUE_WHITE = 5,
+};
+
 static_assert(COUNTOF(sCompareOps) == NUM_CTS_COMPARE_OPS, "Assertion failure");
 static_assert(COUNTOF(sStencilOps) == NUM_CTS_STENCIL_OPS, "Assertion failure");
 static_assert(COUNTOF(sCullModes) == NUM_CTS_CULL_MODES, "Assertion failure");
@@ -288,7 +325,9 @@ static_assert(COUNTOF(sFrontFaces) == NUM_CTS_FRONT_FACES, "Assertion failure");
 static_assert(COUNTOF(sPrimitiveTopologies) == NUM_CTS_PRIMITIVE_TOPOLOGIES, "Assertion failure");
 static_assert(COUNTOF(sPolygonModes) == NUM_CTS_POLYGON_MODES, "Assertion failure");
 static_assert(COUNTOF(sSamplerAddressModes) == NUM_CTS_SAMPLER_ADDRESS_MODES, "Assertion failure");
-static_assert(COUNTOF(sFilters) == NUM_CTS_FILTERS, "Assertion failure");
+static_assert(COUNTOF(sMagFilters) == NUM_CTS_FILTERS, "Assertion failure");
+static_assert(COUNTOF(sMinFiltersNearest) == NUM_CTS_FILTERS, "Assertion failure");
+static_assert(COUNTOF(sMinFiltersLinear) == NUM_CTS_FILTERS, "Assertion failure");
 static_assert(COUNTOF(sImageTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sImageArrayTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sImageViewTypes) == NUM_CTS_IMAGE_VIEW_TYPES, "Assertion failure");
@@ -296,6 +335,9 @@ static_assert(COUNTOF(sFormats) == NUM_CTS_FORMATS, "Assertion failure");
 static_assert(COUNTOF(sBlendFactors) == NUM_CTS_BLEND_FACTORS, "Assertion failure");
 static_assert(COUNTOF(sBlendOperations) == NUM_CTS_BLEND_OPS, "Assertion failure");
 static_assert(COUNTOF(sDynamicStates) == NUM_CTS_DYNAMIC_STATES, "Assertion failure");
+static_assert(COUNTOF(sBorderColorIsFloat) == NUM_CTS_BORDER_COLORS, "Assertion failure");
+static_assert(COUNTOF(sBorderColorsFloat) == NUM_CTS_BORDER_COLORS, "Assertion failure");
+static_assert(COUNTOF(sBorderColorsInt) == NUM_CTS_BORDER_COLORS, "Assertion failure");
 
 const GLenum parseCompareOp(CtsCompareOp value)
 {
@@ -332,9 +374,16 @@ const GLenum parseSamplerAddressMode(CtsSamplerAddressMode value)
     return sSamplerAddressModes[value];
 }
 
-const GLenum parseFilter(CtsFilter value)
+const GLenum parseMinFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode)
 {
-    return sFilters[value];
+    return (mipmapMode == CTS_SAMPLER_MIPMAP_MODE_LINEAR)
+        ? sMinFiltersLinear[filter]
+        : sMinFiltersNearest[filter];
+}
+
+const GLenum parseMagFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode)
+{
+    return sMagFilters[filter];
 }
 
 const GLenum parseShaderType(CtsShaderStageFlags value)
@@ -426,6 +475,21 @@ const CtsFlags parseDynamicStateFlag(CtsDynamicState value)
 const CtsFormatData parseFormat(CtsFormat value)
 {
     return sFormats[value];
+}
+
+const bool isFloatBorderColor(CtsBorderColor borderColor)
+{
+    return sBorderColorIsFloat[borderColor];
+}
+
+const float* parseBorderColorFloat(CtsBorderColor borderColor)
+{
+    return sBorderColorsFloat[borderColor];
+}
+
+const int* parseBorderColorInt(CtsBorderColor borderColor)
+{
+    return sBorderColorsInt[borderColor];
 }
 
 void parseRasterizationStateChanges(
