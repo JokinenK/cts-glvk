@@ -29,6 +29,14 @@ typedef enum CtsResult {
     CTS_ERROR_OUT_OF_DATE = -1000001004,
 } CtsResult;
 
+typedef enum CtsPhysicalDeviceType {
+    CTS_PHYSICAL_DEVICE_TYPE_OTHER = 0,
+    CTS_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1,
+    CTS_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2,
+    CTS_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3,
+    CTS_PHYSICAL_DEVICE_TYPE_CPU = 4,
+} CtsPhysicalDeviceType;
+
 typedef enum CtsFilter {
     CTS_FILTER_NEAREST = 0,
     CTS_FILTER_LINEAR = 1,

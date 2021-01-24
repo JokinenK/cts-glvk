@@ -75,7 +75,10 @@
 #include <cts/typedefs/mutex.h>
 #include <cts/typedefs/offset.h>
 #include <cts/typedefs/physical_device_features.h>
+#include <cts/typedefs/physical_device_limits.h>
 #include <cts/typedefs/physical_device_memory_properties.h>
+#include <cts/typedefs/physical_device_properties.h>
+#include <cts/typedefs/physical_device_sparse_properties.h>
 #include <cts/typedefs/physical_device.h>
 #include <cts/typedefs/pipeline_input_assembly_state_create_flags.h>
 #include <cts/typedefs/pipeline_layout.h>
