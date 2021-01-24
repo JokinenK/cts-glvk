@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <glad/glad.h>
 #include <cts/surface.h>
+#include <cts/device_info.h>
 #include <cts/typedefs/bool.h>
 #include <cts/typedefs/physical_device.h>
 #include <private/surface_private.h>
@@ -220,6 +221,19 @@ CtsResult ctsGetPhysicalDeviceSurfacePresentModes(
     }
 
     return CTS_SUCCESS;
+}
+
+bool ctsSurfaceQueryDeviceDetails(CtsSurface surface, uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID)
+{
+    CtsWin32DeviceInfo deviceInfo;
+    if (ctsWin32ParseDeviceInfo(vendorId, &deviceInfo)) {
+        *pDeviceId = deviceInfo.deviceId;
+        memcpy(pUUID, deviceInfo.uuid, sizeof(deviceInfo.uuid));
+
+        return true;
+    }
+
+    return false;
 }
 
 void ctsSurfaceMakeCurrent(CtsSurface surface)

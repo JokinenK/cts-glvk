@@ -20,6 +20,11 @@ CtsResult ctsEnumerateDeviceExtensionProperties(
     CtsExtensionProperties* pProperties
 );
 
+void ctsGetPhysicalDeviceProperties(
+    CtsPhysicalDevice physicalDevice,
+    CtsPhysicalDeviceProperties* pProperties
+);
+
 void ctsGetPhysicalDeviceMemoryProperties(
     CtsPhysicalDevice physicalDevice,
     CtsPhysicalDeviceMemoryProperties* pMemoryProperties

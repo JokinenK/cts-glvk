@@ -7,6 +7,12 @@
 extern "C" {
 #endif
 
+const char* getVendor();
+const char* getRenderer();
+
+uint32_t getVendorID();
+uint32_t getOpenGLVersion();
+
 CtsDeviceSize getUniformBufferOffsetAlignment();
 CtsDeviceSize getTextureBufferOffsetAlignment();
 

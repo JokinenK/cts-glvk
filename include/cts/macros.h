@@ -6,6 +6,10 @@
     (((uint32_t)(patch)) <<  0)\
 )
 
+#define CTS_VERSION_MAJOR(version)          (((uint32_t)(version) >> 22))
+#define CTS_VERSION_MINOR(version)          (((uint32_t)(version) >> 12) & 0x3ff)
+#define CTS_VERSION_PATCH(version)          (((uint32_t)(version) >>  0) & 0xfff))
+
 #define CTS_API_VERSION_1_0                 CTS_MAKE_VERSION(1, 0, 0)
 #define CTS_NULL_HANDLE                     (NULL)
 #define CTS_TRUE                            (true)

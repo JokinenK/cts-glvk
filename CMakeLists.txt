@@ -58,11 +58,13 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/linear_allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pool_allocator.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/uuid.c
 )
 
 if(WIN32)
     list(APPEND SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/device_info.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/semaphore.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/thread.c
@@ -87,6 +89,7 @@ if(WIN32)
     )
     list(APPEND LIBRARIES
         opengl32
+        setupapi
     )
 elseif(UNIX)
     list(APPEND INCLUDE_PATHS
