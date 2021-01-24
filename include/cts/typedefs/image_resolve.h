@@ -10,11 +10,11 @@ extern "C" {
 #endif
 
 typedef struct CtsImageResolve {
-    CtsImageSubresourceLayers srcSubresource;
-    CtsOffset3D srcOffset;
-    CtsImageSubresourceLayers dstSubresource;
-    CtsOffset3D dstOffset;
-    CtsExtent3D extent;
+    CtsImageSubresourceLayers   srcSubresource;
+    CtsOffset3D                 srcOffset;
+    CtsImageSubresourceLayers   dstSubresource;
+    CtsOffset3D                 dstOffset;
+    CtsExtent3D                 extent;
 } CtsImageResolve;
 
 #ifdef __cplusplus

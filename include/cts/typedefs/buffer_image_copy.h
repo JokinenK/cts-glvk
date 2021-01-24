@@ -10,12 +10,12 @@ extern "C" {
 #endif
 
 typedef struct CtsBufferImageCopy {
-    CtsDeviceSize bufferOffset;
-    uint32_t bufferRowLength;
-    uint32_t bufferImageHeight;
-    CtsImageSubresourceLayers imageSubresource;
-    CtsOffset3D imageOffset;
-    CtsExtent3D imageExtent;
+    CtsDeviceSize               bufferOffset;
+    uint32_t                    bufferRowLength;
+    uint32_t                    bufferImageHeight;
+    CtsImageSubresourceLayers   imageSubresource;
+    CtsOffset3D                 imageOffset;
+    CtsExtent3D                 imageExtent;
 } CtsBufferImageCopy;
 
 #ifdef __cplusplus

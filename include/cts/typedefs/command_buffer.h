@@ -12,11 +12,11 @@ extern "C" {
 typedef struct CtsCommandBufferImpl* CtsCommandBuffer;
 
 typedef struct CtsCommandBufferAllocateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsCommandPool commandPool;
-    CtsCommandBufferLevel level;
-    uint32_t commandBufferCount;
+    CtsStructureType        sType;
+    const void*             pNext;
+    CtsCommandPool          commandPool;
+    CtsCommandBufferLevel   level;
+    uint32_t                commandBufferCount;
 } CtsCommandBufferAllocateInfo;
 
 #ifdef __cplusplus

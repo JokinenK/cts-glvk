@@ -8,10 +8,10 @@ extern "C" {
 #endif
 
 typedef struct CtsMemoryBarrier {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsAccessFlags srcAccessMask;
-    CtsAccessFlags dstAccessMask;
+    CtsStructureType    sType;
+    const void*         pNext;
+    CtsAccessFlags      srcAccessMask;
+    CtsAccessFlags      dstAccessMask;
 } CtsMemoryBarrier;
 
 #ifdef __cplusplus

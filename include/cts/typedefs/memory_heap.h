@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef struct CtsMemoryHeap {
-    CtsDeviceSize size;
-    CtsMemoryHeapFlags flags;
+    CtsDeviceSize       size;
+    CtsMemoryHeapFlags  flags;
 } CtsMemoryHeap;
 
 #ifdef __cplusplus

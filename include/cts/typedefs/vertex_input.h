@@ -8,16 +8,16 @@ extern "C" {
 #endif
 
 typedef struct CtsVertexInputAttributeDescription {
-    uint32_t location;
-    uint32_t binding;
-    CtsFormat format;
-    uint32_t offset;
+    uint32_t    location;
+    uint32_t    binding;
+    CtsFormat   format;
+    uint32_t    offset;
 } CtsVertexInputAttributeDescription;
 
 typedef struct CtsVertexInputBindingDescription {
-    uint32_t binding;
-    uint32_t stride;
-    CtsVertexInputRate inputRate;
+    uint32_t            binding;
+    uint32_t            stride;
+    CtsVertexInputRate  inputRate;
 } CtsVertexInputBindingDescription;
 
 #ifdef __cplusplus

@@ -8,10 +8,10 @@ extern "C" {
 #endif
 
 typedef struct CtsImageBlit {
-    CtsImageSubresourceLayers srcSubresource;
-    CtsOffset3D srcOffsets[2];
-    CtsImageSubresourceLayers dstSubresource;
-    CtsOffset3D dstOffsets[2];
+    CtsImageSubresourceLayers   srcSubresource;
+    CtsOffset3D                 srcOffsets[2];
+    CtsImageSubresourceLayers   dstSubresource;
+    CtsOffset3D                 dstOffsets[2];
 } CtsImageBlit;
 
 #ifdef __cplusplus

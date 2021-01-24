@@ -12,16 +12,16 @@ extern "C" {
 #endif
 
 typedef struct CtsImageMemoryBarrier {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsAccessFlags srcAccessMask;
-    CtsAccessFlags dstAccessMask;
-    CtsImageLayout oldLayout;
-    CtsImageLayout newLayout;
-    uint32_t srcQueueFamilyIndex;
-    uint32_t dstQueueFamilyIndex;
-    CtsImage image;
-    CtsImageSubresourceRange subresourceRange;
+    CtsStructureType            sType;
+    const void*                 pNext;
+    CtsAccessFlags              srcAccessMask;
+    CtsAccessFlags              dstAccessMask;
+    CtsImageLayout              oldLayout;
+    CtsImageLayout              newLayout;
+    uint32_t                    srcQueueFamilyIndex;
+    uint32_t                    dstQueueFamilyIndex;
+    CtsImage                    image;
+    CtsImageSubresourceRange    subresourceRange;
 } CtsImageMemoryBarrier;
 
 #ifdef __cplusplus

@@ -11,13 +11,13 @@ extern "C" {
 #endif
 
 typedef struct CtsSubpassDependency {
-    uint32_t srcSubpass;
-    uint32_t dstSubpass;
-    CtsPipelineStageFlags srcStageMask;
-    CtsPipelineStageFlags dstStageMask;
-    CtsAccessFlags srcAccessMask;
-    CtsAccessFlags dstAccessMask;
-    CtsDependencyFlags dependencyFlags;
+    uint32_t                srcSubpass;
+    uint32_t                dstSubpass;
+    CtsPipelineStageFlags   srcStageMask;
+    CtsPipelineStageFlags   dstStageMask;
+    CtsAccessFlags          srcAccessMask;
+    CtsAccessFlags          dstAccessMask;
+    CtsDependencyFlags      dependencyFlags;
 } CtsSubpassDependency;
 
 #ifdef __cplusplus

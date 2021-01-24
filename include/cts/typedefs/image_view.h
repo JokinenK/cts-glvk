@@ -14,13 +14,13 @@ extern "C" {
 typedef struct CtsImageViewImpl* CtsImageView;
 
 typedef struct CtsImageViewCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsImage image;
-    CtsImageViewType viewType;
-    CtsFormat format;
-    CtsComponentMapping components;
-    CtsImageSubresourceRange subresourceRange;
+    CtsStructureType            sType;
+    const void*                 pNext;
+    CtsImage                    image;
+    CtsImageViewType            viewType;
+    CtsFormat                   format;
+    CtsComponentMapping         components;
+    CtsImageSubresourceRange    subresourceRange;
 } CtsImageViewCreateInfo;
 
 #ifdef __cplusplus

@@ -13,12 +13,12 @@ extern "C" {
 typedef struct CtsDescriptorPoolImpl* CtsDescriptorPool;
 
 typedef struct CtsDescriptorPoolCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDescriptorPoolCreateFlags flags;
-    uint32_t maxSets;
-    uint32_t poolSizeCount;
-    const CtsDescriptorPoolSize* pPoolSizes;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsDescriptorPoolCreateFlags    flags;
+    uint32_t                        maxSets;
+    uint32_t                        poolSizeCount;
+    const CtsDescriptorPoolSize*    pPoolSizes;
 } CtsDescriptorPoolCreateInfo;
 
 #ifdef __cplusplus

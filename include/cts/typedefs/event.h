@@ -10,8 +10,8 @@ extern "C" {
 typedef struct CtsEventImpl* CtsEvent;
 
 typedef struct CtsEventCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
+    CtsStructureType    sType;
+    const void*         pNext;
     CtsEventCreateFlags flags;
 } CtsEventCreateInfo;
 

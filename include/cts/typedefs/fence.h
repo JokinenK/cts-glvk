@@ -10,8 +10,8 @@ extern "C" {
 
 typedef struct CtsFenceImpl* CtsFence;
 typedef struct CtsFenceCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
+    CtsStructureType    sType;
+    const void*         pNext;
     CtsFenceCreateFlags flags;
 } CtsFenceCreateInfo;
 

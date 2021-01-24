@@ -33,13 +33,6 @@ static const GLenum sStencilOps[] = {
     GL_INVERT
 };
 
-static const GLenum sCullModes[] = {
-    GL_NONE,
-    GL_FRONT,
-    GL_BACK,
-    GL_FRONT_AND_BACK
-};
-
 static const GLenum sFrontFaces[] = {
     GL_CW,
     GL_CCW
@@ -320,7 +313,6 @@ static const int sBorderColorsInt[][4] = {
 
 static_assert(COUNTOF(sCompareOps) == NUM_CTS_COMPARE_OPS, "Assertion failure");
 static_assert(COUNTOF(sStencilOps) == NUM_CTS_STENCIL_OPS, "Assertion failure");
-static_assert(COUNTOF(sCullModes) == NUM_CTS_CULL_MODES, "Assertion failure");
 static_assert(COUNTOF(sFrontFaces) == NUM_CTS_FRONT_FACES, "Assertion failure");
 static_assert(COUNTOF(sPrimitiveTopologies) == NUM_CTS_PRIMITIVE_TOPOLOGIES, "Assertion failure");
 static_assert(COUNTOF(sPolygonModes) == NUM_CTS_POLYGON_MODES, "Assertion failure");
@@ -349,9 +341,19 @@ const GLenum parseStencilOp(CtsStencilOp value)
     return sStencilOps[value];
 }
 
-const GLenum parseCullMode(CtsCullModeFlags value)
+const GLuint parseCullMode(CtsCullModeFlags value)
 {
-    return sCullModes[value];
+    GLuint result = 0;
+
+    if (value & CTS_CULL_MODE_FRONT_BIT) {
+        result |= GL_FRONT;
+    }
+
+    if (value & CTS_CULL_MODE_BACK_BIT) {
+        result |= GL_BACK;
+    }
+
+    return result;
 }
 
 const GLenum parseFrontFace(CtsFrontFace value)

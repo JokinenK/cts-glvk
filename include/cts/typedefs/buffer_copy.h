@@ -7,9 +7,9 @@ extern "C" {
 #endif
 
 typedef struct CtsBufferCopy {
-    CtsDeviceSize srcOffset;
-    CtsDeviceSize dstOffset;
-    CtsDeviceSize size;
+    CtsDeviceSize   srcOffset;
+    CtsDeviceSize   dstOffset;
+    CtsDeviceSize   size;
 } CtsBufferCopy;
 
 #ifdef __cplusplus

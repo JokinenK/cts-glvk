@@ -10,15 +10,15 @@ extern "C" {
 #endif
 
 typedef struct CtsAttachmentDescription {
-    CtsAttachmentDescriptionFlags flags;
-    CtsFormat format;
-    CtsSampleCountFlagBits samples;
-    CtsAttachmentLoadOp loadOp;
-    CtsAttachmentStoreOp storeOp;
-    CtsAttachmentLoadOp stencilLoadOp;
-    CtsAttachmentStoreOp stencilStoreOp;
-    CtsImageLayout initialLayout;
-    CtsImageLayout finalLayout;
+    CtsAttachmentDescriptionFlags   flags;
+    CtsFormat                       format;
+    CtsSampleCountFlagBits          samples;
+    CtsAttachmentLoadOp             loadOp;
+    CtsAttachmentStoreOp            storeOp;
+    CtsAttachmentLoadOp             stencilLoadOp;
+    CtsAttachmentStoreOp            stencilStoreOp;
+    CtsImageLayout                  initialLayout;
+    CtsImageLayout                  finalLayout;
 } CtsAttachmentDescription;
 
 #ifdef __cplusplus

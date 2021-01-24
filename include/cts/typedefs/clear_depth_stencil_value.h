@@ -7,8 +7,8 @@ extern "C" {
 #endif
 
 typedef struct CtsClearDepthStencilValue {
-    float depth;
-    uint32_t stencil;
+    float       depth;
+    uint32_t    stencil;
 } CtsClearDepthStencilValue;
 
 #ifdef __cplusplus

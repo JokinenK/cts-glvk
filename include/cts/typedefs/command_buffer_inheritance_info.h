@@ -13,14 +13,14 @@ extern "C" {
 #endif
 
 typedef struct CtsCommandBufferInheritanceInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsRenderPass renderPass;
-    uint32_t subpass;
-    CtsFramebuffer framebuffer;
-    bool occlusionQueryEnable;
-    CtsQueryControlFlags queryFlags;
-    CtsQueryPipelineStatisticFlags pipelineStatistics;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsRenderPass                   renderPass;
+    uint32_t                        subpass;
+    CtsFramebuffer                  framebuffer;
+    bool                            occlusionQueryEnable;
+    CtsQueryControlFlags            queryFlags;
+    CtsQueryPipelineStatisticFlags  pipelineStatistics;
 } CtsCommandBufferInheritanceInfo;
 
 #ifdef __cplusplus

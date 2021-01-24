@@ -8,10 +8,10 @@ extern "C" {
 
 typedef struct CtsShaderModuleImpl* CtsShaderModule;
 typedef struct CtsShaderModuleCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    size_t codeSize;
-    const uint32_t* pCode;
+    CtsStructureType    sType;
+    const void*         pNext;
+    size_t              codeSize;
+    const uint32_t*     pCode;
 } CtsShaderModuleCreateInfo;
 
 #ifdef __cplusplus

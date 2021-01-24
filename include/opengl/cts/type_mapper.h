@@ -22,7 +22,7 @@ typedef struct CtsFormatData {
 
 const GLenum parseCompareOp(CtsCompareOp value);
 const GLenum parseStencilOp(CtsStencilOp value);
-const GLenum parseCullMode(CtsCullModeFlags value);
+const GLuint parseCullMode(CtsCullModeFlags value);
 const GLenum parseFrontFace(CtsFrontFace value);
 const GLenum parsePrimitiveTopology(CtsPrimitiveTopology value);
 const GLenum parsePolygonMode(CtsPolygonMode value);

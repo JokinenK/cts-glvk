@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef struct CtsAttachmentReference {
-    uint32_t attachment;
-    CtsImageLayout layout;
+    uint32_t        attachment;
+    CtsImageLayout  layout;
 } CtsAttachmentReference;
 
 #ifdef __cplusplus

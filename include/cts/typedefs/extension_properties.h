@@ -10,8 +10,8 @@ extern "C" {
 #endif
 
 typedef struct CtsExtensionProperties {
-    char extensionName[CTS_MAX_EXTENSION_NAME_SIZE];
-    uint32_t specVersion;
+    char        extensionName[CTS_MAX_EXTENSION_NAME_SIZE];
+    uint32_t    specVersion;
 } CtsExtensionProperties;
 
 #ifdef __cplusplus

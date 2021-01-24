@@ -15,24 +15,26 @@ typedef CtsFlags CtsSwapchainCreateFlags;
 
 typedef struct CtsSwapchainImpl* CtsSwapchain;
 typedef struct CtsSwapchainCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsSwapchainCreateFlags flags;
-    CtsSurface surface;
-    uint32_t minImageCount;
-    CtsFormat imageFormat;
-    CtsColorSpace imageColorSpace;
-    CtsExtent2D imageExtent;
-    uint32_t imageArrayLayers;
-    CtsImageUsageFlags imageUsage;
-    CtsSharingMode imageSharingMode;
-    uint32_t queueFamilyIndexCount;
-    const uint32_t* pQueueFamilyIndices;
-    //CtsSurfaceTransformFlagBitsKHR preTransform;
-    //CtsCompositeAlphaFlagBitsKHR compositeAlpha;
-    CtsPresentMode presentMode;
-    CtsBool32 clipped;
-    CtsSwapchain oldSwapchain;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsSwapchainCreateFlags         flags;
+    CtsSurface                      surface;
+    uint32_t                        minImageCount;
+    CtsFormat                       imageFormat;
+    CtsColorSpace                   imageColorSpace;
+    CtsExtent2D                     imageExtent;
+    uint32_t                        imageArrayLayers;
+    CtsImageUsageFlags              imageUsage;
+    CtsSharingMode                  imageSharingMode;
+    uint32_t                        queueFamilyIndexCount;
+    const uint32_t*                 pQueueFamilyIndices;
+    /*
+    CtsSurfaceTransformFlagBitsKHR  preTransform;
+    CtsCompositeAlphaFlagBitsKHR    compositeAlpha;
+    */
+    CtsPresentMode                  presentMode;
+    CtsBool32                       clipped;
+    CtsSwapchain                    oldSwapchain;
 } CtsSwapchainCreateInfo;
 
 #ifdef __cplusplus

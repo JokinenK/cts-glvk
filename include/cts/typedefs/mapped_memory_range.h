@@ -10,11 +10,11 @@ extern "C" {
 #endif
 
 typedef struct CtsMappedMemoryRange {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDeviceMemory memory;
-    CtsDeviceSize offset;
-    CtsDeviceSize size;
+    CtsStructureType    sType;
+    const void*         pNext;
+    CtsDeviceMemory     memory;
+    CtsDeviceSize       offset;
+    CtsDeviceSize       size;
 } CtsMappedMemoryRange;
 
 #ifdef __cplusplus

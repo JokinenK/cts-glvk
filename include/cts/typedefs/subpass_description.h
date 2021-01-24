@@ -10,16 +10,16 @@ extern "C" {
 #endif
 
 typedef struct CtsSubpassDescription {
-    CtsSubpassDescriptionFlags flags;
-    CtsPipelineBindPoint pipelineBindPoint;
-    uint32_t inputAttachmentCount;
-    const CtsAttachmentReference* pInputAttachments;
-    uint32_t colorAttachmentCount;
-    const CtsAttachmentReference* pColorAttachments;
-    const CtsAttachmentReference* pResolveAttachments;
-    const CtsAttachmentReference* pDepthStencilAttachment;
-    uint32_t preserveAttachmentCount;
-    const uint32_t* pPreserveAttachments;
+    CtsSubpassDescriptionFlags      flags;
+    CtsPipelineBindPoint            pipelineBindPoint;
+    uint32_t                        inputAttachmentCount;
+    const CtsAttachmentReference*   pInputAttachments;
+    uint32_t                        colorAttachmentCount;
+    const CtsAttachmentReference*   pColorAttachments;
+    const CtsAttachmentReference*   pResolveAttachments;
+    const CtsAttachmentReference*   pDepthStencilAttachment;
+    uint32_t                        preserveAttachmentCount;
+    const uint32_t*                 pPreserveAttachments;
 } CtsSubpassDescription;
 
 #ifdef __cplusplus

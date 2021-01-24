@@ -12,15 +12,15 @@ extern "C" {
 #endif
 
 typedef struct CtsDescriptorImageInfo {
-    CtsSampler sampler;
-    CtsImageView imageView;
-    CtsImageLayout imageLayout;
+    CtsSampler      sampler;
+    CtsImageView    imageView;
+    CtsImageLayout  imageLayout;
 } CtsDescriptorImageInfo;
 
 typedef struct CtsDescriptorBufferInfo {
-    CtsBuffer buffer;
-    CtsDeviceSize offset;
-    CtsDeviceSize range;
+    CtsBuffer       buffer;
+    CtsDeviceSize   offset;
+    CtsDeviceSize   range;
 } CtsDescriptorBufferInfo;
 
 #ifdef __cplusplus

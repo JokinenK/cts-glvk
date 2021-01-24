@@ -8,10 +8,10 @@ extern "C" {
 #endif
 
 typedef struct CtsSpecializationInfo {
-    uint32_t mapEntryCount;
-    const CtsSpecializationMapEntry* pMapEntries;
-    size_t dataSize;
-    const void* pData;
+    uint32_t                            mapEntryCount;
+    const CtsSpecializationMapEntry*    pMapEntries;
+    size_t                              dataSize;
+    const void*                         pData;
 } CtsSpecializationInfo;
 
 #ifdef __cplusplus

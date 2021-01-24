@@ -7,9 +7,9 @@ extern "C" {
 #endif
 
 typedef struct CtsMemoryRequirements {
-    CtsDeviceSize size;
-    CtsDeviceSize alignment;
-    uint32_t memoryTypeBits;
+    CtsDeviceSize   size;
+    CtsDeviceSize   alignment;
+    uint32_t        memoryTypeBits;
 } CtsMemoryRequirements;
 
 #ifdef __cplusplus

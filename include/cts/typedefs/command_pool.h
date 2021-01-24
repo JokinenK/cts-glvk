@@ -12,10 +12,10 @@ extern "C" {
 typedef struct CtsCommandPoolImpl* CtsCommandPool;
 
 typedef struct CtsCommandPoolCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsCommandPoolCreateFlags flags;
-    uint32_t queueFamilyIndex;
+    CtsStructureType            sType;
+    const void*                 pNext;
+    CtsCommandPoolCreateFlags   flags;
+    uint32_t                    queueFamilyIndex;
 } CtsCommandPoolCreateInfo;
 
 #ifdef __cplusplus

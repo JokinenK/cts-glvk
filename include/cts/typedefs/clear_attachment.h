@@ -10,8 +10,8 @@ extern "C" {
 
 typedef union CtsClearAttachment {
     CtsImageAspectFlags aspectMask;
-    uint32_t colorAttachment;
-    CtsClearValue clearValue;
+    uint32_t            colorAttachment;
+    CtsClearValue       clearValue;
 } CtsClearAttachment;
 
 #ifdef __cplusplus

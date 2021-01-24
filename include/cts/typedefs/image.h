@@ -14,21 +14,21 @@ extern "C" {
 typedef struct CtsImageImpl* CtsImage;
 
 typedef struct CtsImageCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsImageCreateFlags flags;
-    CtsImageType imageType;
-    CtsFormat format;
-    CtsExtent3D extent;
-    uint32_t mipLevels;
-    uint32_t arrayLayers;
-    CtsSampleCountFlagBits samples;
-    CtsImageTiling tiling;
-    CtsImageUsageFlags usage;
-    CtsSharingMode sharingMode;
-    uint32_t queueFamilyIndexCount;
-    const uint32_t* pQueueFamilyIndices;
-    CtsImageLayout initialLayout;
+    CtsStructureType        sType;
+    const void*             pNext;
+    CtsImageCreateFlags     flags;
+    CtsImageType            imageType;
+    CtsFormat               format;
+    CtsExtent3D             extent;
+    uint32_t                mipLevels;
+    uint32_t                arrayLayers;
+    CtsSampleCountFlagBits  samples;
+    CtsImageTiling          tiling;
+    CtsImageUsageFlags      usage;
+    CtsSharingMode          sharingMode;
+    uint32_t                queueFamilyIndexCount;
+    const uint32_t*         pQueueFamilyIndices;
+    CtsImageLayout          initialLayout;
 } CtsImageCreateInfo;
 
 #ifdef __cplusplus

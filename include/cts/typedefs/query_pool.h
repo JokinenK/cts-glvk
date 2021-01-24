@@ -11,12 +11,12 @@ extern "C" {
 typedef struct CtsQueryPoolImpl* CtsQueryPool;
 
 typedef struct CtsQueryPoolCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsQueryPoolCreateFlags flags;
-    CtsQueryType queryType;
-    uint32_t queryCount;
-    CtsQueryPipelineStatisticFlags pipelineStatistics;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsQueryPoolCreateFlags         flags;
+    CtsQueryType                    queryType;
+    uint32_t                        queryCount;
+    CtsQueryPipelineStatisticFlags  pipelineStatistics;
 } CtsQueryPoolCreateInfo;
 
 #ifdef __cplusplus

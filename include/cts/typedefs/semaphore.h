@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct CtsSemaphoreImpl* CtsSemaphore;
 typedef struct CtsSemaphoreCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsFlags flags;
+    CtsStructureType    sType;
+    const void*         pNext;
+    CtsFlags            flags;
 } CtsSemaphoreCreateInfo;
 
 #ifdef __cplusplus

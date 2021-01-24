@@ -4,10 +4,11 @@
 extern "C" {
 #endif
 
+typedef void(*CtsThreadEntryPoint)(void* pArgs);
 typedef struct CtsThreadImpl* CtsThread;
 typedef struct CtsThreadCreateInfo {
-    void(*pfEntryPoint)(void* pArgs);
-    void* pArgs;
+    CtsThreadEntryPoint pfEntryPoint;
+    void*               pArgs;
 } CtsThreadCreateInfo;
 
 #ifdef __cplusplus

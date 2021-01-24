@@ -13,14 +13,14 @@ extern "C" {
 typedef struct CtsBufferImpl* CtsBuffer;
 
 typedef struct CtsBufferCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsBufferCreateFlags flags;
-    CtsDeviceSize size;
-    CtsBufferUsageFlags usage;
-    CtsSharingMode sharingMode;
-    uint32_t queueFamilyIndexCount;
-    const uint32_t* pQueueFamilyIndices;
+    CtsStructureType        sType;
+    const void*             pNext;
+    CtsBufferCreateFlags    flags;
+    CtsDeviceSize           size;
+    CtsBufferUsageFlags     usage;
+    CtsSharingMode          sharingMode;
+    uint32_t                queueFamilyIndexCount;
+    const uint32_t*         pQueueFamilyIndices;
 } CtsBufferCreateInfo;
 
 #ifdef __cplusplus

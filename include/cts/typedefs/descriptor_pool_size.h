@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef struct CtsDescriptorPoolSize {
-    CtsDescriptorType type;
-    uint32_t descriptorCount;
+    CtsDescriptorType   type;
+    uint32_t            descriptorCount;
 } CtsDescriptorPoolSize;
 
 #ifdef __cplusplus

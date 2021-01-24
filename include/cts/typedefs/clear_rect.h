@@ -8,9 +8,9 @@ extern "C" {
 #endif
 
 typedef union CtsClearRect {
-    CtsRect2D rect;
-    uint32_t baseArrayLayer;
-    uint32_t layerCount;
+    CtsRect2D   rect;
+    uint32_t    baseArrayLayer;
+    uint32_t    layerCount;
 } CtsClearRect;
 
 #ifdef __cplusplus

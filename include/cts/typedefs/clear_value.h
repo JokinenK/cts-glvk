@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef union CtsClearValue {
-    CtsClearColorValue color;
-    CtsClearDepthStencilValue depthStencil;
+    CtsClearColorValue          color;
+    CtsClearDepthStencilValue   depthStencil;
 } CtsClearValue;
 
 #ifdef __cplusplus

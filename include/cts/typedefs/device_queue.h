@@ -8,12 +8,12 @@ extern "C" {
 #endif
 
 typedef struct CtsDeviceQueueCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDeviceQueueCreateFlags flags;
-    uint32_t queueFamilyIndex;
-    uint32_t queueCount;
-    const float* pQueuePriorities;
+    CtsStructureType            sType;
+    const void*                 pNext;
+    CtsDeviceQueueCreateFlags   flags;
+    uint32_t                    queueFamilyIndex;
+    uint32_t                    queueCount;
+    const float*                pQueuePriorities;
 } CtsDeviceQueueCreateInfo;
 
 #ifdef __cplusplus

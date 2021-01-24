@@ -8,9 +8,9 @@ extern "C" {
 #endif
 
 typedef struct CtsPushConstantRange {
-    CtsShaderStageFlags stageFlags;
-    uint32_t offset;
-    uint32_t size;
+    CtsShaderStageFlags     stageFlags;
+    uint32_t                offset;
+    uint32_t                size;
 } CtsPushConstantRange;
 
 #ifdef __cplusplus

@@ -11,16 +11,16 @@ extern "C" {
 
 typedef struct CtsDeviceImpl* CtsDevice;
 typedef struct CtsDeviceCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDeviceCreateFlags flags;
-    uint32_t queueCreateInfoCount;
-    const CtsDeviceQueueCreateInfo* pQueueCreateInfos;
-    uint32_t enabledLayerCount;
-    const char* const* pEnabledLayerNames;
-    uint32_t enabledExtensionCount;
-    const char* const* pEnabledExtensionNames;
-    const CtsPhysicalDeviceFeatures* pEnabledFeatures;
+    CtsStructureType                    sType;
+    const void*                         pNext;
+    CtsDeviceCreateFlags                flags;
+    uint32_t                            queueCreateInfoCount;
+    const CtsDeviceQueueCreateInfo*     pQueueCreateInfos;
+    uint32_t                            enabledLayerCount;
+    const char* const*                  pEnabledLayerNames;
+    uint32_t                            enabledExtensionCount;
+    const char* const*                  pEnabledExtensionNames;
+    const CtsPhysicalDeviceFeatures*    pEnabledFeatures;
 } CtsDeviceCreateInfo;
 
 #ifdef __cplusplus

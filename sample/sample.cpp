@@ -283,7 +283,6 @@ private:
 
         CtsPhysicalDeviceFeatures deviceFeatures{};
         createInfo.pEnabledFeatures = &deviceFeatures;
-
         createInfo.enabledLayerCount = 0;
         createInfo.pEnabledLayerNames = nullptr;
         

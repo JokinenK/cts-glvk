@@ -14,36 +14,36 @@ extern "C" {
 typedef struct CtsDescriptorSetImpl* CtsDescriptorSet;
 
 typedef struct CtsWriteDescriptorSet {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDescriptorSet dstSet;
-    uint32_t dstBinding;
-    uint32_t dstArrayElement;
-    uint32_t descriptorCount;
-    CtsDescriptorType descriptorType;
-    const CtsDescriptorImageInfo* pImageInfo;
-    const CtsDescriptorBufferInfo* pBufferInfo;
-    const CtsBufferView* pTexelBufferView;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsDescriptorSet                dstSet;
+    uint32_t                        dstBinding;
+    uint32_t                        dstArrayElement;
+    uint32_t                        descriptorCount;
+    CtsDescriptorType               descriptorType;
+    const CtsDescriptorImageInfo*   pImageInfo;
+    const CtsDescriptorBufferInfo*  pBufferInfo;
+    const CtsBufferView*            pTexelBufferView;
 } CtsWriteDescriptorSet;
 
 typedef struct CtsCopyDescriptorSet {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDescriptorSet srcSet;
-    uint32_t srcBinding;
-    uint32_t srcArrayElement;
-    CtsDescriptorSet dstSet;
-    uint32_t dstBinding;
-    uint32_t dstArrayElement;
-    uint32_t descriptorCount;
+    CtsStructureType    sType;
+    const void*         pNext;
+    CtsDescriptorSet    srcSet;
+    uint32_t            srcBinding;
+    uint32_t            srcArrayElement;
+    CtsDescriptorSet    dstSet;
+    uint32_t            dstBinding;
+    uint32_t            dstArrayElement;
+    uint32_t            descriptorCount;
 } CtsCopyDescriptorSet;
 
 typedef struct CtsDescriptorSetAllocateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsDescriptorPool descriptorPool;
-    uint32_t descriptorSetCount;
-    const CtsDescriptorSetLayout* pSetLayouts;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsDescriptorPool               descriptorPool;
+    uint32_t                        descriptorSetCount;
+    const CtsDescriptorSetLayout*   pSetLayouts;
 } CtsDescriptorSetAllocateInfo;
 
 #ifdef __cplusplus

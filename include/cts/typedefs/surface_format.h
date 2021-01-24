@@ -7,8 +7,8 @@ extern "C" {
 #endif
 
 typedef struct CtsSurfaceFormat {
-    CtsFormat format;
-    CtsColorSpace colorSpace;
+    CtsFormat       format;
+    CtsColorSpace   colorSpace;
 } CtsSurfaceFormat;
 
 #ifdef __cplusplus

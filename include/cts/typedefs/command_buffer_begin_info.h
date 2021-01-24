@@ -10,10 +10,10 @@ extern "C" {
 #endif
 
 typedef struct CtsCommandBufferBeginInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsCommandBufferUsageFlags flags;
-    const CtsCommandBufferInheritanceInfo* pInheritanceInfo;
+    CtsStructureType                        sType;
+    const void*                             pNext;
+    CtsCommandBufferUsageFlags              flags;
+    const CtsCommandBufferInheritanceInfo*  pInheritanceInfo;
 } CtsCommandBufferBeginInfo;
 
 #ifdef __cplusplus

@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 typedef struct CtsMemoryType {
-    CtsMemoryPropertyFlags propertyFlags;
-    uint32_t heapIndex;
+    CtsMemoryPropertyFlags  propertyFlags;
+    uint32_t                heapIndex;
 } CtsMemoryType;
 
 #ifdef __cplusplus

@@ -12,12 +12,12 @@ extern "C" {
 typedef struct CtsBufferViewImpl* CtsBufferView;
 
 typedef struct CtsBufferViewCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsBuffer buffer;
-    CtsFormat format;
-    CtsDeviceSize offset;
-    CtsDeviceSize range;
+    CtsStructureType    sType;
+    const void*         pNext;
+    CtsBuffer           buffer;
+    CtsFormat           format;
+    CtsDeviceSize       offset;
+    CtsDeviceSize       range;
 } CtsBufferViewCreateInfo;
 
 #ifdef __cplusplus

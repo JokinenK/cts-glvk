@@ -9,19 +9,19 @@ extern "C" {
 #endif
 
 typedef struct CtsDescriptorSetLayoutBinding {
-    uint32_t binding;
-    CtsDescriptorType descriptorType;
-    uint32_t descriptorCount;
+    uint32_t            binding;
+    CtsDescriptorType   descriptorType;
+    uint32_t            descriptorCount;
     CtsShaderStageFlags stageFlags;
-    const CtsSampler* pImmutableSamplers;
+    const CtsSampler*   pImmutableSamplers;
 } CtsDescriptorSetLayoutBinding;
 
 typedef struct CtsDescriptorSetLayoutImpl* CtsDescriptorSetLayout;
 typedef struct CtsDescriptorSetLayoutCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    uint32_t bindingCount;
-    const CtsDescriptorSetLayoutBinding* pBindings;
+    CtsStructureType                        sType;
+    const void*                             pNext;
+    uint32_t                                bindingCount;
+    const CtsDescriptorSetLayoutBinding*    pBindings;
 } CtsDescriptorSetLayoutCreateInfo;
 
 #ifdef __cplusplus

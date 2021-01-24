@@ -12,15 +12,15 @@ extern "C" {
 
 typedef struct CtsRenderPassImpl* CtsRenderPass;
 typedef struct CtsRenderPassCreateInfo {
-    CtsStructureType sType;
-    const void* pNext;
-    CtsRenderPassCreateFlags flags;
-    uint32_t attachmentCount;
+    CtsStructureType                sType;
+    const void*                     pNext;
+    CtsRenderPassCreateFlags        flags;
+    uint32_t                        attachmentCount;
     const CtsAttachmentDescription* pAttachments;
-    uint32_t subpassCount;
-    const CtsSubpassDescription* pSubpasses;
-    uint32_t dependencyCount;
-    const CtsSubpassDependency* pDependencies;
+    uint32_t                        subpassCount;
+    const CtsSubpassDescription*    pSubpasses;
+    uint32_t                        dependencyCount;
+    const CtsSubpassDependency*     pDependencies;
 } CtsRenderPassCreateInfo;
 
 #ifdef __cplusplus
