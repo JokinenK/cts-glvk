@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cts/uuid.h>
+#include <cts/snprintf.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +15,8 @@ static uint64_t unixtimeToTimestamp(uint64_t unixtime);
 static void setTimeAndVersion(CtsUUID* pUUID, uint64_t timestamp, uint8_t version);
 
 CtsUUID ctsUUIDFromString(const char* pSource, size_t sourceLen) {
-    CtsUUID uuid = {};
+    CtsUUID uuid;
+    memset(&uuid, 0, sizeof(uuid));
 
     if (sourceLen < 32 ) {
         return uuid;
