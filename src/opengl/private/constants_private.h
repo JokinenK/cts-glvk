@@ -21,16 +21,19 @@ static const char* kVendorNames[]       = {
     kATIVendorName
 };
 
-static const uint32_t kNVidiaVendorID  = 0x10de;
-static const uint32_t kIntelVendorID   = 0x8086;
-static const uint32_t kAMDVendorID     = 0x1002;
-static const uint32_t kATIVendorID     = 0x1002;
-static const uint32_t kVendorIDs[]     = {
-    kNVidiaVendorID, 
-    kNVidiaVendorID, 
-    kIntelVendorID, 
-    kAMDVendorID,
-    kATIVendorID
+enum {
+    VENDOR_ID_NVIDIA  = 0x10de,
+    VENDOR_ID_INTEL   = 0x8086,
+    VENDOR_ID_AMD     = 0x1002,
+    VENDOR_ID_ATI     = 0x1002,
+};
+
+static const uint32_t kVendorIDs[] = {
+    VENDOR_ID_NVIDIA, 
+    VENDOR_ID_NVIDIA, 
+    VENDOR_ID_INTEL, 
+    VENDOR_ID_AMD,
+    VENDOR_ID_ATI
 };
 
 static_assert(CTS_ARRAY_SIZE(kVendorNames) == CTS_ARRAY_SIZE(kVendorIDs), "Assertion failure");

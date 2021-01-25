@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <string.h>
+#include <float.h>
 #include <glad/glad.h>
 #include <cts/constants.h>
 #include <cts/instance.h>
@@ -224,10 +225,10 @@ static void parseDeviceProperties(CtsPhysicalDevice physicalDevice, CtsPhysicalD
 
 static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceLimits* pLimits) {
     GLint i32 = 0;
-    GLint i32Array[2] = {};
+    GLint i32Array[2];
 
     GLfloat f32 = 0.0f;
-    GLfloat f32Array[2] = {};
+    GLfloat f32Array[2];
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &i32);
     pLimits->maxImageDimension1D = i32;
@@ -410,8 +411,8 @@ static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDevic
 
     pLimits->minTexelGatherOffset = INT32_MIN; // Not supported
     pLimits->maxTexelGatherOffset = UINT32_MAX; // Not supported
-    pLimits->minInterpolationOffset = INT32_MIN; // Not supported
-    pLimits->maxInterpolationOffset = UINT32_MAX; // Not supported
+    pLimits->minInterpolationOffset = FLT_MIN; // Not supported
+    pLimits->maxInterpolationOffset = FLT_MAX; // Not supported
     pLimits->subPixelInterpolationOffsetBits = 0; // Not supported
     
     pLimits->maxFramebufferWidth  = pLimits->maxViewportDimensions[0];

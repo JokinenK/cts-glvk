@@ -589,7 +589,7 @@ static void createDepthStencilState(
     }
 
     pDepthStencilState->initialized           = true;
-    pDepthStencilState->depthTestEnable       = pCreateInfo->depthBoundsTestEnable;
+    pDepthStencilState->depthTestEnable       = pCreateInfo->depthTestEnable;
     pDepthStencilState->depthWriteEnable      = pCreateInfo->depthWriteEnable;
     pDepthStencilState->depthCompareOp        = parseCompareOp(pCreateInfo->depthCompareOp);
     pDepthStencilState->depthBoundsTestEnable = pCreateInfo->depthBoundsTestEnable;
