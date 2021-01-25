@@ -35,6 +35,7 @@ const GLenum parseImageViewType(CtsImageViewType value);
 const GLenum parseBufferUsage(CtsBufferUsageFlags value);
 const GLenum parseBlendFactor(CtsBlendFactor value);
 const GLenum parseBlendOperation(CtsBlendOp value);
+const GLenum parseLogicOp(CtsLogicOp value);
 const bool isFloatBorderColor(CtsBorderColor borderColor);
 const float* parseBorderColorFloat(CtsBorderColor borderColor);
 const int* parseBorderColorInt(CtsBorderColor borderColor);

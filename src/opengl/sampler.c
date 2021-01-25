@@ -67,7 +67,6 @@ CtsResult ctsCreateSamplerImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    (void) pCreateInfo->maxAnisotropy;
     (void) pCreateInfo->unnormalizedCoordinates;
 
     glGenSamplers(1, &sampler->handle);
@@ -76,6 +75,7 @@ CtsResult ctsCreateSamplerImpl(
     glSamplerParameteri(sampler->handle, GL_TEXTURE_WRAP_R, parseSamplerAddressMode(pCreateInfo->addressModeW));
     glSamplerParameteri(sampler->handle, GL_TEXTURE_MIN_FILTER, parseMinFilter(pCreateInfo->minFilter, pCreateInfo->mipmapMode));
     glSamplerParameteri(sampler->handle, GL_TEXTURE_MAG_FILTER, parseMagFilter(pCreateInfo->magFilter, pCreateInfo->mipmapMode));
+    glSamplerParameterf(sampler->handle, GL_TEXTURE_MAX_ANISOTROPY, pCreateInfo->anisotropyEnable ? pCreateInfo->maxAnisotropy : 1.0f);
     glSamplerParameterf(sampler->handle, GL_TEXTURE_MIN_LOD, pCreateInfo->minLod);
     glSamplerParameterf(sampler->handle, GL_TEXTURE_MAX_LOD, pCreateInfo->maxLod);
     glSamplerParameterf(sampler->handle, GL_TEXTURE_LOD_BIAS, pCreateInfo->mipLodBias);

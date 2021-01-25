@@ -141,7 +141,7 @@ static bool waitForSurface(CtsQueue queue) {
 
     if (physicalDevice->surface != NULL) {
         ctsSurfaceMakeCurrent(physicalDevice->surface);
-        ctsUpdatePhysicalDeviceProperties(physicalDevice);
+        ctsPhysicalDeviceParseFeatures(physicalDevice);
     }
     
     return (physicalDevice->surface != NULL);

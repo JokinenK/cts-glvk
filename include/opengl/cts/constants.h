@@ -13,9 +13,6 @@ const char* getRenderer();
 uint32_t getVendorID();
 uint32_t getOpenGLVersion();
 
-CtsDeviceSize getUniformBufferOffsetAlignment();
-CtsDeviceSize getTextureBufferOffsetAlignment();
-
 #ifdef __cplusplus
 }
 #endif

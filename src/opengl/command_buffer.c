@@ -44,6 +44,7 @@ static void enableCullFace(CtsDevice device, bool enable, bool* pPrevious);
 static void enableDepthTest(CtsDevice device, bool enable, bool* pPrevious);
 static void enableStencilTest(CtsDevice device, bool enable, bool* pPrevious);
 static void enableBlend(CtsDevice device, uint32_t index, bool enable, bool* pPrevious);
+static void enableColorLogicOp(CtsDevice device, bool enable, bool* pPrevious);
 static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious);
 
 static void bindTexture(CtsDevice device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsGlTextureBinding* pPrevious);
@@ -1859,6 +1860,7 @@ void ctsCmdSetDepthBoundsImpl(
     float minDepthBounds,
     float maxDepthBounds
 ) {
+    glDepthBoundsEXT(minDepthBounds, maxDepthBounds);
 }
 
 void ctsCmdSetDeviceMaskImpl(
@@ -2076,6 +2078,12 @@ static void enableBlend(CtsDevice device, uint32_t index, bool enable, bool* pPr
     }
 }
 
+static void enableColorLogicOp(CtsDevice device, bool enable, bool* pPrevious) {
+    if (shouldUpdateBool(enable, &device->state.colorLogicOp, pPrevious)) {
+        enableFeature(GL_COLOR_LOGIC_OP, enable);
+    }
+}
+
 static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious) {
     if (shouldUpdateHandle(program, &device->state.program, pPrevious)) {
         glUseProgram(program);
@@ -2273,6 +2281,9 @@ static void bindColorBlendState(
             pState->blendConstants[3]
         );
     }
+
+    enableColorLogicOp(device, pState->logicOpEnable, NULL);
+    glLogicOp(pState->logicOp);
 
     for (uint32_t i = 0; i < pState->attachmentCount; ++i) {
         CtsGlPipelineColorBlendStateAttachment* attachmentState = &pState->pAttachments[i];

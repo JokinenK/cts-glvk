@@ -272,6 +272,25 @@ static const GLenum sBlendOperations[] = {
     GL_MAX
 };
 
+static const GLenum sLogicOps[] = {
+    GL_CLEAR,         // CTS_LOGIC_OP_CLEAR = 0,
+    GL_AND,           // CTS_LOGIC_OP_AND = 1,
+    GL_AND_REVERSE,   // CTS_LOGIC_OP_AND_REVERSE = 2,
+    GL_COPY,          // CTS_LOGIC_OP_COPY = 3,
+    GL_AND_INVERTED,  // CTS_LOGIC_OP_AND_INVERTED = 4,
+    GL_NOOP,          // CTS_LOGIC_OP_NO_OP = 5,
+    GL_XOR,           // CTS_LOGIC_OP_XOR = 6,
+    GL_OR,            // CTS_LOGIC_OP_OR = 7,
+    GL_NOR,           // CTS_LOGIC_OP_NOR = 8,
+    GL_EQUIV,         // CTS_LOGIC_OP_EQUIVALENT = 9,
+    GL_INVERT,        // CTS_LOGIC_OP_INVERT = 10,
+    GL_OR_REVERSE,    // CTS_LOGIC_OP_OR_REVERSE = 11,
+    GL_COPY_INVERTED, // CTS_LOGIC_OP_COPY_INVERTED = 12,
+    GL_OR_INVERTED,   // CTS_LOGIC_OP_OR_INVERTED = 13,
+    GL_NAND,          // CTS_LOGIC_OP_NAND = 14,
+    GL_SET,           // CTS_LOGIC_OP_SET = 15,
+};
+
 static const uint32_t sDynamicStates[] = {
     CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT,
     CTS_GL_DYNAMIC_STATE_SCISSOR_BIT,
@@ -467,6 +486,11 @@ const GLenum parseBlendFactor(CtsBlendFactor value)
 const GLenum parseBlendOperation(CtsBlendOp value)
 {
     return sBlendOperations[value];
+}
+
+const GLenum parseLogicOp(CtsLogicOp value)
+{
+    return sLogicOps[value];
 }
 
 const CtsFlags parseDynamicStateFlag(CtsDynamicState value)

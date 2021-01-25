@@ -26,6 +26,7 @@ typedef struct CtsGlState {
     bool cullFace;
     bool depthTest;
     bool stencilTest;
+    bool colorLogicOp;
     bool blend[8];
     bool scissorTest[16];
 

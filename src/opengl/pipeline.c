@@ -640,6 +640,8 @@ static void createColorBlendState(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
+    pColorBlendState->logicOpEnable = pCreateInfo->logicOpEnable;
+    pColorBlendState->logicOp = parseLogicOp(pCreateInfo->logicOp);
     memcpy(pColorBlendState->blendConstants, pCreateInfo->blendConstants, sizeof(pCreateInfo->blendConstants));
 
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {

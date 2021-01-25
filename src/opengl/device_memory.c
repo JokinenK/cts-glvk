@@ -327,11 +327,11 @@ void ctsGetBufferMemoryRequirements(
         } break;
 
         case GL_UNIFORM_BUFFER: {
-            align = getUniformBufferOffsetAlignment();
+            align = gPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
         } break;
 
         case GL_TEXTURE_BUFFER: {
-            align = getTextureBufferOffsetAlignment();
+            align = gPhysicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
         } break;
     }
 

@@ -98,6 +98,8 @@ typedef struct CtsGlPipelineColorBlendState {
     uint32_t attachmentCount;
     CtsGlPipelineColorBlendStateAttachment* pAttachments;
     float blendConstants[4];
+    bool logicOpEnable;
+    GLenum logicOp;
 } CtsGlPipelineColorBlendState;
 
 typedef struct CtsGlGraphicsPipeline {

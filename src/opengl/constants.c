@@ -12,13 +12,11 @@ extern "C" {
 
 static const char* strstrIgnoreCase(const char* pLhs, const char* pRhs);
 
-static GLint            gUniformBufferOffsetAlignment   = 0;
-static GLint            gTextureBufferOffsetAlignment   = 0;
 static const GLchar*    gVendorName                     = NULL;
 static const GLchar*    gRendererName                   = NULL;
 static uint32_t         gVendorId                       = 0;
 static uint32_t         gOpenGLVersion                  = 0;
-
+          
 const char* getVendor() {
     if (gVendorName == NULL) {
         gVendorName = glGetString(GL_VENDOR);
@@ -63,22 +61,6 @@ uint32_t getOpenGLVersion() {
     }
 
     return gOpenGLVersion;
-}
-
-CtsDeviceSize getUniformBufferOffsetAlignment() {
-    if (gUniformBufferOffsetAlignment == 0) {
-        glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &gUniformBufferOffsetAlignment);
-    }
-
-    return (CtsDeviceSize)gUniformBufferOffsetAlignment;
-}
-
-CtsDeviceSize getTextureBufferOffsetAlignment() {
-    if (gTextureBufferOffsetAlignment == 0) {
-        glGetIntegerv(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT, &gTextureBufferOffsetAlignment);
-    }
-
-    return (CtsDeviceSize)gTextureBufferOffsetAlignment;
 }
 
 static const char* strstrIgnoreCase(const char* pNeedle, const char* pHaystack) {

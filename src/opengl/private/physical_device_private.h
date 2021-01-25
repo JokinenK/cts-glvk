@@ -21,6 +21,7 @@ enum {
     HEAP_INDEX_IMAGES_DEVICE  = 3
 };
 
+static CtsPhysicalDeviceFeatures gPhysicalDeviceFeatures;
 static CtsPhysicalDeviceProperties gPhysicalDeviceProperties;
 
 static const uint32_t HEAP_BITS_BUFFER = ((1 << HEAP_INDEX_BUFFERS_HOST) | (1 << HEAP_INDEX_BUFFERS_DEVICE));
@@ -73,7 +74,7 @@ struct CtsPhysicalDeviceImpl {
     CtsConditionVariable conditionVariable;
 };
 
-void ctsUpdatePhysicalDeviceProperties(CtsPhysicalDevice physicalDevice);
+void ctsPhysicalDeviceParseFeatures(CtsPhysicalDevice physicalDevice);
 const CtsMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex);
 
 #ifdef __cplusplus
