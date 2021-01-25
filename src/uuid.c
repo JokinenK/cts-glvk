@@ -8,7 +8,9 @@ extern "C" {
 
 static const uint64_t kUUIDv1TimeOffset = 122192928000000000;
 
-static unsigned char parseNibble(char chr);
+static uint8_t parseNibble(char chr);
+static uint64_t timestampToUnixtime(uint64_t timestamp);
+static uint64_t unixtimeToTimestamp(uint64_t unixtime);
 static void setTimeAndVersion(CtsUUID* pUUID, uint64_t timestamp, uint8_t version);
 
 CtsUUID ctsUUIDFromString(const char* pSource, size_t sourceLen) {
@@ -55,9 +57,9 @@ CtsUUID ctsUUIDFromString(const char* pSource, size_t sourceLen) {
     return uuid;
 }
 
-CtsUUID ctsUUIDCreateV1(uint64_t timestamp, uint16_t clockSeq, const uint8_t node[6]) {
+CtsUUID ctsUUIDCreateV1(uint64_t unixtime, uint16_t clockSeq, const uint8_t node[6]) {
     CtsUUID uuid;
-    setTimeAndVersion(&uuid, timestamp, CTS_UUID_TIME_BASED);
+    setTimeAndVersion(&uuid, unixtime, CTS_UUID_TIME_BASED);
     uuid.clockSeq = (clockSeq & 0x3FFF) | 0x8000;
     memcpy(uuid.node, node, sizeof(uuid.node));
 
@@ -68,14 +70,14 @@ CtsUUIDVersion ctsUUIDVersion(const CtsUUID* pUUID) {
     return (CtsUUIDVersion)(pUUID->timeHiAndVersion >> 12);
 }
 
-uint64_t ctsUUIDTimestamp(const CtsUUID* pUUID) {
+uint64_t ctsUUIDUnixTime(const CtsUUID* pUUID) {
     uint64_t timestamp = (
         ((uint64_t)pUUID->timeHiAndVersion & 0x00000FFF) << 48 |
         ((uint64_t)pUUID->timeMid          & 0x0000FFFF) << 32 |
         ((uint64_t)pUUID->timeLow          & 0xFFFFFFFF) << 0
     );
 
-    return (timestamp - kUUIDv1TimeOffset) / 10000000;
+    return timestampToUnixtime(timestamp);
 }
 
 void ctsUUIDToBuffer(const CtsUUID* pUUID, uint8_t buffer[16]) {
@@ -123,7 +125,7 @@ size_t ctsUUIDToString(const CtsUUID* pUUID, unsigned char* pBuffer, size_t buff
     return offset;
 }
 
-static unsigned char parseNibble(char chr) {
+static uint8_t parseNibble(char chr) {
     if (chr >= 'a' && chr <= 'f') {
         return (chr - 'a' + 10);
     } else if (chr >= 'A' && chr <= 'F') {
@@ -135,9 +137,16 @@ static unsigned char parseNibble(char chr) {
     return 0;
 }
 
-static void setTimeAndVersion(CtsUUID* pUUID, uint64_t timestamp, uint8_t version) {
-    timestamp *= 10000000;
-    timestamp += kUUIDv1TimeOffset;
+static uint64_t timestampToUnixtime(uint64_t timestamp) {
+    return (timestamp - kUUIDv1TimeOffset) / 10000000;
+}
+
+static uint64_t unixtimeToTimestamp(uint64_t unixtime) {
+    return (unixtime * 10000000) + kUUIDv1TimeOffset;
+}
+
+static void setTimeAndVersion(CtsUUID* pUUID, uint64_t unixtime, uint8_t version) {
+    uint64_t timestamp = unixtimeToTimestamp(unixtime);
 
     pUUID->timeHiAndVersion = (uint16_t)((timestamp >> 48) & 0x0FFF) + (version << 12);
     pUUID->timeMid          = (uint16_t)((timestamp >> 32) & 0xFFFF);

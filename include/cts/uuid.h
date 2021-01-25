@@ -21,10 +21,10 @@ typedef enum CtsUUIDVersion {
 } CtsUUIDVersion;
 
 CtsUUID ctsUUIDFromString(const char* pSource, size_t sourceLen);
-CtsUUID ctsUUIDCreateV1(uint64_t timestamp, uint16_t clockSeq, const uint8_t node[6]);
+CtsUUID ctsUUIDCreateV1(uint64_t unixtime, uint16_t clockSeq, const uint8_t node[6]);
 
 CtsUUIDVersion ctsUUIDVersion(const CtsUUID* pUUID);
-uint64_t ctsUUIDTimestamp(const CtsUUID* pUUID);
+uint64_t ctsUUIDUnixTime(const CtsUUID* pUUID);
 
 void ctsUUIDToBuffer(const CtsUUID* pUUID, uint8_t buffer[16]);
 size_t ctsUUIDToString(const CtsUUID* pUUID, unsigned char* pBuffer, size_t bufferLen, bool haveHyphens);
