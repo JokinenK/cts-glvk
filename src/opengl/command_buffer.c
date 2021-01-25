@@ -26,6 +26,7 @@
 #include <private/image_private.h>
 #include <private/image_view_private.h>
 #include <private/sampler_private.h>
+#include <private/physical_device_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -1191,7 +1192,7 @@ void ctsCmdBeginRenderPassImpl(
             description->format == CTS_FORMAT_D24_UNORM_S8_UINT ||
             description->format == CTS_FORMAT_D32_SFLOAT_S8_UINT
         ) {
-            glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth,  clearValue->depthStencil.stencil);
+            glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth, clearValue->depthStencil.stencil);
         } else {
             glClearBufferfv(GL_COLOR, i, clearValue->color.float32);
         }

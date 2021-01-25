@@ -111,6 +111,7 @@ CtsResult ctsDrawFSTexture(
     GLenum prevTarget = device->state.texture[0].target;
     GLint prevTexture = device->state.texture[0].texture;
     GLboolean prevCullFace = device->state.cullFace;
+    GLboolean prevDepthTest = device->state.depthTest;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glUseProgram(gShaderProgram);
@@ -118,16 +119,14 @@ CtsResult ctsDrawFSTexture(
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, image->handle);
 
-    if (prevCullFace) {
-        glDisable(GL_CULL_FACE);
-    }
+    if (prevCullFace) { glDisable(GL_CULL_FACE); }
+    if (prevDepthTest) { glDisable(GL_DEPTH_TEST); }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    if (prevCullFace) {
-        glEnable(GL_CULL_FACE);
-    }
+    if (prevCullFace) { glEnable(GL_CULL_FACE); }
+    if (prevDepthTest) { glEnable(GL_DEPTH_TEST); }
 
     glBindTexture(prevTarget, prevTexture);
     glUseProgram(prevProgram);
