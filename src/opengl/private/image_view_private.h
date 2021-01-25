@@ -11,6 +11,7 @@ extern "C" {
 struct CtsImageViewImpl {
     CtsImage image;
     CtsImageViewType viewType;
+    CtsImageAspectFlags aspectMask;
     GLuint handle;
     GLenum target;
 };

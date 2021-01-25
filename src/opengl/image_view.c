@@ -74,6 +74,7 @@ CtsResult ctsCreateImageViewImpl(
     imageView->image = pCreateInfo->image;
     imageView->target = parseImageViewType(pCreateInfo->viewType);
     imageView->viewType = pCreateInfo->viewType;
+    imageView->aspectMask = pCreateInfo->subresourceRange.aspectMask;
 
     glGenTextures(1, &imageView->handle);
     glTextureView(

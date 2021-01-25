@@ -30,6 +30,12 @@ void ctsGetPhysicalDeviceMemoryProperties(
     CtsPhysicalDeviceMemoryProperties* pMemoryProperties
 );
 
+void ctsGetPhysicalDeviceFormatProperties(
+    CtsPhysicalDevice physicalDevice,
+    CtsFormat format,
+    CtsFormatProperties* pFormatProperties
+);
+
 #ifdef __cplusplus
 }
 #endif

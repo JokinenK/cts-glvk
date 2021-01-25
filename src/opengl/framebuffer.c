@@ -92,30 +92,34 @@ CtsResult ctsCreateFramebufferImpl(
     
     uint32_t colorAttachmentCount = 0;
     uint32_t depthAttachmentCount = 0;
+    uint32_t stencilAttachmentCount = 0;
+
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
+        GLenum buffer;
         CtsImageView attachment = pCreateInfo->pAttachments[i];
 
-        if (attachment->image->imageUsage & CTS_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
-            GLenum buffer = GL_COLOR_ATTACHMENT0 + colorAttachmentCount;
-            glFramebufferTexture2D(
-                GL_DRAW_FRAMEBUFFER,
-                buffer,
-                attachment->target,
-                attachment->handle,
-                0
-            );
+        if (attachment->aspectMask & CTS_IMAGE_ASPECT_COLOR_BIT) {
+            buffer = GL_COLOR_ATTACHMENT0 + colorAttachmentCount;
             ++colorAttachmentCount;
-        } else if (attachment->image->imageUsage & CTS_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-            GLenum buffer = GL_DEPTH_STENCIL_ATTACHMENT;
-            glFramebufferTexture2D(
-                GL_DRAW_FRAMEBUFFER,
-                buffer,
-                attachment->target,
-                attachment->handle,
-                0
-            );
+        } else if (attachment->aspectMask & CTS_IMAGE_ASPECT_DEPTH_BIT && attachment->aspectMask & CTS_IMAGE_ASPECT_STENCIL_BIT) {
+            buffer = GL_DEPTH_STENCIL_ATTACHMENT;
             ++depthAttachmentCount;
+            ++stencilAttachmentCount;
+        } else if (attachment->aspectMask & CTS_IMAGE_ASPECT_DEPTH_BIT) {
+            buffer = GL_DEPTH_ATTACHMENT;
+            ++depthAttachmentCount;
+        } else if (attachment->aspectMask & CTS_IMAGE_ASPECT_STENCIL_BIT) {
+            buffer = GL_STENCIL_ATTACHMENT;
+            ++stencilAttachmentCount;
         }
+
+        glFramebufferTexture2D(
+            GL_DRAW_FRAMEBUFFER,
+            buffer,
+            attachment->target,
+            attachment->handle,
+            0
+        );
 
         framebuffer->attachments[i] = attachment;
     }

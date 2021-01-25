@@ -47,6 +47,8 @@
 #include <cts/typedefs/fence_create_flags.h>
 #include <cts/typedefs/fence.h>
 #include <cts/typedefs/flags.h>
+#include <cts/typedefs/format_feature_flags.h>
+#include <cts/typedefs/format_properties.h>
 #include <cts/typedefs/framebuffer_create_flags.h>
 #include <cts/typedefs/framebuffer.h>
 #include <cts/typedefs/graphics_pipeline.h>

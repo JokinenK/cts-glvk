@@ -18,6 +18,16 @@ static void parseDeviceFeatures(CtsPhysicalDevice physicalDevice, CtsPhysicalDev
 static void parseDeviceProperties(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceProperties* pProperties);
 static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceLimits* pLimits);
 
+static bool isValidFormat(CtsFormat format);
+static bool isPackedFormat(CtsFormat format);
+static bool isSignedIntegerFormat(CtsFormat format);
+static bool isUnsignedIntegerFormat(CtsFormat format);
+static bool isSignedFloatFormat(CtsFormat format);
+static bool isBufferCompatible(CtsFormat format);
+static bool hasColorComponent(CtsFormat format);
+static bool hasDepthComponent(CtsFormat format);
+static bool hasStencilComponent(CtsFormat format);
+
 CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
     CtsPhysicalDevice physicalDevice,
     uint32_t* pQueueFamilyPropertyCount,
@@ -74,6 +84,62 @@ void ctsGetPhysicalDeviceMemoryProperties(
 ) {
     if (pMemoryProperties != NULL) {
         *pMemoryProperties = gPhysicalMemoryProperties;
+    }
+}
+
+void ctsGetPhysicalDeviceFormatProperties(
+    CtsPhysicalDevice physicalDevice,
+    CtsFormat format,
+    CtsFormatProperties* pFormatProperties
+) {
+    /*
+    CTS_FORMAT_FEATURE_SAMPLED_IMAGE_BIT                = 0x00000001,
+    CTS_FORMAT_FEATURE_STORAGE_IMAGE_BIT                = 0x00000002,
+    CTS_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT         = 0x00000004,
+    CTS_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT         = 0x00000008,
+    CTS_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT         = 0x00000010,
+    CTS_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT  = 0x00000020,
+    CTS_FORMAT_FEATURE_VERTEX_BUFFER_BIT                = 0x00000040,
+    CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT             = 0x00000080,
+    CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT       = 0x00000100,
+    CTS_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT     = 0x00000200,
+    CTS_FORMAT_FEATURE_BLIT_SRC_BIT                     = 0x00000400,
+    CTS_FORMAT_FEATURE_BLIT_DST_BIT                     = 0x00000800,
+    CTS_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT  = 0x00001000,
+    */
+
+    pFormatProperties->bufferFeatures = 0;
+    pFormatProperties->linearTilingFeatures = 0;
+    pFormatProperties->optimalTilingFeatures = 0;
+
+    if (hasColorComponent(format)) {
+        pFormatProperties->linearTilingFeatures |= 
+            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | 
+            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | 
+            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | 
+            CTS_FORMAT_FEATURE_BLIT_SRC_BIT | 
+            CTS_FORMAT_FEATURE_BLIT_DST_BIT | 
+            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+
+        pFormatProperties->optimalTilingFeatures |= 
+            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | 
+            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | 
+            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | 
+            CTS_FORMAT_FEATURE_BLIT_SRC_BIT | 
+            CTS_FORMAT_FEATURE_BLIT_DST_BIT | 
+            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+    }
+
+    if (hasDepthComponent(format) || hasStencilComponent(format)) {
+        pFormatProperties->linearTilingFeatures |= CTS_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        pFormatProperties->optimalTilingFeatures |= CTS_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    }
+
+    if (isSignedIntegerFormat(format) || isUnsignedIntegerFormat(format) || isSignedFloatFormat(format)) {
+        pFormatProperties->bufferFeatures |= 
+            CTS_FORMAT_FEATURE_STORAGE_IMAGE_BIT | 
+            CTS_FORMAT_FEATURE_VERTEX_BUFFER_BIT | 
+            CTS_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
     }
 }
 
@@ -406,6 +472,160 @@ static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDevic
     pLimits->optimalBufferCopyOffsetAlignment = 0; // Can this be queried from GL?
     pLimits->optimalBufferCopyRowPitchAlignment = 0; // Can this be queried from GL?
     pLimits->nonCoherentAtomSize = 0; // Can this be queried from GL?
+}
+
+static bool isValidFormat(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_UNDEFINED:
+        case NUM_CTS_FORMATS: {
+            return false;
+        } break;
+
+        default: {
+            return true;
+        } break;
+    }
+}
+
+static bool isPackedFormat(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_R4G4B4A4_UNORM_PACK16:
+        case CTS_FORMAT_B4G4R4A4_UNORM_PACK16:
+        case CTS_FORMAT_R5G6B5_UNORM_PACK16:
+        case CTS_FORMAT_B5G6R5_UNORM_PACK16:
+        case CTS_FORMAT_R5G5B5A1_UNORM_PACK16:
+        case CTS_FORMAT_B5G5R5A1_UNORM_PACK16:
+        case CTS_FORMAT_A1R5G5B5_UNORM_PACK16:
+        case CTS_FORMAT_A8B8G8R8_UNORM_PACK32:
+        case CTS_FORMAT_A8B8G8R8_SNORM_PACK32:
+        case CTS_FORMAT_A8B8G8R8_USCALED_PACK32:
+        case CTS_FORMAT_A8B8G8R8_SSCALED_PACK32:
+        case CTS_FORMAT_A8B8G8R8_UINT_PACK32:
+        case CTS_FORMAT_A8B8G8R8_SINT_PACK32:
+        case CTS_FORMAT_A8B8G8R8_SRGB_PACK32:
+        case CTS_FORMAT_A2B10G10R10_UNORM_PACK32:
+        case CTS_FORMAT_A2B10G10R10_SNORM_PACK32:
+        case CTS_FORMAT_A2B10G10R10_USCALED_PACK32:
+        case CTS_FORMAT_A2B10G10R10_SSCALED_PACK32:
+        case CTS_FORMAT_A2B10G10R10_UINT_PACK32:
+        case CTS_FORMAT_A2B10G10R10_SINT_PACK32:
+        case CTS_FORMAT_B10G11R11_UFLOAT_PACK32:
+        case CTS_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        case CTS_FORMAT_X8_D24_UNORM_PACK32: {
+            return true;
+        } break;
+
+        default: {
+            return false;
+        } break;
+    }
+}
+
+static bool isSignedIntegerFormat(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_R8_SINT: 
+        case CTS_FORMAT_R8G8_SINT: 
+        case CTS_FORMAT_R8G8B8_SINT: 
+        case CTS_FORMAT_B8G8R8_SINT: 
+        case CTS_FORMAT_R8G8B8A8_SINT: 
+        case CTS_FORMAT_B8G8R8A8_SINT: 
+        case CTS_FORMAT_R16_SINT: 
+        case CTS_FORMAT_R16G16_SINT: 
+        case CTS_FORMAT_R16G16B16_SINT: 
+        case CTS_FORMAT_R16G16B16A16_SINT: 
+        case CTS_FORMAT_R32_SINT: 
+        case CTS_FORMAT_R32G32_SINT: 
+        case CTS_FORMAT_R32G32B32_SINT: 
+        case CTS_FORMAT_R32G32B32A32_SINT: {
+            return true;
+        } break;
+
+        default: {
+            return false;
+        } break;
+    }
+}
+
+static bool isUnsignedIntegerFormat(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_R8_UINT: 
+        case CTS_FORMAT_R8G8_UINT: 
+        case CTS_FORMAT_R8G8B8_UINT: 
+        case CTS_FORMAT_B8G8R8_UINT: 
+        case CTS_FORMAT_R8G8B8A8_UINT: 
+        case CTS_FORMAT_B8G8R8A8_UINT: 
+        case CTS_FORMAT_R16_UINT: 
+        case CTS_FORMAT_R16G16_UINT: 
+        case CTS_FORMAT_R16G16B16_UINT: 
+        case CTS_FORMAT_R16G16B16A16_UINT: 
+        case CTS_FORMAT_R32_UINT: 
+        case CTS_FORMAT_R32G32_UINT: 
+        case CTS_FORMAT_R32G32B32_UINT: 
+        case CTS_FORMAT_R32G32B32A32_UINT: {
+            return true;
+        } break;
+
+        default: {
+            return false;
+        } break;
+    }
+}
+
+static bool isSignedFloatFormat(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_R16_SFLOAT: 
+        case CTS_FORMAT_R16G16_SFLOAT: 
+        case CTS_FORMAT_R16G16B16_SFLOAT: 
+        case CTS_FORMAT_R16G16B16A16_SFLOAT: 
+        case CTS_FORMAT_R32_SFLOAT: 
+        case CTS_FORMAT_R32G32_SFLOAT: 
+        case CTS_FORMAT_R32G32B32_SFLOAT: 
+        case CTS_FORMAT_R32G32B32A32_SFLOAT: {
+            return true;
+        } break;
+
+        default: {
+            return false;
+        } break;
+    }
+}
+
+static bool isBufferCompatible(CtsFormat format) {
+    return isSignedIntegerFormat(format) || isUnsignedIntegerFormat(format) || isSignedFloatFormat(format);
+}
+
+static bool hasColorComponent(CtsFormat format) {
+    return (isValidFormat(format) && !hasDepthComponent(format) && !hasStencilComponent(format));
+}
+
+static bool hasDepthComponent(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_D16_UNORM:
+        case CTS_FORMAT_X8_D24_UNORM_PACK32:
+        case CTS_FORMAT_D32_SFLOAT:
+        case CTS_FORMAT_D24_UNORM_S8_UINT:
+        case CTS_FORMAT_D32_SFLOAT_S8_UINT: {
+            return true;
+        } break;
+        
+        default: {
+            return false;
+        } break;
+    }
+}
+
+static bool hasStencilComponent(CtsFormat format) {
+    switch (format) {
+        case CTS_FORMAT_S8_UINT:
+        case CTS_FORMAT_D24_UNORM_S8_UINT:
+        case CTS_FORMAT_D32_SFLOAT_S8_UINT: {
+            return true;
+        } break;
+        
+        default: {
+            return false;
+        } break;
+    }
 }
 
 #ifdef __cplusplus
