@@ -92,6 +92,18 @@ static GLenum sImageArrayTypes[] = {
     GL_INVALID_ENUM
 };
 
+static GLenum sMultisampleImageTypes[] = {
+    GL_INVALID_ENUM,
+    GL_TEXTURE_2D_MULTISAMPLE,
+    GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+};
+
+static GLenum sMultisampleImageArrayTypes[] = {
+    GL_INVALID_ENUM,
+    GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
+    GL_INVALID_ENUM
+};
+
 static GLenum sImageViewTypes[] = {
     GL_TEXTURE_1D,
     GL_TEXTURE_2D,
@@ -341,6 +353,8 @@ static_assert(COUNTOF(sMinFiltersNearest) == NUM_CTS_FILTERS, "Assertion failure
 static_assert(COUNTOF(sMinFiltersLinear) == NUM_CTS_FILTERS, "Assertion failure");
 static_assert(COUNTOF(sImageTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sImageArrayTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
+static_assert(COUNTOF(sMultisampleImageTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
+static_assert(COUNTOF(sMultisampleImageArrayTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sImageViewTypes) == NUM_CTS_IMAGE_VIEW_TYPES, "Assertion failure");
 static_assert(COUNTOF(sFormats) == NUM_CTS_FORMATS, "Assertion failure");
 static_assert(COUNTOF(sBlendFactors) == NUM_CTS_BLEND_FACTORS, "Assertion failure");
@@ -433,11 +447,15 @@ const GLenum parseShaderType(CtsShaderStageFlags value)
     return GL_INVALID_ENUM;
 }
 
-const GLenum parseImageType(CtsImageType value, bool isArray)
+const GLenum parseImageType(CtsImageType value, bool isArray, bool isMultisample)
 {
-    return isArray
-        ? sImageArrayTypes[value]
-        : sImageTypes[value];
+    return isMultisample
+        ? isArray
+            ? sMultisampleImageArrayTypes[value]
+            : sMultisampleImageTypes[value]
+        : isArray
+            ? sImageArrayTypes[value]
+            : sImageTypes[value];
 }
 
 const GLenum parseImageViewType(CtsImageViewType value)

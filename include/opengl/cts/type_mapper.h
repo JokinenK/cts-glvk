@@ -30,7 +30,7 @@ const GLenum parseSamplerAddressMode(CtsSamplerAddressMode value);
 const GLenum parseMinFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode);
 const GLenum parseMagFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode);
 const GLenum parseShaderType(CtsShaderStageFlagBits value);
-const GLenum parseImageType(CtsImageType value, bool isArray);
+const GLenum parseImageType(CtsImageType value, bool isArray, bool isMultisample);
 const GLenum parseImageViewType(CtsImageViewType value);
 const GLenum parseBufferUsage(CtsBufferUsageFlags value);
 const GLenum parseBlendFactor(CtsBlendFactor value);

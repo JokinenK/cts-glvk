@@ -23,6 +23,7 @@ struct CtsImageImpl {
     GLint arrayLayers;
     GLint mipLevels;
     GLint numComponents;
+    GLint samples;
 
     CtsDeviceSize size;
     CtsDeviceSize offset;

@@ -14,6 +14,10 @@ static uint32_t max(uint32_t a, uint32_t b);
 static uint32_t nextMipValue(uint32_t value);
 static CtsDeviceSize imageSize(CtsImage image);
 
+static void storage1D(GLenum target, GLsizei mipLevels, GLenum internalFormat, GLsizei width, GLsizei arrayLayers, GLsizei samples);
+static void storage2D(GLenum target, GLsizei mipLevels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei arrayLayers, GLsizei samples);
+static void storage3D(GLenum target, GLsizei mipLevels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLsizei arrayLayers, GLsizei samples);
+
 CtsResult ctsCreateImage(
     CtsDevice device,
     const CtsImageCreateInfo* pCreateInfo,
@@ -79,11 +83,12 @@ CtsResult ctsCreateImageImpl(
     (void) pCreateInfo->initialLayout;
 
     bool isArray = pCreateInfo->arrayLayers > 1;
+    bool isMultisampled = pCreateInfo->samples > CTS_SAMPLE_COUNT_1_BIT;
     CtsFormatData formatData = parseFormat(pCreateInfo->format);
     
     glGenTextures(1, &image->handle);
     image->imageType = pCreateInfo->imageType;
-    image->target = parseImageType(pCreateInfo->imageType, isArray);
+    image->target = parseImageType(pCreateInfo->imageType, isArray, isMultisampled);
     image->format = formatData.format;
     image->internalFormat = formatData.internalFormat;
     image->type = formatData.type;
@@ -102,73 +107,54 @@ CtsResult ctsCreateImageImpl(
         image->depth = 1;
         image->arrayLayers = pCreateInfo->arrayLayers;
         image->mipLevels = pCreateInfo->mipLevels;
+        image->samples = pCreateInfo->samples;
         image->size = imageSize(image);
 
-        if (!isArray) {
-            glTexStorage1D(
-                image->target,
-                image->mipLevels,
-                formatData.internalFormat,
-                image->width
-            );
-
-        } else {
-            glTexStorage2D(
-                image->target,
-                image->mipLevels,
-                formatData.internalFormat,
-                image->width,
-                image->arrayLayers
-            );
-        }
+        storage1D(
+            image->target,
+            image->mipLevels,
+            image->internalFormat,
+            image->width,
+            image->arrayLayers,
+            image->samples
+        );
     } else if (image->imageType == CTS_IMAGE_TYPE_2D) {
         image->width = pCreateInfo->extent.width;
         image->height = pCreateInfo->extent.height;
         image->depth = 1;
         image->arrayLayers = pCreateInfo->arrayLayers;
         image->mipLevels = pCreateInfo->mipLevels;
+        image->samples = pCreateInfo->samples;
         image->size = imageSize(image);
 
-        if (!isArray) {
-            glTexStorage2D(
-                image->target,
-                image->mipLevels,
-                formatData.internalFormat,
-                image->width,
-                image->height
-            );
-        } else {
-            glTexStorage3D(
-                image->target,
-                image->mipLevels,
-                formatData.internalFormat,
-                image->width,
-                image->height,
-                image->arrayLayers
-            );
-        }
-
-
+        storage2D(
+            image->target,
+            image->mipLevels,
+            image->internalFormat,
+            image->width,
+            image->height,
+            image->arrayLayers,
+            image->samples
+        );
     } else if (image->imageType == CTS_IMAGE_TYPE_3D) {
         image->width = pCreateInfo->extent.width;
         image->height = pCreateInfo->extent.height;
         image->depth = pCreateInfo->extent.depth;
         image->arrayLayers = pCreateInfo->arrayLayers;
         image->mipLevels = pCreateInfo->mipLevels;
+        image->samples = pCreateInfo->samples;
         image->size = imageSize(image);
 
-        if (!isArray) {
-            glTexStorage3D(
-                image->target,
-                image->mipLevels,
-                formatData.internalFormat,
-                image->width,
-                image->height,
-                image->depth
-            );
-        } else {
-            /* Unreachable */
-        }
+        storage3D(
+            image->target,
+            image->mipLevels,
+            image->internalFormat,
+            image->width,
+            image->height,
+            image->depth,
+            image->arrayLayers,
+            image->samples
+        );
     }
 
     glBindTexture(image->target, 0);
@@ -294,6 +280,62 @@ uintptr_t ctsBufferToImage(CtsImage image, uintptr_t offset) {
     }
 
     return offset;
+}
+
+static void storage1D(GLenum target, GLsizei mipLevels, GLenum internalFormat, GLsizei width, GLsizei arrayLayers, GLsizei samples)
+{
+    bool isArray = arrayLayers > 1;
+    bool isMultisampled = samples > 1;
+
+    if (!isMultisampled) {
+        if (!isArray) {
+            glTexStorage1D(target, mipLevels, internalFormat, width);
+        } else {
+            glTexStorage2D(target, mipLevels, internalFormat, width, arrayLayers);
+        }
+    } else {
+        // Unsupported
+    }
+}
+
+static void storage2D(GLenum target, GLsizei mipLevels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei arrayLayers, GLsizei samples)
+{
+    bool isArray = arrayLayers > 1;
+    bool isMultisampled = samples > 1;
+
+    if (!isMultisampled) {
+        if (!isArray) {
+            glTexStorage2D(target, mipLevels, internalFormat, width, height);
+        } else {
+            glTexStorage3D(target, mipLevels, internalFormat, width, height, arrayLayers);
+        }
+    } else {
+        if (!isArray) {
+            glTexStorage2DMultisample(target, samples, internalFormat, width, height, GL_TRUE);
+        } else {
+            glTexStorage3DMultisample(target, samples, internalFormat, width, height, arrayLayers, GL_TRUE);
+        }
+    }
+}
+
+static void storage3D(GLenum target, GLsizei mipLevels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLsizei arrayLayers, GLsizei samples)
+{
+    bool isArray = arrayLayers > 1;
+    bool isMultisampled = samples > 1;
+
+    if (!isMultisampled) {
+        if (!isArray) {
+            glTexStorage3D(target, mipLevels, internalFormat, width, height, depth);
+        } else {
+            // Unsupported
+        }
+    } else {
+        if (!isArray) {
+            glTexStorage3DMultisample(target, samples, internalFormat, width, height, arrayLayers, GL_TRUE);
+        } else {
+            // Unsupported
+        }
+    }
 }
 
 #ifdef __cplusplus
