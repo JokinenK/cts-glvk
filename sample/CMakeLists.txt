@@ -20,6 +20,7 @@ list(APPEND SAMPLE_LIBRARIES
 list(APPEND SAMPLE_ASSET_FOLDERS
     shaders
     textures
+    models
 )
 
 add_executable(${PROJECT_NAME} ${SAMPLE_SOURCES} ${SAMPLE_HEADERS})

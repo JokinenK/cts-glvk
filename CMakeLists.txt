@@ -19,6 +19,7 @@ if(CTS_BUILD_SAMPLES)
 
     list(APPEND INCLUDE_PATHS
         contrib/stb
+        contrib/tinyobjloader
     )
 endif(CTS_BUILD_SAMPLES)
 
