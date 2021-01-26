@@ -48,7 +48,8 @@ struct CtsDeviceImpl {
     const CtsGlGraphicsPipeline* activeGraphicsPipeline;
     
     CtsGlState state;
-    CtsFramebuffer activeFramebuffer;
+    CtsFramebuffer activeReadFramebuffer;
+    CtsFramebuffer activeWriteFramebuffer;
     CtsRenderPass activeRenderPass;
     uint32_t activeSubpassNumber;
     const CtsGlSubpassDescription* activeSubpass;

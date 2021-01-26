@@ -9,7 +9,16 @@ extern "C" {
 
 CtsResult ctsInitFSTextureHelper();
 
-CtsResult ctsDrawFSTexture(
+void ctsBlitTexture(
+    CtsDevice device,
+    CtsImage src,
+    CtsImage dst,
+    uint32_t regionCount,
+    const CtsImageBlit* pRegions,
+    CtsFilter filter
+);
+
+void ctsDrawFSTexture(
     CtsDevice device,
     CtsImage image
 );

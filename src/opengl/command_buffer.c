@@ -5,6 +5,7 @@
 #include <cts/commands.h>
 #include <cts/command_dispatcher.h>
 #include <cts/type_mapper.h>
+#include <cts/fullscreen_texture.h>
 #include <cts/typedefs/gl_enums.h>
 #include <cts/typedefs/gl_pipeline.h>
 #include <cts/typedefs/gl_shader.h>
@@ -1198,14 +1199,14 @@ void ctsCmdBeginRenderPassImpl(
         }
     }
 
-    device->activeFramebuffer = framebuffer;
+    device->activeWriteFramebuffer = framebuffer;
 }
 
 void ctsCmdEndRenderPassImpl(
     CtsCommandBuffer commandBuffer
 ) {
     CtsDevice device = commandBuffer->device;
-    device->activeFramebuffer = NULL;
+    device->activeWriteFramebuffer = NULL;
     device->activeSubpass = 0;
 }
 
@@ -1377,6 +1378,17 @@ void ctsCmdBlitImageImpl(
     const CtsImageBlit* pRegions,
     CtsFilter filter
 ) {
+    (void) srcImageLayout;
+    (void) dstImageLayout;
+
+    ctsBlitTexture(
+        commandBuffer->device,
+        srcImage,
+        dstImage,
+        regionCount,
+        pRegions,
+        filter
+    );
 }
 
 void ctsCmdClearAttachmentsImpl(
