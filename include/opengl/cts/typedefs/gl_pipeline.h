@@ -51,6 +51,8 @@ typedef struct CtsGlPipelineRasterizationState {
 
 typedef struct CtsGlPipelineMultisampleState {
     bool initialized;
+    bool sampleShadingEnable;
+    float minSampleShading;
 } CtsGlPipelineMultisampleState;
 
 typedef struct CtsGlPipelineDepthStencilState {

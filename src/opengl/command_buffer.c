@@ -2339,6 +2339,8 @@ static void bindMultisampleState(
     CtsDevice device,
     CtsGlPipelineMultisampleState* pState)
 {
+    enableFeature(GL_SAMPLE_SHADING_ARB, pState->sampleShadingEnable);
+    glMinSampleShadingARB(pState->minSampleShading);
 }
 
 static void bindDepthStencilState(

@@ -212,7 +212,7 @@ static void parseDeviceFeatures(CtsPhysicalDevice physicalDevice, CtsPhysicalDev
     pFeatures->independentBlend                         = GLAD_GL_ARB_draw_buffers_blend;
     pFeatures->geometryShader                           = CTS_TRUE;
     pFeatures->tessellationShader                       = GLAD_GL_ARB_tessellation_shader;
-    pFeatures->sampleRateShading                        = CTS_FALSE;
+    pFeatures->sampleRateShading                        = GLAD_GL_ARB_sample_shading;
     pFeatures->dualSrcBlend                             = CTS_TRUE;
     pFeatures->logicOp                                  = CTS_TRUE;
     pFeatures->multiDrawIndirect                        = GLAD_GL_ARB_multi_draw_indirect;

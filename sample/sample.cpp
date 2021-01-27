@@ -558,9 +558,9 @@ private:
 
         CtsPipelineMultisampleStateCreateInfo multisampling{};
         multisampling.sType = CTS_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampling.sampleShadingEnable = CTS_FALSE;
+        multisampling.sampleShadingEnable = CTS_TRUE; // enable sample shading in the pipeline
+        multisampling.minSampleShading = .2f;
         multisampling.rasterizationSamples = mMsaaSamples;
-        multisampling.minSampleShading = 1.0f; // Optional
         multisampling.pSampleMask = nullptr; // Optional
         multisampling.alphaToCoverageEnable = CTS_FALSE; // Optional
         multisampling.alphaToOneEnable = CTS_FALSE; // Optional

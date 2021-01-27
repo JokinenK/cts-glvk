@@ -568,6 +568,9 @@ static void createMultisampleState(
         return;
     }
 
+    pMultisampleState->sampleShadingEnable = pCreateInfo->sampleShadingEnable;
+    pMultisampleState->minSampleShading = pCreateInfo->minSampleShading;
+
     pMultisampleState->initialized = true;
 }
 
