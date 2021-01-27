@@ -1417,6 +1417,11 @@ void ctsCmdClearColorImageImpl(
     uint32_t rangeCount,
     const CtsImageSubresourceRange* pRanges
 ) {
+    for (uint32_t i = 0; i < rangeCount; ++i) {
+        const CtsImageSubresourceRange* pRange = &pRanges[i];
+        // TODO: Check if format is float or int
+        glClearTexImage(image->handle, pRange->baseMipLevel, image->format, image->type, &pColor->float32);
+    }
 }
 
 void ctsCmdClearDepthStencilImageImpl(
@@ -1427,6 +1432,11 @@ void ctsCmdClearDepthStencilImageImpl(
     uint32_t rangeCount,
     const CtsImageSubresourceRange* pRanges
 ) {
+    for (uint32_t i = 0; i < rangeCount; ++i) {
+        const CtsImageSubresourceRange* pRange = &pRanges[i];
+        // TODO: Check if format is float or int
+        glClearTexImage(image->handle, pRange->baseMipLevel, image->format, image->type, &pDepthStencil->depth);
+    }
 }
 
 void ctsCmdCopyBufferImpl(
@@ -1678,7 +1688,7 @@ void ctsCmdDrawImpl(
     CtsDevice device = commandBuffer->device;
 
     glDrawArraysInstancedBaseInstance(
-        device->activeGraphicsPipeline->inputAssemblyState.topology,
+        device->state.primitiveTopology,
         firstVertex,
         vertexCount,
         instanceCount,
@@ -1702,7 +1712,7 @@ void ctsCmdDrawIndexedImpl(
         : sizeof(GLuint);
 
     glDrawElementsInstancedBaseVertexBaseInstance(
-        device->activeGraphicsPipeline->inputAssemblyState.topology,
+        device->state.primitiveTopology,
         indexCount,
         activeIndexBuffer->indexType,
         (GLvoid*)(activeIndexBuffer->offset + firstIndex * indexSize),
@@ -1724,7 +1734,7 @@ void ctsCmdDrawIndexedIndirectImpl(
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->memory->handle);
     glMultiDrawElementsIndirect(
-        device->activeGraphicsPipeline->inputAssemblyState.topology,
+        device->state.primitiveTopology,
         activeIndexBuffer->indexType,
         (GLvoid*)offset,
         drawCount,
@@ -1742,7 +1752,7 @@ void ctsCmdDrawIndirectImpl(
     CtsDevice device = commandBuffer->device;
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->memory->handle);
     glMultiDrawArraysIndirect(
-        device->activeGraphicsPipeline->inputAssemblyState.topology,
+        device->state.primitiveTopology,
         (GLvoid*)offset,
         drawCount,
         stride
@@ -1953,6 +1963,19 @@ void ctsCmdSetStencilCompareMaskImpl(
     CtsStencilFaceFlags faceMask,
     uint32_t compareMask
 ) {
+    CtsDevice device = commandBuffer->device;
+
+    if (faceMask & CTS_STENCIL_FACE_FRONT_BIT) {
+        CtsGlStencilState* state = &device->state.frontStencil;
+        state->compareMask = compareMask;
+        glStencilMaskSeparate(GL_FRONT, state->compareMask);
+    } 
+
+    if (faceMask & CTS_STENCIL_FACE_BACK_BIT) {
+        CtsGlStencilState* state = &device->state.frontStencil;
+        state->compareMask = compareMask;
+        glStencilMaskSeparate(GL_BACK, state->compareMask);
+    }
 }
 
 void ctsCmdSetStencilReferenceImpl(
@@ -1960,6 +1983,20 @@ void ctsCmdSetStencilReferenceImpl(
     CtsStencilFaceFlags faceMask,
     uint32_t reference
 ) {
+    CtsDevice device = commandBuffer->device;
+
+    // Add some helper here
+    if (faceMask & CTS_STENCIL_FACE_FRONT_BIT) {
+        CtsGlStencilState* state = &device->state.frontStencil;
+        state->ref = reference;
+        glStencilFuncSeparate(GL_FRONT, state->func, state->ref, state->mask);
+    } 
+
+    if (faceMask & CTS_STENCIL_FACE_BACK_BIT) {
+        CtsGlStencilState* state = &device->state.backStencil;
+        state->ref = reference;
+        glStencilFuncSeparate(GL_BACK, state->func, state->ref, state->mask);
+    }
 }
 
 void ctsCmdSetStencilWriteMaskImpl(
@@ -1967,6 +2004,20 @@ void ctsCmdSetStencilWriteMaskImpl(
     CtsStencilFaceFlags faceMask,
     uint32_t writeMask
 ) {
+    CtsDevice device = commandBuffer->device;
+
+    // Add some helper here
+    if (faceMask & CTS_STENCIL_FACE_FRONT_BIT) {
+        CtsGlStencilState* state = &device->state.frontStencil;
+        state->mask = writeMask;
+        glStencilFuncSeparate(GL_FRONT, state->func, state->ref, state->mask);
+    } 
+
+    if (faceMask & CTS_STENCIL_FACE_BACK_BIT) {
+        CtsGlStencilState* state = &device->state.backStencil;
+        state->mask = writeMask;
+        glStencilFuncSeparate(GL_BACK, state->func, state->ref, state->mask);
+    }
 }
 
 void ctsCmdSetViewportImpl(
@@ -2224,6 +2275,8 @@ static void bindInputAssemblyState(
     CtsDevice device,
     CtsGlPipelineInputAssemblyState* pState
 ) {
+    device->state.primitiveTopology  = pState->topology;
+    device->state.primitiveRestartEnable = pState->primitiveRestartEnable;
 }
 
 static void bindTessellationState(

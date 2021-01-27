@@ -20,6 +20,13 @@ typedef struct CtsGlTextureBinding {
     GLuint texture;
 } CtsGlTextureBinding;
 
+typedef struct CtsGlStencilState {
+    GLenum func;
+    GLint ref;
+    GLuint mask;
+    GLuint compareMask;
+} CtsGlStencilState;
+
 typedef struct CtsGlState {
     bool depthClamp;
     bool rasterizerDiscard;
@@ -33,6 +40,12 @@ typedef struct CtsGlState {
     CtsGlTextureBinding texture[32];
     GLuint sampler[32];
     GLuint program;
+
+    GLenum primitiveTopology;
+    bool primitiveRestartEnable;
+
+    CtsGlStencilState frontStencil;
+    CtsGlStencilState backStencil;
 } CtsGlState;
 
 typedef struct CtsGlIndexBuffer {
