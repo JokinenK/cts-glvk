@@ -37,7 +37,6 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/framebuffer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fullscreen_texture.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/generic_queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image_view.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/instance.c
@@ -52,6 +51,7 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/swapchain.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/allocator.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generic_queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/linear_allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pool_allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uuid.c
