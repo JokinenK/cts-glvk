@@ -114,6 +114,16 @@ static GLenum sImageViewTypes[] = {
     GL_TEXTURE_CUBE_MAP_ARRAY_ARB
 };
 
+static GLenum sMultisampleImageViewTypes[] = {
+    GL_INVALID_ENUM,
+    GL_TEXTURE_2D_MULTISAMPLE,
+    GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
+    GL_INVALID_ENUM,
+    GL_INVALID_ENUM,
+    GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
+    GL_INVALID_ENUM
+};
+
 static const CtsFormatData sFormats[] = {
     { GL_INVALID_ENUM,    GL_INVALID_ENUM,                   GL_INVALID_ENUM,       0, GL_FALSE }, // CTS_FORMAT_UNDEFINED
 
@@ -356,6 +366,7 @@ static_assert(COUNTOF(sImageArrayTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failu
 static_assert(COUNTOF(sMultisampleImageTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sMultisampleImageArrayTypes) == NUM_CTS_IMAGE_TYPES, "Assertion failure");
 static_assert(COUNTOF(sImageViewTypes) == NUM_CTS_IMAGE_VIEW_TYPES, "Assertion failure");
+static_assert(COUNTOF(sMultisampleImageViewTypes) == NUM_CTS_IMAGE_VIEW_TYPES, "Assertion failure");
 static_assert(COUNTOF(sFormats) == NUM_CTS_FORMATS, "Assertion failure");
 static_assert(COUNTOF(sBlendFactors) == NUM_CTS_BLEND_FACTORS, "Assertion failure");
 static_assert(COUNTOF(sBlendOperations) == NUM_CTS_BLEND_OPS, "Assertion failure");
@@ -447,7 +458,7 @@ const GLenum parseShaderType(CtsShaderStageFlags value)
     return GL_INVALID_ENUM;
 }
 
-const GLenum parseImageType(CtsImageType value, bool isArray, bool isMultisample)
+const GLenum parseImageType(CtsImageType value, bool isMultisample, bool isArray)
 {
     return isMultisample
         ? isArray
@@ -458,9 +469,11 @@ const GLenum parseImageType(CtsImageType value, bool isArray, bool isMultisample
             : sImageTypes[value];
 }
 
-const GLenum parseImageViewType(CtsImageViewType value)
+const GLenum parseImageViewType(CtsImageViewType value, bool isMultisample)
 {
-    return sImageViewTypes[value];
+    return isMultisample
+        ? sMultisampleImageViewTypes[value]
+        : sImageViewTypes[value];
 }
 
 const GLenum parseBufferUsage(CtsBufferUsageFlags value)

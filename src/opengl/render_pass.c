@@ -74,6 +74,11 @@ CtsResult ctsCreateRenderPass(
     renderPass->subpassCount = pCreateInfo->subpassCount;
     renderPass->pSubpasses = NULL;
 
+    CtsAttachmentReference unusedAttachment = {
+        .attachment = CTS_ATTACHMENT_UNUSED,
+        .layout = CTS_IMAGE_LAYOUT_UNDEFINED
+    };
+
     if (pCreateInfo->subpassCount > 0) {
         renderPass->pSubpasses = ctsAllocation(
             pAllocator,
@@ -116,32 +121,45 @@ CtsResult ctsCreateRenderPass(
             dest->pDepthStencilAttachment   = (void*)((char*)dest->pResolveAttachments + resolveAttachmentSize);
             dest->pPreserveAttachments      = (void*)((char*)dest->pDepthStencilAttachment + depthStencilSize);
 
-            if (source->pInputAttachments != NULL) {
-                memcpy(dest->pInputAttachments, dest->pInputAttachments, inputAttachmentSize);
+            bool hasInputAttachments = source->pInputAttachments != NULL;
+            bool hasColorAttachments = source->pColorAttachments != NULL;
+            bool hasResolveAttachments = source->pResolveAttachments != NULL;
+            bool hasDepthStencilAttachment = source->pDepthStencilAttachment != NULL;
+            bool hasPreserveAttachments = source->pPreserveAttachments != NULL;
+
+            if (hasInputAttachments) {
+                for (uint32_t i = 0; i < source->inputAttachmentCount; ++i) {
+                    dest->pInputAttachments[i] = dest->pInputAttachments[i];
+                }
             } else {
                 dest->pInputAttachments = NULL;
             }
 
-            if (source->pColorAttachments != NULL) {
-                memcpy(dest->pColorAttachments, source->pColorAttachments, colorAttachmentSize);
+            if (hasColorAttachments || hasResolveAttachments) {
+                for (uint32_t i = 0; i < source->colorAttachmentCount; ++i) {
+                    dest->pColorAttachments[i] = hasColorAttachments
+                        ? source->pColorAttachments[i]
+                        : unusedAttachment;
+
+                    dest->pResolveAttachments[i] = hasResolveAttachments
+                        ? source->pResolveAttachments[i]
+                        : unusedAttachment;
+                }
             } else {
                 dest->pColorAttachments = NULL;
-            }
-
-            if (source->pResolveAttachments != NULL) {
-                memcpy(dest->pResolveAttachments, source->pResolveAttachments, resolveAttachmentSize);
-            } else {
                 dest->pResolveAttachments = NULL;
             }
 
-            if (source->pDepthStencilAttachment != NULL) {
-                memcpy(dest->pDepthStencilAttachment, source->pDepthStencilAttachment, depthStencilSize);
+            if (hasDepthStencilAttachment) {
+                (*dest->pDepthStencilAttachment) = (*source->pDepthStencilAttachment);
             } else {
                 dest->pDepthStencilAttachment = NULL;
             }
 
-            if (source->pPreserveAttachments != NULL) {
-                memcpy(dest->pPreserveAttachments, source->pPreserveAttachments, preserveAttachmentSize);
+            if (hasPreserveAttachments) {
+                for (uint32_t i = 0; i < source->preserveAttachmentCount; ++i) {
+                    dest->pPreserveAttachments[i] = source->pPreserveAttachments[i];
+                }
             } else {
                 dest->pPreserveAttachments = NULL;
             }

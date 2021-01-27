@@ -14,6 +14,7 @@ struct CtsFramebufferImpl {
     CtsRenderPass renderPass;
     uint32_t attachmentCount;
     CtsImageView* attachments;
+    GLenum* types;
 };
 
 CtsResult ctsCreateFramebufferImpl(

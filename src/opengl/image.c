@@ -88,7 +88,7 @@ CtsResult ctsCreateImageImpl(
     
     glGenTextures(1, &image->handle);
     image->imageType = pCreateInfo->imageType;
-    image->target = parseImageType(pCreateInfo->imageType, isArray, isMultisampled);
+    image->target = parseImageType(pCreateInfo->imageType, isMultisampled, isArray);
     image->format = formatData.format;
     image->internalFormat = formatData.internalFormat;
     image->type = formatData.type;
@@ -101,7 +101,7 @@ CtsResult ctsCreateImageImpl(
     glBindTexture(image->target, image->handle);
 
     // TODO: Support mip levels
-    if (image->target == CTS_IMAGE_TYPE_1D) {
+    if (image->imageType == CTS_IMAGE_TYPE_1D) {
         image->width = pCreateInfo->extent.width;
         image->height = 1;
         image->depth = 1;
@@ -192,7 +192,7 @@ static CtsDeviceSize imageSize(CtsImage image) {
     uint32_t depth = image->depth;
 
     for (GLint i = 0; i < image->mipLevels; ++i) {
-        size += width * height * depth * image->arrayLayers * image->numComponents;
+        size += width * height * depth * image->arrayLayers * image->numComponents * image->samples;
         width = nextMipValue(width);
         height = nextMipValue(height);
         depth = nextMipValue(depth);

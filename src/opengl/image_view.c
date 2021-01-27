@@ -68,11 +68,12 @@ CtsResult ctsCreateImageViewImpl(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
+    bool isMultisampled = (pCreateInfo->image->samples > 1);
     CtsFormatData formatData = parseFormat(pCreateInfo->format);
     (void) pCreateInfo->components;
 
     imageView->image = pCreateInfo->image;
-    imageView->target = parseImageViewType(pCreateInfo->viewType);
+    imageView->target = parseImageViewType(pCreateInfo->viewType, isMultisampled);
     imageView->viewType = pCreateInfo->viewType;
     imageView->aspectMask = pCreateInfo->subresourceRange.aspectMask;
 

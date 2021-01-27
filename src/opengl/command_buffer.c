@@ -51,7 +51,7 @@ static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious);
 
 static void bindTexture(CtsDevice device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsGlTextureBinding* pPrevious);
 static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious);
-static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber);
+static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRenderPass renderPass, uint32_t subpassNumber);
 static void bindDynamicState(CtsDevice device, CtsFlags pState);
 static void bindVertexInputState(CtsDevice device, CtsGlPipelineVertexInputState* pState);
 static void bindInputAssemblyState(CtsDevice device, CtsGlPipelineInputAssemblyState* pState);
@@ -61,6 +61,8 @@ static void bindRasterizationState(CtsDevice device, CtsGlPipelineRasterizationS
 static void bindMultisampleState(CtsDevice device, CtsGlPipelineMultisampleState* pState);
 static void bindDepthStencilState(CtsDevice device, CtsGlPipelineDepthStencilState* pState);
 static void bindColorBlendState(CtsDevice device, CtsGlPipelineColorBlendState* pState);
+
+static void resolveRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber);
 
 static void* allocateCommand(CtsCommandBuffer commandBuffer, CtsCommandType commandType, size_t extraDataLen);
 
@@ -1173,9 +1175,10 @@ void ctsCmdBeginRenderPassImpl(
 
     CtsDevice device = commandBuffer->device;
     CtsFramebuffer framebuffer = pRenderPassBegin->framebuffer;
+    CtsRenderPass renderPass = pRenderPassBegin->renderPass;
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->handle);
-    bindRenderPass(device, pRenderPassBegin->renderPass, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->handle);
+    bindRenderPass(device, framebuffer, renderPass, 0);
 
     uint32_t lastAttachment = (pRenderPassBegin->clearValueCount < framebuffer->attachmentCount)
         ? pRenderPassBegin->clearValueCount
@@ -1183,7 +1186,7 @@ void ctsCmdBeginRenderPassImpl(
 
     for (uint32_t i = 0; i < lastAttachment; ++i) {
         const CtsClearValue* clearValue = &pRenderPassBegin->pClearValues[i];
-        const CtsAttachmentDescription* description = &pRenderPassBegin->renderPass->pAttachments[i];
+        const CtsAttachmentDescription* description = &renderPass->pAttachments[i];
 
         if (description->format == CTS_FORMAT_D16_UNORM ||
             description->format == CTS_FORMAT_D32_SFLOAT
@@ -1200,14 +1203,20 @@ void ctsCmdBeginRenderPassImpl(
     }
 
     device->activeWriteFramebuffer = framebuffer;
+    device->activeRenderPass = renderPass;
 }
 
 void ctsCmdEndRenderPassImpl(
     CtsCommandBuffer commandBuffer
 ) {
     CtsDevice device = commandBuffer->device;
+    resolveRenderPass(device, device->activeRenderPass, device->activeSubpassNumber);
+
     device->activeWriteFramebuffer = NULL;
-    device->activeSubpass = 0;
+    device->activeSubpassNumber = 0;
+    device->activeSubpass = NULL;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ctsCmdBindDescriptorSetsImpl(
@@ -1791,7 +1800,8 @@ void ctsCmdNextSubpassImpl(
     CtsSubpassContents contents
 ) {
     CtsDevice device = commandBuffer->device;
-    bindRenderPass(device, device->activeRenderPass, device->activeSubpassNumber + 1);
+    resolveRenderPass(device, device->activeRenderPass, device->activeSubpassNumber);
+    bindRenderPass(device, device->activeReadFramebuffer, device->activeRenderPass, device->activeSubpassNumber + 1);
 }
 
 void ctsCmdPipelineBarrierImpl(
@@ -1842,6 +1852,28 @@ void ctsCmdResolveImageImpl(
     uint32_t regionCount,
     const CtsImageResolve* pRegions
 ) {
+    for (uint32_t i = 0; i < regionCount; ++i) {
+        const CtsImageResolve* pRegion = &pRegions[i];
+        
+        CtsImageBlit imageBlit;
+        imageBlit.srcSubresource = pRegion->srcSubresource;
+        imageBlit.srcOffsets[0] = pRegion->srcOffset;
+        imageBlit.srcOffsets[1] = (CtsOffset3D){
+            .x = pRegion->srcOffset.x + pRegion->extent.width,
+            .y = pRegion->srcOffset.y + pRegion->extent.height,
+            .z = pRegion->srcOffset.z + pRegion->extent.depth
+        };
+
+        imageBlit.dstSubresource = pRegion->dstSubresource;
+        imageBlit.dstOffsets[0] = pRegion->dstOffset;
+        imageBlit.dstOffsets[1] = (CtsOffset3D){
+            .x = pRegion->dstOffset.x + pRegion->extent.width,
+            .y = pRegion->dstOffset.y + pRegion->extent.height,
+            .z = pRegion->dstOffset.z + pRegion->extent.depth
+        };
+
+        ctsBlitTexture(commandBuffer->device, srcImage, dstImage, 1, &imageBlit, CTS_FILTER_LINEAR);
+    }
 }
 
 void ctsCmdSetBlendConstantsImpl(
@@ -2129,7 +2161,7 @@ static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint3
     *data = sampler;
 }
 
-static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber) {
+static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRenderPass renderPass, uint32_t subpassNumber) {
     const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
 
     (void) subpassDescription->flags;
@@ -2143,11 +2175,31 @@ static void bindRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t 
         //bindTexture(device, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
     }
 
+    uint32_t drawBufferCount = 0;
     for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
-        renderPass->pDrawBuffers[i] = GL_COLOR_ATTACHMENT0 + subpassDescription->pColorAttachments[i].attachment;
+        const CtsAttachmentReference* colorAttachment = &subpassDescription->pColorAttachments[i];
+        uint32_t attachmentIndex = colorAttachment->attachment;
+        
+        if (attachmentIndex != CTS_ATTACHMENT_UNUSED) {
+            CtsImageView imageView = framebuffer->attachments[attachmentIndex];
+            GLenum buffer = framebuffer->types[attachmentIndex];
+
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, buffer, imageView->target, imageView->handle, 0);
+            renderPass->pDrawBuffers[drawBufferCount++] = buffer;
+        }
     }
 
-    glDrawBuffers(subpassDescription->colorAttachmentCount, renderPass->pDrawBuffers);
+    if (subpassDescription->pDepthStencilAttachment != NULL) {
+        uint32_t attachmentIndex = subpassDescription->pDepthStencilAttachment->attachment;
+        CtsImageView imageView = framebuffer->attachments[attachmentIndex];
+        GLenum buffer = framebuffer->types[attachmentIndex];
+        
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, buffer, imageView->target, imageView->handle, 0);
+    } else {
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+    }
+
+    glDrawBuffers(drawBufferCount, renderPass->pDrawBuffers);
 
     device->activeRenderPass = renderPass;
     device->activeSubpassNumber = subpassNumber;
@@ -2280,6 +2332,43 @@ static void bindDepthStencilState(
     );
 
     glStencilMaskSeparate(GL_BACK, pState->backWriteMask);
+}
+
+static void resolveRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber) {
+    const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
+    CtsFramebuffer framebuffer = device->activeWriteFramebuffer;
+
+    CtsImageBlit imageBlit;
+    imageBlit.srcSubresource = (CtsImageSubresourceLayers) {
+        .aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT,
+        .baseArrayLayer = 1,
+        .layerCount = 1,
+        .mipLevel = 0
+    };
+
+    imageBlit.dstSubresource = (CtsImageSubresourceLayers) {
+        .aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT,
+        .baseArrayLayer = 1,
+        .layerCount = 1,
+        .mipLevel = 0
+    };
+
+    for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
+        const CtsAttachmentReference* colorAttachment = &subpassDescription->pColorAttachments[i];
+        const CtsAttachmentReference* resolveAttachment = &subpassDescription->pResolveAttachments[i];
+
+        if (colorAttachment->attachment != CTS_ATTACHMENT_UNUSED && resolveAttachment->attachment != CTS_ATTACHMENT_UNUSED) {
+            CtsImage srcImage = framebuffer->attachments[colorAttachment->attachment]->image;
+            CtsImage dstImage = framebuffer->attachments[resolveAttachment->attachment]->image;
+
+            imageBlit.srcOffsets[0] = (CtsOffset3D){0, 0, 1};
+            imageBlit.srcOffsets[1] = (CtsOffset3D){srcImage->width, srcImage->height, 1};
+            imageBlit.dstOffsets[0] = (CtsOffset3D){0, 0, 1};
+            imageBlit.dstOffsets[1] = (CtsOffset3D){dstImage->width, dstImage->height, 1};
+
+            ctsBlitTexture(device, srcImage, dstImage, 1, &imageBlit, CTS_FILTER_LINEAR);
+        }
+    }
 }
 
 static void bindColorBlendState(

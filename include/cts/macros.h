@@ -22,3 +22,4 @@
 #define CTS_MAX_MEMORY_HEAPS                (16)
 #define CTS_UUID_SIZE                       (16)
 #define CTS_QUEUE_FAMILY_IGNORED            (~0)
+#define CTS_ATTACHMENT_UNUSED               (~0)

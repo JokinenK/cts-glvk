@@ -201,6 +201,7 @@ private:
         createDescriptorSetLayout();
         createGraphicsPipeline();
         createCommandPool();
+        createColorResources();
         createDepthResources();
         createFramebuffers();
         createTextureImage();
@@ -263,6 +264,7 @@ private:
         for (const auto& device : devices) {
             if (isDeviceSuitable(device)) {
                 mPhysicalDevice = device;
+                mMsaaSamples = getMaxUsableSampleCount();
                 break;
             }
         }
@@ -317,6 +319,7 @@ private:
         createImageViews();
         createRenderPass();
         createGraphicsPipeline();
+        createColorResources();
         createDepthResources();
         createFramebuffers();
         createUniformBuffers();
@@ -390,23 +393,33 @@ private:
     void createRenderPass() {
         CtsAttachmentDescription colorAttachment{};
         colorAttachment.format = mSwapChainImageFormat;
-        colorAttachment.samples = CTS_SAMPLE_COUNT_1_BIT;
+        colorAttachment.samples = mMsaaSamples;
         colorAttachment.loadOp = CTS_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = CTS_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilLoadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = CTS_IMAGE_LAYOUT_PRESENT_SRC;
+        colorAttachment.finalLayout = CTS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         CtsAttachmentDescription depthAttachment{};
         depthAttachment.format = findDepthFormat();
-        depthAttachment.samples = CTS_SAMPLE_COUNT_1_BIT;
+        depthAttachment.samples = mMsaaSamples;
         depthAttachment.loadOp = CTS_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
         depthAttachment.stencilStoreOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
         depthAttachment.finalLayout = CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        CtsAttachmentDescription colorAttachmentResolve{};
+        colorAttachmentResolve.format = mSwapChainImageFormat;
+        colorAttachmentResolve.samples = CTS_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolve.loadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.storeOp = CTS_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolve.stencilLoadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.stencilStoreOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolve.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolve.finalLayout = CTS_IMAGE_LAYOUT_PRESENT_SRC;
 
         CtsAttachmentReference colorAttachmentRef{};
         colorAttachmentRef.attachment = 0;
@@ -416,11 +429,16 @@ private:
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+        CtsAttachmentReference colorAttachmentResolveRef{};
+        colorAttachmentResolveRef.attachment = 2;
+        colorAttachmentResolveRef.layout = CTS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
         CtsSubpassDescription subpass{};
         subpass.pipelineBindPoint = CTS_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
+        subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
         CtsSubpassDependency dependency{};
         dependency.srcSubpass = CTS_SUBPASS_EXTERNAL;
@@ -430,7 +448,7 @@ private:
         dependency.dstStageMask = CTS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstAccessMask = CTS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-        std::array<CtsAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+        std::array<CtsAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
         CtsRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = CTS_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -541,7 +559,7 @@ private:
         CtsPipelineMultisampleStateCreateInfo multisampling{};
         multisampling.sType = CTS_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampling.sampleShadingEnable = CTS_FALSE;
-        multisampling.rasterizationSamples = CTS_SAMPLE_COUNT_1_BIT;
+        multisampling.rasterizationSamples = mMsaaSamples;
         multisampling.minSampleShading = 1.0f; // Optional
         multisampling.pSampleMask = nullptr; // Optional
         multisampling.alphaToCoverageEnable = CTS_FALSE; // Optional
@@ -621,10 +639,10 @@ private:
         mSwapChainFramebuffers.resize(mSwapChainImages.size());
 
         for (size_t i = 0; i < mSwapChainImageViews.size(); i++) {
-            std::array<CtsImageView, 2> attachments = {
-                mSwapChainImageViews[i],
-                mDepthImageView
-            };
+            std::array<CtsImageView, 3> attachments;
+            attachments[0] = mColorImageView;
+            attachments[1] = mDepthImageView;
+            attachments[2] = mSwapChainImageViews[i];
 
             CtsFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = CTS_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -654,6 +672,25 @@ private:
         }
     }
 
+    void createColorResources() {
+        CtsFormat colorFormat = mSwapChainImageFormat;
+
+        createImage(
+            mSwapChainExtent.width, 
+            mSwapChainExtent.height, 
+            1, 
+            mMsaaSamples, 
+            colorFormat, 
+            CTS_IMAGE_TILING_OPTIMAL, 
+            CTS_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | CTS_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
+            CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+            mColorImage, 
+            mColorImageMemory
+        );
+
+        mColorImageView = createImageView(mColorImage, colorFormat, CTS_IMAGE_ASPECT_COLOR_BIT, 1);
+    }
+
     void createDepthResources() {
         CtsFormat depthFormat = findDepthFormat();
 
@@ -661,6 +698,7 @@ private:
             mSwapChainExtent.width,
             mSwapChainExtent.height,
             1,
+            mMsaaSamples,
             depthFormat,
             CTS_IMAGE_TILING_OPTIMAL,
             CTS_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -706,6 +744,7 @@ private:
             texWidth,
             texHeight,
             mMipLevels,
+            CTS_SAMPLE_COUNT_1_BIT,
             CTS_FORMAT_R8G8B8A8_SRGB,
             CTS_IMAGE_TILING_OPTIMAL, 
             CTS_IMAGE_USAGE_TRANSFER_DST_BIT | CTS_IMAGE_USAGE_SAMPLED_BIT, 
@@ -1058,6 +1097,10 @@ private:
 
     void cleanupSwapChain()
     {
+        ctsDestroyImageView(mDevice, mColorImageView, mAllocator);
+        ctsDestroyImage(mDevice, mColorImage, mAllocator);
+        ctsFreeMemory(mDevice, mColorImageMemory, mAllocator);
+        
         ctsDestroyImageView(mDevice, mDepthImageView, mAllocator);
         ctsDestroyImage(mDevice, mDepthImage, mAllocator);
         ctsFreeMemory(mDevice, mDepthImageMemory, mAllocator);
@@ -1449,6 +1492,7 @@ private:
         uint32_t width, 
         uint32_t height, 
         uint32_t mipLevels,
+        CtsSampleCountFlagBits numSamples,
         CtsFormat format, 
         CtsImageTiling tiling, 
         CtsImageUsageFlags usage, 
@@ -1468,7 +1512,7 @@ private:
         imageInfo.tiling = tiling;
         imageInfo.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
-        imageInfo.samples = CTS_SAMPLE_COUNT_1_BIT;
+        imageInfo.samples = numSamples;
         imageInfo.sharingMode = CTS_SHARING_MODE_EXCLUSIVE;
         imageInfo.flags = 0; // Optional
 
@@ -1680,10 +1724,26 @@ private:
         return format == CTS_FORMAT_D32_SFLOAT_S8_UINT || format == CTS_FORMAT_D24_UNORM_S8_UINT;
     }
 
+    CtsSampleCountFlagBits getMaxUsableSampleCount() {
+        CtsPhysicalDeviceProperties physicalDeviceProperties;
+        ctsGetPhysicalDeviceProperties(mPhysicalDevice, &physicalDeviceProperties);
+
+        CtsSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+        if (counts & CTS_SAMPLE_COUNT_64_BIT) { return CTS_SAMPLE_COUNT_64_BIT; }
+        if (counts & CTS_SAMPLE_COUNT_32_BIT) { return CTS_SAMPLE_COUNT_32_BIT; }
+        if (counts & CTS_SAMPLE_COUNT_16_BIT) { return CTS_SAMPLE_COUNT_16_BIT; }
+        if (counts & CTS_SAMPLE_COUNT_8_BIT) { return CTS_SAMPLE_COUNT_8_BIT; }
+        if (counts & CTS_SAMPLE_COUNT_4_BIT) { return CTS_SAMPLE_COUNT_4_BIT; }
+        if (counts & CTS_SAMPLE_COUNT_2_BIT) { return CTS_SAMPLE_COUNT_2_BIT; }
+
+        return CTS_SAMPLE_COUNT_1_BIT;
+    }
+
     const CtsAllocationCallbacks* mAllocator;
     HWND mWindow;
     CtsInstance mInstance;
     CtsPhysicalDevice mPhysicalDevice;
+    CtsSampleCountFlagBits mMsaaSamples;
     uint32_t mQueueFamilyIndex;
     CtsDevice mDevice;
     CtsQueue mGraphicsQueue;
@@ -1708,6 +1768,10 @@ private:
     CtsDeviceMemory mVertexBufferMemory;
     CtsBuffer mIndexBuffer;
     CtsDeviceMemory mIndexBufferMemory;
+
+    CtsImage mColorImage;
+    CtsDeviceMemory mColorImageMemory;
+    CtsImageView mColorImageView;
 
     CtsImage mDepthImage;
     CtsDeviceMemory mDepthImageMemory;

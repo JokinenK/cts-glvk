@@ -83,53 +83,36 @@ CtsResult ctsCreateFramebufferImpl(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
     
+    framebuffer->types = ctsAllocation(
+        pAllocator,
+        sizeof(GLenum) * pCreateInfo->attachmentCount,
+        alignof(GLenum),
+        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+    );
+
     if (framebuffer->attachments == NULL) {
         ctsDestroyFramebufferImpl(device, framebuffer, pAllocator);
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->handle);
-    
-    uint32_t colorAttachmentCount = 0;
-    uint32_t depthAttachmentCount = 0;
-    uint32_t stencilAttachmentCount = 0;
-
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
-        GLenum buffer;
+        GLenum buffer = GL_NONE;
         CtsImageView attachment = pCreateInfo->pAttachments[i];
 
         if (attachment->aspectMask & CTS_IMAGE_ASPECT_COLOR_BIT) {
-            buffer = GL_COLOR_ATTACHMENT0 + colorAttachmentCount;
-            ++colorAttachmentCount;
+            buffer = GL_COLOR_ATTACHMENT0 + i;
         } else if (attachment->aspectMask & CTS_IMAGE_ASPECT_DEPTH_BIT && attachment->aspectMask & CTS_IMAGE_ASPECT_STENCIL_BIT) {
             buffer = GL_DEPTH_STENCIL_ATTACHMENT;
-            ++depthAttachmentCount;
-            ++stencilAttachmentCount;
         } else if (attachment->aspectMask & CTS_IMAGE_ASPECT_DEPTH_BIT) {
             buffer = GL_DEPTH_ATTACHMENT;
-            ++depthAttachmentCount;
         } else if (attachment->aspectMask & CTS_IMAGE_ASPECT_STENCIL_BIT) {
             buffer = GL_STENCIL_ATTACHMENT;
-            ++stencilAttachmentCount;
         }
 
-        glFramebufferTexture2D(
-            GL_DRAW_FRAMEBUFFER,
-            buffer,
-            attachment->target,
-            attachment->handle,
-            0
-        );
-
+        framebuffer->types[i] = buffer;
         framebuffer->attachments[i] = attachment;
     }
 
-    GLenum framebufferStatus = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
-    if (framebufferStatus != GL_FRAMEBUFFER_COMPLETE) {
-        fprintf(stderr, "Unable to create framebuffer, status: 0x%x", framebufferStatus);
-    }
-
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     *pFramebuffer = framebuffer;
 
     return CTS_SUCCESS;
