@@ -1,14 +1,12 @@
 #pragma once
 
-#include <pthread.h> 
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsMutexImpl {
-    pthread_mutex_t mutex;
-};
+typedef pthread_t CtsPlatformThread;
 
 #ifdef __cplusplus
 }

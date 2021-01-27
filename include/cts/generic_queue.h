@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
-#include <cts/typedefs/enums.h>
 #include <cts/allocator.h>
+#include <cts/typedefs/enums.h>
 
 #ifdef __cplusplus
 extern "C" {

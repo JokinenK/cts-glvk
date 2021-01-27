@@ -1,14 +1,12 @@
 #pragma once
 
-#include <semaphore.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsSemaphoreImpl {
-    sem_t semaphore;
-};
+typedef pthread_cond_t CtsPlatformConditionVariable;
 
 #ifdef __cplusplus
 }

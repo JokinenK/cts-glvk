@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <string.h>
 #include <cts/align.h>
-#include <cts/mutex.h>
 #include <cts/generic_queue.h>
+#include <cts/platform_mutex.h>
 
 #ifdef __cplusplus
 extern "C" {

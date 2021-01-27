@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <cts/allocator.h>
 #include <cts/typedefs/framebuffer.h>
 #include <cts/typedefs/render_pass.h>
 #include <cts/typedefs/image_view.h>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cts/allocator.h>
 #include <cts/types.h>
 #include <cts/commanddefs/cmd_base.h>
 

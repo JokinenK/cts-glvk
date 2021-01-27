@@ -1,7 +1,5 @@
 #include <stddef.h>
 #include <cts/instance.h>
-#include <cts/mutex.h>
-#include <cts/condition_variable.h>
 #include <private/instance_private.h>
 #include <private/physical_device_private.h>
 

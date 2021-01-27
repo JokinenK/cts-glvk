@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <cts/swapchain.h>
+#include <cts/semaphore.h>
 #include <cts/fullscreen_texture.h>
 #include <cts/commands.h>
 #include <private/device_private.h>

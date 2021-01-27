@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stddef.h>
 #include <cts/commands.h>
 #include <cts/image.h>

@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <cts/fence.h>
 #include <cts/commands.h>
-#include <cts/time.h>
+#include <cts/platform_time.h>
 #include <private/device_private.h>
 #include <private/fence_private.h>
 #include <private/queue_private.h>

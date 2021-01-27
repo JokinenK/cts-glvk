@@ -1,13 +1,13 @@
 #pragma once
 
-#include <windows.h>
+#include <cts/platform_semaphore.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct CtsSemaphoreImpl {
-    HANDLE semaphore;
+    CtsPlatformSemaphore semaphore;
 };
 
 #ifdef __cplusplus

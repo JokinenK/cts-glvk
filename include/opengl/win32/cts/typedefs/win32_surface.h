@@ -1,6 +1,9 @@
 #pragma once
 
-#include <windows.h>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
 #include <cts/typedefs/enums.h>
 #include <cts/typedefs/win32_surface_create_flags.h>
 

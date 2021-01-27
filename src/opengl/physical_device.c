@@ -4,8 +4,8 @@
 #include <glad/glad.h>
 #include <cts/constants.h>
 #include <cts/instance.h>
-#include <cts/mutex.h>
-#include <cts/condition_variable.h>
+#include <cts/platform_mutex.h>
+#include <cts/platform_condition_variable.h>
 #include <private/instance_private.h>
 #include <private/physical_device_private.h>
 #include <private/swapchain_private.h>
@@ -31,11 +31,8 @@ static bool hasDepthComponent(CtsFormat format);
 static bool hasStencilComponent(CtsFormat format);
 
 void ctsPhysicalDeviceInit(CtsPhysicalDevice physicalDevice, CtsInstance instance, const CtsAllocationCallbacks* pAllocator) {
-    CtsMutexCreateInfo mutexCreateInfo;
-    ctsCreateMutex(&mutexCreateInfo, pAllocator, &physicalDevice->mutex);
-
-    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
-    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &physicalDevice->conditionVariable);
+    ctsInitPlatformMutex(&physicalDevice->mutex);
+    ctsInitPlatformConditionVariable(&physicalDevice->conditionVariable);
 
     CtsQueueCreateInfo queueCreateInfo;
     queueCreateInfo.physicalDevice = physicalDevice;
@@ -50,24 +47,24 @@ void ctsPhysicalDeviceInit(CtsPhysicalDevice physicalDevice, CtsInstance instanc
 void ctsPhysicalDeviceDestroy(CtsPhysicalDevice physicalDevice, const CtsAllocationCallbacks* pAllocator) {
     physicalDevice->isRunning = false;
     
-    ctsConditionVariableWakeAll(physicalDevice->conditionVariable);
-    ctsDestroyConditionVariable(physicalDevice->conditionVariable, pAllocator);
-    ctsDestroyMutex(physicalDevice->mutex, pAllocator);
+    ctsWakeAllPlatformConditionVariable(&physicalDevice->conditionVariable);
+    ctsDestroyPlatformConditionVariable(&physicalDevice->conditionVariable);
+    ctsDestroyPlatformMutex(&physicalDevice->mutex);
     ctsDestroyQueue(physicalDevice->queue, pAllocator);
 }
 
 void ctsPhysicalDeviceSetSurface(CtsPhysicalDevice physicalDevice, CtsSurface surface) {
     physicalDevice->surface = surface;
-    ctsConditionVariableWakeAll(physicalDevice->conditionVariable);
+    ctsWakeAllPlatformConditionVariable(&physicalDevice->conditionVariable);
 
     while (physicalDevice->isRunning && !physicalDevice->isInitialized);
 }
 
 bool ctsPhysicalDeviceWaitSurface(CtsPhysicalDevice physicalDevice) {
-    ctsMutexLock(physicalDevice->mutex);
+    ctsLockPlatformMutex(&physicalDevice->mutex);
 
     while (physicalDevice->isRunning && !physicalDevice->isInitialized) {
-        ctsConditionVariableSleep(physicalDevice->conditionVariable, physicalDevice->mutex);
+        ctsSleepPlatformConditionVariable(&physicalDevice->conditionVariable, &physicalDevice->mutex);
 
         if (physicalDevice->surface != NULL) {
             ctsSurfaceMakeCurrent(physicalDevice->surface);
@@ -76,7 +73,7 @@ bool ctsPhysicalDeviceWaitSurface(CtsPhysicalDevice physicalDevice) {
         }
     }
 
-    ctsMutexUnlock(physicalDevice->mutex);
+    ctsUnlockPlatformMutex(&physicalDevice->mutex);
     return (physicalDevice->isRunning && physicalDevice->isInitialized);
 }
 

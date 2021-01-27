@@ -6,11 +6,11 @@
 #include <cts/typedefs/queue.h>
 #include <cts/typedefs/device.h>
 #include <cts/allocator.h>
-#include <cts/mutex.h>
-#include <cts/thread.h>
 #include <cts/generic_queue.h>
-#include <cts/condition_variable.h>
 #include <cts/queue.h>
+#include <cts/platform_condition_variable.h>
+#include <cts/platform_mutex.h>
+#include <cts/platform_thread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,15 +28,15 @@ typedef struct CtsQueueItem {
 
 struct CtsQueueImpl {
     CtsPhysicalDevice physicalDevice;
-    CtsThread thread;
-
+    CtsPlatformThread thread;
+    
+    CtsPlatformMutex threadMutex;
+    CtsPlatformMutex queueMutex;
+    
+    CtsPlatformConditionVariable threadCondVar;
+    CtsPlatformConditionVariable queueCondVar;
+    
     CtsGenericQueue queue;
-
-    CtsMutex queueMutex;
-    CtsMutex threadMutex;
-
-    CtsConditionVariable queueCondVar;
-    CtsConditionVariable threadCondVar;
 };
 
 CtsResult ctsCreateQueue(

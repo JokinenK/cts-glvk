@@ -7,6 +7,7 @@
             "name": "Win32",
             "includePath": [
                 "include",
+                "include/win32",
                 "include/opengl",
                 "include/opengl/win32",
                 "src",
@@ -35,6 +36,7 @@
                 "databaseFilename": "${default}",
                 "path": [
                     "include",
+                    "include/win32",
                     "include/opengl",
                     "include/opengl/win32",
                     "src",

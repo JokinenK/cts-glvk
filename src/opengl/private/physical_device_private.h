@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cts/allocator.h>
 #include <cts/typedefs/instance.h>
 #include <cts/typedefs/surface.h>
+#include <cts/platform_mutex.h>
+#include <cts/platform_condition_variable.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,8 +73,8 @@ struct CtsPhysicalDeviceImpl {
     CtsInstance instance;
     CtsSurface surface;
 
-    CtsMutex mutex;
-    CtsConditionVariable conditionVariable;
+    CtsPlatformMutex mutex;
+    CtsPlatformConditionVariable conditionVariable;
 
     bool isRunning;
     bool isInitialized;

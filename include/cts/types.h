@@ -74,7 +74,6 @@
 #include <cts/typedefs/memory_property_flags.h>
 #include <cts/typedefs/memory_requirements.h>
 #include <cts/typedefs/memory_type.h>
-#include <cts/typedefs/mutex.h>
 #include <cts/typedefs/offset.h>
 #include <cts/typedefs/physical_device_features.h>
 #include <cts/typedefs/physical_device_limits.h>
@@ -117,6 +116,5 @@
 #include <cts/typedefs/surface_format.h>
 #include <cts/typedefs/surface.h>
 #include <cts/typedefs/swapchain.h>
-#include <cts/typedefs/thread.h>
 #include <cts/typedefs/vertex_input.h>
 #include <cts/typedefs/viewport.h>

@@ -47,6 +47,7 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/render_pass.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/sampler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/semaphore.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shader_module.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/swapchain.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
@@ -56,50 +57,6 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pool_allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uuid.c
 )
-
-if(WIN32)
-    list(APPEND SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/condition_variable.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/device_info.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/mutex.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/semaphore.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/thread.c
-    )
-elseif(UNIX)
-    list(APPEND SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/condition_variable.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/mutex.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/semaphore.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/thread.c
-    )
-endif(WIN32)
-
-if(WIN32)
-    list(APPEND INCLUDE_PATHS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
-    )
-    list(APPEND SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/surface.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/time.c
-    )
-    list(APPEND LIBRARIES
-        opengl32
-        setupapi
-    )
-elseif(UNIX)
-    list(APPEND INCLUDE_PATHS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/posix
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix
-    )
-    list(APPEND SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/surface.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix/time.c
-    )
-    list(APPEND LIBRARIES
-        gl
-    )
-endif(WIN32)
 
 list(APPEND INCLUDE_PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -112,6 +69,51 @@ list(APPEND INCLUDE_PATHS
 list(APPEND LIBRARIES
     glad
 )
+
+if(WIN32)
+    list(APPEND SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/device_info.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/surface.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_time.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_mutex.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_semaphore.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_thread.c
+        
+    )
+
+    list(APPEND INCLUDE_PATHS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/win32
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
+    )
+
+    list(APPEND LIBRARIES
+        opengl32
+        setupapi
+    )
+elseif(UNIX)
+    list(APPEND SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/posix/platform_condition_variable.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/posix/platform_mutex.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/posix/platform_semaphore.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/posix/platform_thread.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/posix/platform_surface.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/posix/platform_time.c
+    )
+
+    list(APPEND INCLUDE_PATHS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/posix
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/posix
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/posix
+    )
+
+    list(APPEND LIBRARIES
+        gl
+    )
+endif(WIN32)
+
+
 
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES} ${HEADERS})

@@ -1,6 +1,6 @@
+#include <windows.h>
+#include <limits.h>
 #include <cts/align.h>
-#include <pthread.h> 
-#include <semaphore.h>
 #include <cts/allocator.h>
 #include <cts/semaphore.h>
 #include <private/semaphore_private.h>
@@ -8,8 +8,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define SEMAPHORE_MAX_VALUE 1
 
 CtsResult ctsCreateSemaphore(
     CtsDevice device,
@@ -24,13 +22,13 @@ CtsResult ctsCreateSemaphore(
         CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    if (!semaphore) {
+    if (semaphore == NULL) {
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    sem_init(&semaphore->semaphore, 0, 0); 
-    pSemaphore = semaphore;
+    ctsInitPlatformSemaphore(&semaphore->semaphore, 0, 1);
 
+    *pSemaphore = semaphore;
     return CTS_SUCCESS;
 }
 
@@ -40,9 +38,20 @@ void ctsDestroySemaphore(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (semaphore != NULL) {
-        sem_destroy(&semaphore->semaphore); 
+        ctsDestroyPlatformSemaphore(&semaphore->semaphore);
         ctsFree(pAllocator, semaphore);
     }
+}
+
+CtsResult ctsWaitSemaphore(
+    CtsSemaphore semaphore,
+    uint64_t timeout
+) {
+    if (ctsWaitPlatformSemaphore(&semaphore->semaphore, timeout)) {
+        return CTS_SUCCESS;
+    }
+
+    return CTS_TIMEOUT;
 }
 
 void ctsWaitSemaphores(
@@ -50,7 +59,7 @@ void ctsWaitSemaphores(
     const CtsSemaphore* pSemaphores
 ) {
     for (uint32_t i = 0; i < semaphoreCount; ++i) {
-        sem_wait(&pSemaphores[i]->semaphore); 
+        ctsWaitPlatformSemaphore(&pSemaphores[i]->semaphore, UINT64_MAX);
     }
 }
 
@@ -58,14 +67,8 @@ void ctsSignalSemaphores(
     uint32_t semaphoreCount,
     const CtsSemaphore* pSemaphores
 ) {
-    int value;
-
     for (uint32_t i = 0; i < semaphoreCount; ++i) {
-        sem_getvalue(&pSemaphores[i]->semaphore, &value);
-
-        if (value < SEMAPHORE_MAX_VALUE) {
-            sem_post(&pSemaphores[i]->semaphore); 
-        }
+        ReleaseSemaphore(pSemaphores[i]->semaphore, 1, NULL);
     }
 }
 

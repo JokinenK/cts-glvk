@@ -1,7 +1,11 @@
 #pragma once
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include <Windows.h>
 #include <stdint.h>
-#include <windows.h>
 #include <cts/surface.h>
 
 #ifdef __cplusplus

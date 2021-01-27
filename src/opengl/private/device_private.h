@@ -7,9 +7,9 @@
 #include <cts/typedefs/queue.h>
 #include <cts/typedefs/gl_pipeline.h>
 #include <cts/typedefs/gl_render_pass.h>
-#include <cts/thread.h>
-#include <cts/mutex.h>
-#include <cts/condition_variable.h>
+#include <cts/platform_thread.h>
+#include <cts/platform_mutex.h>
+#include <cts/platform_condition_variable.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -39,18 +39,13 @@ CtsResult ctsCreateQueue(
     genericQueueCreateInfo.itemSize = sizeof(CtsQueueItem);
     ctsCreateGenericQueue(&genericQueueCreateInfo, pAllocator, &queue->queue);
 
-    CtsMutexCreateInfo mutexCreateInfo;
-    ctsCreateMutex(&mutexCreateInfo, pAllocator, &queue->queueMutex);
-    ctsCreateMutex(&mutexCreateInfo, pAllocator, &queue->threadMutex);
+    ctsInitPlatformMutex(&queue->queueMutex);
+    ctsInitPlatformMutex(&queue->threadMutex);
 
-    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
-    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &queue->queueCondVar);
-    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &queue->threadCondVar);
+    ctsInitPlatformConditionVariable(&queue->queueCondVar);
+    ctsInitPlatformConditionVariable(&queue->threadCondVar);
 
-    CtsThreadCreateInfo threadCreateInfo;
-    threadCreateInfo.pfEntryPoint = workerEntry;
-    threadCreateInfo.pArgs = queue;
-    ctsCreateThread(&threadCreateInfo, pAllocator, &queue->thread);
+    ctsInitPlatformThread(&queue->thread, workerEntry, queue);
 
     *pQueue = queue;
     return CTS_SUCCESS;
@@ -62,16 +57,16 @@ void ctsDestroyQueue(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (queue) {
-        ctsConditionVariableWakeAll(queue->queueCondVar);
-        ctsConditionVariableWakeAll(queue->threadCondVar);
+        ctsWakeAllPlatformConditionVariable(&queue->queueCondVar);
+        ctsWakeAllPlatformConditionVariable(&queue->threadCondVar);
         
-        ctsDestroyThread(queue->thread, pAllocator);
+        ctsDestroyPlatformThread(&queue->thread);
         
-        ctsDestroyConditionVariable(queue->queueCondVar, pAllocator);
-        ctsDestroyConditionVariable(queue->threadCondVar, pAllocator);
+        ctsDestroyPlatformConditionVariable(&queue->queueCondVar);
+        ctsDestroyPlatformConditionVariable(&queue->threadCondVar);
 
-        ctsDestroyMutex(queue->queueMutex, pAllocator);
-        ctsDestroyMutex(queue->threadMutex, pAllocator);
+        ctsDestroyPlatformMutex(&queue->queueMutex);
+        ctsDestroyPlatformMutex(&queue->threadMutex);
 
         ctsDestroyGenericQueue(queue->queue, pAllocator);
 
@@ -82,13 +77,13 @@ void ctsDestroyQueue(
 CtsResult ctsQueueWaitIdle(
     CtsQueue queue
 ) {
-    ctsMutexLock(queue->queueMutex);
+    ctsLockPlatformMutex(&queue->queueMutex);
     
     while (!ctsQueueEmpty(queue)) {
-        ctsConditionVariableSleep(queue->queueCondVar, queue->queueMutex);
+        ctsSleepPlatformConditionVariable(&queue->queueCondVar, &queue->queueMutex);
     }
 
-    ctsMutexUnlock(queue->queueMutex);
+    ctsUnlockPlatformMutex(&queue->queueMutex);
     return CTS_SUCCESS;
 }
 
@@ -101,29 +96,29 @@ void ctsQueueDispatch(
     queueItem.cmd = pCmd;
     queueItem.pFinished = &finished;
 
-    ctsMutexLock(queue->queueMutex);
+    ctsLockPlatformMutex(&queue->queueMutex);
     ctsGenericQueuePush(queue->queue, &queueItem);
-    ctsConditionVariableWakeAll(queue->threadCondVar);
+    ctsWakeAllPlatformConditionVariable(&queue->threadCondVar);
 
     while (!finished) {
-        ctsConditionVariableSleep(queue->queueCondVar, queue->queueMutex);
+        ctsSleepPlatformConditionVariable(&queue->queueCondVar, &queue->queueMutex);
     }
 
-    ctsMutexUnlock(queue->queueMutex);
+    ctsUnlockPlatformMutex(&queue->queueMutex);
 }
 
 bool ctsQueuePop(CtsQueue queue, CtsQueueItem* pQueueItem) {
-    ctsMutexLock(queue->queueMutex);
+    ctsLockPlatformMutex(&queue->queueMutex);
     bool result = ctsGenericQueuePop(queue->queue, pQueueItem);
-    ctsMutexUnlock(queue->queueMutex);
+    ctsUnlockPlatformMutex(&queue->queueMutex);
     return result;
 }
 
 
 bool ctsQueueEmpty(CtsQueue queue) {
-    ctsMutexLock(queue->queueMutex);
+    ctsLockPlatformMutex(&queue->queueMutex);
     bool result = ctsGenericQueueEmpty(queue->queue);
-    ctsMutexUnlock(queue->queueMutex);
+    ctsUnlockPlatformMutex(&queue->queueMutex);
     return result;
 }
 
@@ -140,13 +135,13 @@ static void workerEntry(void* pArgs) {
     const CtsCommandMetadata* commandMetadata;
 
     while (physicalDevice->isRunning) {
-        ctsMutexLock(queue->threadMutex);
+        ctsLockPlatformMutex(&queue->threadMutex);
         
         while (physicalDevice->isRunning && !ctsQueuePop(queue, &queueItem)) {
-            ctsConditionVariableSleep(queue->threadCondVar, queue->threadMutex);
+            ctsSleepPlatformConditionVariable(&queue->threadCondVar, &queue->threadMutex);
         }
 
-        ctsMutexUnlock(queue->threadMutex);
+        ctsUnlockPlatformMutex(&queue->threadMutex);
 
         if (!physicalDevice->isRunning) {
             break;
@@ -163,7 +158,7 @@ static void workerEntry(void* pArgs) {
             *queueItem.pFinished = true;
         }
 
-        ctsConditionVariableWakeAll(queue->queueCondVar);
+        ctsWakeAllPlatformConditionVariable(&queue->queueCondVar);
     }
 }
 
