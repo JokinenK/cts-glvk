@@ -1,17 +1,12 @@
 cmake_minimum_required (VERSION 3.0)
 project(cts-renderer)
 
-option(CTS_BUILD_TESTS "Build tests" ON)
 option(CTS_BUILD_SAMPLES "Build samples" ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-if(CTS_BUILD_TESTS)
-    add_subdirectory(contrib/googletest)
-endif(CTS_BUILD_TESTS)
 
 if(CTS_BUILD_SAMPLES)
     add_subdirectory(contrib/glm)
