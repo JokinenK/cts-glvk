@@ -25,14 +25,7 @@ CtsResult ctsCreateInstance(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    CtsPhysicalDevice physicalDevice = &instance->physicalDevice;
-    physicalDevice->instance = instance;
-
-    CtsMutexCreateInfo mutexCreateInfo;
-    ctsCreateMutex(&mutexCreateInfo, pAllocator, &physicalDevice->mutex);
-
-    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
-    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &physicalDevice->conditionVariable);
+    ctsPhysicalDeviceInit(&instance->physicalDevice, instance, pAllocator);
 
     *pInstance = instance;
     return CTS_SUCCESS;
@@ -43,9 +36,7 @@ CtsResult ctsDestroyInstance(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (instance != NULL) {
-        ctsConditionVariableWakeAll(instance->physicalDevice.conditionVariable);
-        ctsDestroyConditionVariable(instance->physicalDevice.conditionVariable, pAllocator);
-        ctsDestroyMutex(instance->physicalDevice.mutex, pAllocator);
+        ctsPhysicalDeviceDestroy(&instance->physicalDevice, pAllocator);
         ctsFree(pAllocator, instance);
     }
 

@@ -10,6 +10,7 @@
 #include <private/physical_device_private.h>
 #include <private/swapchain_private.h>
 #include <private/surface_private.h>
+#include <private/queue_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,56 @@ static bool isBufferCompatible(CtsFormat format);
 static bool hasColorComponent(CtsFormat format);
 static bool hasDepthComponent(CtsFormat format);
 static bool hasStencilComponent(CtsFormat format);
+
+void ctsPhysicalDeviceInit(CtsPhysicalDevice physicalDevice, CtsInstance instance, const CtsAllocationCallbacks* pAllocator) {
+    CtsMutexCreateInfo mutexCreateInfo;
+    ctsCreateMutex(&mutexCreateInfo, pAllocator, &physicalDevice->mutex);
+
+    CtsConditionVariableCreateInfo conditionVariableCreateInfo;
+    ctsCreateConditionVariable(&conditionVariableCreateInfo, pAllocator, &physicalDevice->conditionVariable);
+
+    CtsQueueCreateInfo queueCreateInfo;
+    queueCreateInfo.physicalDevice = physicalDevice;
+    queueCreateInfo.size = 32;
+    ctsCreateQueue(&queueCreateInfo, pAllocator, &physicalDevice->queue);
+
+    physicalDevice->instance = instance;
+    physicalDevice->isRunning = true;
+    physicalDevice->isInitialized = false;
+}
+
+void ctsPhysicalDeviceDestroy(CtsPhysicalDevice physicalDevice, const CtsAllocationCallbacks* pAllocator) {
+    physicalDevice->isRunning = false;
+    
+    ctsConditionVariableWakeAll(physicalDevice->conditionVariable);
+    ctsDestroyConditionVariable(physicalDevice->conditionVariable, pAllocator);
+    ctsDestroyMutex(physicalDevice->mutex, pAllocator);
+    ctsDestroyQueue(physicalDevice->queue, pAllocator);
+}
+
+void ctsPhysicalDeviceSetSurface(CtsPhysicalDevice physicalDevice, CtsSurface surface) {
+    physicalDevice->surface = surface;
+    ctsConditionVariableWakeAll(physicalDevice->conditionVariable);
+
+    while (physicalDevice->isRunning && !physicalDevice->isInitialized);
+}
+
+bool ctsPhysicalDeviceWaitSurface(CtsPhysicalDevice physicalDevice) {
+    ctsMutexLock(physicalDevice->mutex);
+
+    while (physicalDevice->isRunning && !physicalDevice->isInitialized) {
+        ctsConditionVariableSleep(physicalDevice->conditionVariable, physicalDevice->mutex);
+
+        if (physicalDevice->surface != NULL) {
+            ctsSurfaceMakeCurrent(physicalDevice->surface);
+            ctsPhysicalDeviceParseFeatures(physicalDevice);
+            physicalDevice->isInitialized = true;
+        }
+    }
+
+    ctsMutexUnlock(physicalDevice->mutex);
+    return (physicalDevice->isRunning && physicalDevice->isInitialized);
+}
 
 CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
     CtsPhysicalDevice physicalDevice,

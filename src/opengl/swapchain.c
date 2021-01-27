@@ -68,9 +68,7 @@ CtsResult ctsQueuePresent(
     cmd.pPresentInfo = pPresentInfo;
     cmd.pResult = &result;
 
-    CtsDevice device = queue->device;
     ctsQueueDispatch(queue, &cmd.base);
-
     return result;
 }
 

@@ -72,7 +72,17 @@ struct CtsPhysicalDeviceImpl {
 
     CtsMutex mutex;
     CtsConditionVariable conditionVariable;
+
+    bool isRunning;
+    bool isInitialized;
+    CtsQueue queue;
 };
+
+void ctsPhysicalDeviceInit(CtsPhysicalDevice physicalDevice, CtsInstance instance, const CtsAllocationCallbacks* pAllocator);
+void ctsPhysicalDeviceDestroy(CtsPhysicalDevice physicalDevice, const CtsAllocationCallbacks* pAllocator);
+
+void ctsPhysicalDeviceSetSurface(CtsPhysicalDevice physicalDevice, CtsSurface surface);
+bool ctsPhysicalDeviceWaitSurface(CtsPhysicalDevice physicalDevice);
 
 void ctsPhysicalDeviceParseFeatures(CtsPhysicalDevice physicalDevice);
 const CtsMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex);

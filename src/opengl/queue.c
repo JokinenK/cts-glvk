@@ -32,7 +32,7 @@ CtsResult ctsCreateQueue(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    queue->device = pCreateInfo->device;
+    queue->physicalDevice = pCreateInfo->physicalDevice;
 
     CtsGenericQueueCreateInfo genericQueueCreateInfo;
     genericQueueCreateInfo.size = pCreateInfo->size;
@@ -127,31 +127,11 @@ bool ctsQueueEmpty(CtsQueue queue) {
     return result;
 }
 
-static bool waitForSurface(CtsQueue queue) {
-    CtsDevice device = queue->device;
-    CtsPhysicalDevice physicalDevice = device->physicalDevice;
-
-    ctsMutexLock(physicalDevice->mutex);
-
-    while (device->isRunning && physicalDevice->surface == NULL) {
-        ctsConditionVariableSleep(physicalDevice->conditionVariable, physicalDevice->mutex);
-    }
-
-    ctsMutexUnlock(physicalDevice->mutex);
-
-    if (physicalDevice->surface != NULL) {
-        ctsSurfaceMakeCurrent(physicalDevice->surface);
-        ctsPhysicalDeviceParseFeatures(physicalDevice);
-    }
-    
-    return (physicalDevice->surface != NULL);
-}
-
 static void workerEntry(void* pArgs) {
     CtsQueue queue = (CtsQueue) pArgs;
-    CtsDevice device = queue->device;
+    CtsPhysicalDevice physicalDevice = queue->physicalDevice;
 
-    if (!waitForSurface(queue)) {
+    if (!ctsPhysicalDeviceWaitSurface(physicalDevice)) {
         return;
     }
 
@@ -159,16 +139,16 @@ static void workerEntry(void* pArgs) {
     const CtsCmdBase* cmd;
     const CtsCommandMetadata* commandMetadata;
 
-    while (device->isRunning) {
+    while (physicalDevice->isRunning) {
         ctsMutexLock(queue->threadMutex);
         
-        while (device->isRunning && !ctsQueuePop(queue, &queueItem)) {
+        while (physicalDevice->isRunning && !ctsQueuePop(queue, &queueItem)) {
             ctsConditionVariableSleep(queue->threadCondVar, queue->threadMutex);
         }
 
         ctsMutexUnlock(queue->threadMutex);
 
-        if (!device->isRunning) {
+        if (!physicalDevice->isRunning) {
             break;
         }
     

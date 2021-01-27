@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 typedef struct CtsQueueCreateInfo {
-    CtsDevice device;
+    CtsPhysicalDevice physicalDevice;
     size_t size;
 } CtsQueueCreateInfo;
 
@@ -27,7 +27,7 @@ typedef struct CtsQueueItem {
 } CtsQueueItem;
 
 struct CtsQueueImpl {
-    CtsDevice device;
+    CtsPhysicalDevice physicalDevice;
     CtsThread thread;
 
     CtsGenericQueue queue;

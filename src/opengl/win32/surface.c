@@ -145,8 +145,7 @@ CtsResult ctsCreateWin32Surface(
         surface->device = device;
         surface->context = gl33Context;
 
-        instance->physicalDevice.surface = surface;
-        ctsConditionVariableWakeAll(instance->physicalDevice.conditionVariable);
+        ctsPhysicalDeviceSetSurface(&instance->physicalDevice, surface);
 
         *pSurface = surface;
         return CTS_SUCCESS;

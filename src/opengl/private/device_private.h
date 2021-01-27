@@ -42,9 +42,7 @@ typedef struct CtsGlIndexBuffer {
 } CtsGlIndexBuffer;
 
 struct CtsDeviceImpl {
-    bool isRunning;
     CtsQueue queue;
-
     const CtsGlGraphicsPipeline* activeGraphicsPipeline;
     
     CtsGlState state;

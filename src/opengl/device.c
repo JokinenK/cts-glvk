@@ -2,6 +2,7 @@
 #include <cts/device.h>
 #include <private/device_private.h>
 #include <private/queue_private.h>
+#include <private/physical_device_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,16 +25,11 @@ CtsResult ctsCreateDevice(
         return CTS_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    device->isRunning = true;
     device->dynamicStateFlags = 0;
     device->physicalDevice = physicalDevice;
     device->activeGraphicsPipeline = NULL;
+    device->queue = physicalDevice->queue;
     
-    CtsQueueCreateInfo queueCreateInfo;
-    queueCreateInfo.device = device;
-    queueCreateInfo.size = 32;
-    ctsCreateQueue(&queueCreateInfo, pAllocator, &device->queue);
-
     *pDevice = device;
     return CTS_SUCCESS;
 }
@@ -57,9 +53,6 @@ void ctsDestroyDevice(
     const CtsAllocationCallbacks* pAllocator
 ) {
     if (device != NULL) {
-        device->isRunning = false;
-
-        ctsDestroyQueue(device->queue, pAllocator);
         ctsFree(pAllocator, device);
     }
 }
