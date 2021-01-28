@@ -1,4 +1,0 @@
-[submodule "contrib/googletest"]
-	path = contrib/googletest
-	url = https://github.com/google/googletest.git
-	branch = v1.8.x
