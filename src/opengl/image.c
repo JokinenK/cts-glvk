@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-static uint32_t max(uint32_t a, uint32_t b);
+static uint32_t bigger(uint32_t a, uint32_t b);
 static uint32_t nextMipValue(uint32_t value);
 static CtsDeviceSize imageSize(CtsImage image);
 
@@ -177,12 +177,12 @@ void ctsDestroyImageImpl(
     }
 }
 
-static uint32_t max(uint32_t a, uint32_t b) {
+static uint32_t bigger(uint32_t a, uint32_t b) {
     return a > b ? a : b;
 }
 
 static uint32_t nextMipValue(uint32_t value) {
-    return max(value / 2, 1);
+    return bigger(value / 2, 1);
 }
 
 static CtsDeviceSize imageSize(CtsImage image) {

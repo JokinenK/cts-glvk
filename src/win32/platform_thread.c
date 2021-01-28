@@ -13,6 +13,7 @@ static DWORD WINAPI threadEntry(LPVOID pArgs)
 {
     ThreadArgs* pThreadArgs = pArgs;
     pThreadArgs->entryPoint(pThreadArgs->pArgs);
+    free(pThreadArgs);
     return 0;
 }
 
@@ -21,7 +22,8 @@ void ctsInitPlatformThread(
     CtsPlatformThreadEntryPoint entryPoint,
     void* pArgs
 ) {
-    ThreadArgs threadArgs = {
+    ThreadArgs* pThreadArgs = malloc(sizeof(ThreadArgs));
+    (*pThreadArgs) = (ThreadArgs) {
         .entryPoint = entryPoint,
         .pArgs = pArgs
     };
@@ -31,7 +33,7 @@ void ctsInitPlatformThread(
         NULL,                 /* default security attributes */
         0,                    /* default stack size */    
         threadEntry,          /* thread function */
-        (LPVOID) &threadArgs, /* parameter to thread function */
+        (LPVOID) pThreadArgs, /* parameter to thread function */
         0,                    /* default creation flags */ 
         &threadId
     );

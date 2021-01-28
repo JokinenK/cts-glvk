@@ -1,5 +1,3 @@
-#include <windows.h>
-#include <limits.h>
 #include <cts/align.h>
 #include <cts/allocator.h>
 #include <cts/semaphore.h>
