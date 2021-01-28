@@ -30,11 +30,9 @@ struct CtsQueueImpl {
     CtsPhysicalDevice physicalDevice;
     CtsPlatformThread thread;
     
-    CtsPlatformMutex threadMutex;
-    CtsPlatformMutex queueMutex;
-    
-    CtsPlatformConditionVariable threadCondVar;
-    CtsPlatformConditionVariable queueCondVar;
+    CtsPlatformMutex mutex;
+    CtsPlatformConditionVariable notEmptyCondition;
+    CtsPlatformConditionVariable cmdFinishedCondVar;
     
     CtsGenericQueue queue;
 };
