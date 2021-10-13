@@ -22,4 +22,5 @@
 #include <cts/shader_module.h>
 #include <cts/surface.h>
 #include <cts/swapchain.h>
+#include <cts/query_pool.h>
 #include <cts/queue.h>

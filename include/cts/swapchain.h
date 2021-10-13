@@ -1,27 +1,29 @@
 #pragma once
 
 #include <stdint.h>
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsCreateSwapchain(
+VkResult VKAPI_CALL ctsCreateSwapchainKHR(
     VkDevice device,
     const VkSwapchainCreateInfoKHR* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkSwapchainKHR* pSwapchain
 );
 
-VkResult ctsGetSwapchainImages(
+VkResult VKAPI_CALL ctsGetSwapchainImagesKHR(
     VkDevice device,
     VkSwapchainKHR swapchain,
     uint32_t* pSwapchainImageCount,
     VkImage* pSwapchainImages
 );
 
-VkResult ctsAcquireNextImage(
+VkResult VKAPI_CALL ctsAcquireNextImageKHR(
     VkDevice device,
     VkSwapchainKHR swapchain,
     uint64_t timeout,
@@ -30,12 +32,12 @@ VkResult ctsAcquireNextImage(
     uint32_t* pImageIndex
 );
 
-VkResult ctsQueuePresent(
+VkResult VKAPI_CALL ctsQueuePresentKHR(
     VkQueue queue,
     const VkPresentInfoKHR* pPresentInfo
 );
 
-void ctsDestroySwapchain(
+void VKAPI_CALL ctsDestroySwapchainKHR(
     VkDevice device,
     VkSwapchainKHR swapchain,
     const VkAllocationCallbacks* pAllocator

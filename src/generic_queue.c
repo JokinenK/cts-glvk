@@ -4,89 +4,88 @@
 #include "cts/allocator.h"
 #include "cts/util/align.h"
 #include "cts/util/generic_queue.h"
-#include "cts/platform/platform_mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsCreateGenericQueue(
-    const CtsGenericQueueCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    CtsGenericQueue* pGenericQueue
+bool ctsInitGenericQueue(
+    struct CtsGenericQueue* genericQueue,
+    uint32_t itemSize,
+    uint32_t size,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    struct CtsGenericQueue* genericQueue = ctsAllocation(
-        pAllocator,
-        sizeof(struct CtsGenericQueue),
-        alignof(struct CtsGenericQueue),
-        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
-    );
+    ctsInitPlatformMutex(&genericQueue->mutex);
 
-    if (genericQueue == NULL) {
-        return VK_ERROR_OUT_OF_HOST_MEMORY;
-    }
-
-    genericQueue->size = pCreateInfo->size;
-    genericQueue->itemSize = pCreateInfo->itemSize;
+    genericQueue->size = size;
+    genericQueue->itemSize = itemSize;
     genericQueue->head = 0;
     genericQueue->tail = 0;
     genericQueue->pData = ctsAllocation(
         pAllocator,
-        sizeof(char) * (pCreateInfo->itemSize * pCreateInfo->size),
+        sizeof(char) * (itemSize * size),
         alignof(char),
         VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    *pGenericQueue = genericQueue;
-    return VK_SUCCESS;
+    return true;
 }
 
 void ctsDestroyGenericQueue(
-    CtsGenericQueue genericQueue,
+    struct CtsGenericQueue* genericQueue,
     const VkAllocationCallbacks* pAllocator
 ) {
-    if (genericQueue) {
-        ctsFree(pAllocator, genericQueue->pData);
-        ctsFree(pAllocator, genericQueue); 
-    }
+    ctsDestroyPlatformMutex(&genericQueue->mutex);
+    ctsFree(pAllocator, genericQueue->pData);
 }
 
 bool ctsGenericQueueEmpty(
-    CtsGenericQueue genericQueue
+    struct CtsGenericQueue* genericQueue
 ) {
-    return (genericQueue->tail == genericQueue->head);
+    ctsLockPlatformMutex(&genericQueue->mutex);
+    bool result = (genericQueue->tail == genericQueue->head);
+    ctsUnlockPlatformMutex(&genericQueue->mutex);
+    return result;
 }
 
 bool ctsGenericQueueFull(
-    CtsGenericQueue genericQueue
+    struct CtsGenericQueue* genericQueue
 ) {
-    return (((genericQueue->head + 1) % genericQueue->size) == genericQueue->tail);
+    ctsLockPlatformMutex(&genericQueue->mutex);
+    bool result = (((genericQueue->head + 1) % genericQueue->size) == genericQueue->tail);
+    ctsUnlockPlatformMutex(&genericQueue->mutex);
+    return result;
 }
 
 bool ctsGenericQueuePush(
-    CtsGenericQueue genericQueue,
+    struct CtsGenericQueue* genericQueue,
     const void* pData
 ) {
     if (ctsGenericQueueFull(genericQueue)) {
         return false;
     }
 
+    ctsLockPlatformMutex(&genericQueue->mutex);
+
     size_t idx = genericQueue->head;
     genericQueue->head = (genericQueue->head + 1) % genericQueue->size;
 
     size_t offset = (idx * genericQueue->itemSize);
     memcpy(&genericQueue->pData[offset], pData, genericQueue->itemSize);
-    
+
+    ctsUnlockPlatformMutex(&genericQueue->mutex);
     return true;
 }
 
 bool ctsGenericQueuePop(
-    CtsGenericQueue genericQueue,
+    struct CtsGenericQueue* genericQueue,
     void* pData
 ) {
     if (ctsGenericQueueEmpty(genericQueue)) {
         return false;
     }
+
+    ctsLockPlatformMutex(&genericQueue->mutex);
 
     size_t idx = genericQueue->tail;
     genericQueue->tail = (genericQueue->tail + 1) % genericQueue->size;
@@ -94,6 +93,7 @@ bool ctsGenericQueuePop(
     size_t offset = (idx * genericQueue->itemSize);
     memcpy(pData, &genericQueue->pData[offset], genericQueue->itemSize);
 
+    ctsUnlockPlatformMutex(&genericQueue->mutex);
     return true;
 }
 

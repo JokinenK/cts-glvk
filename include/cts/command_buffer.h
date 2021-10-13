@@ -1,48 +1,50 @@
 #pragma once
 
 #include <stdint.h>
-#include "cts/commanddefs/command_types.h"
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/command_types.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsBeginCommandBuffer(
+VkResult VKAPI_CALL ctsBeginCommandBuffer(
     VkCommandBuffer commandBuffer,
     const VkCommandBufferBeginInfo* pBeginInfo
 );
 
-VkResult ctsResetCommandBuffer(
+VkResult VKAPI_CALL ctsResetCommandBuffer(
     VkCommandBuffer commandBuffer,
     VkCommandBufferResetFlags flags
 );
 
-VkResult ctsEndCommandBuffer(
+VkResult VKAPI_CALL ctsEndCommandBuffer(
     VkCommandBuffer commandBuffer
 );
 
-VkResult ctsQueueSubmit(
+VkResult VKAPI_CALL ctsQueueSubmit(
     VkQueue queue,
     uint32_t submitCount,
     const VkSubmitInfo* pSubmits,
     VkFence fence
 );
 
-void ctsCmdBeginQuery(
+void VKAPI_CALL ctsCmdBeginQuery(
     VkCommandBuffer commandBuffer,
     VkQueryPool queryPool,
     uint32_t query,
     VkQueryControlFlags flags
 );
 
-void ctsCmdBeginRenderPass(
+void VKAPI_CALL ctsCmdBeginRenderPass(
     VkCommandBuffer commandBuffer,
     const VkRenderPassBeginInfo* renderPassBegin,
     VkSubpassContents contents
 );
 
-void ctsCmdBindDescriptorSets(
+void VKAPI_CALL ctsCmdBindDescriptorSets(
     VkCommandBuffer commandBuffer,
     VkPipelineBindPoint pipelineBindPoint,
     VkPipelineLayout pipelineLayout,
@@ -53,20 +55,20 @@ void ctsCmdBindDescriptorSets(
     const uint32_t* pDynamicOffsets
 );
 
-void ctsCmdBindIndexBuffer(
+void VKAPI_CALL ctsCmdBindIndexBuffer(
     VkCommandBuffer commandBuffer,
     VkBuffer buffer,
     VkDeviceSize offset,
     VkIndexType indexType
 );
 
-void ctsCmdBindPipeline(
+void VKAPI_CALL ctsCmdBindPipeline(
     VkCommandBuffer commandBuffer,
     VkPipelineBindPoint pipelineBindPoint,
     VkPipeline pipeline
 );
 
-void ctsCmdBindVertexBuffers(
+void VKAPI_CALL ctsCmdBindVertexBuffers(
     VkCommandBuffer commandBuffer,
     uint32_t firstBinding,
     uint32_t bindingCount,
@@ -74,7 +76,7 @@ void ctsCmdBindVertexBuffers(
     const VkDeviceSize* pOffsets
 );
 
-void ctsCmdBlitImage(
+void VKAPI_CALL ctsCmdBlitImage(
     VkCommandBuffer commandBuffer,
     VkImage srcImage,
     VkImageLayout srcImageLayout,
@@ -85,7 +87,7 @@ void ctsCmdBlitImage(
     VkFilter filter
 );
 
-void ctsCmdClearAttachments(
+void VKAPI_CALL ctsCmdClearAttachments(
     VkCommandBuffer commandBuffer,
     uint32_t attachmentCount,
     const VkClearAttachment* pAttachments,
@@ -93,7 +95,7 @@ void ctsCmdClearAttachments(
     const VkClearRect* pRects
 );
 
-void ctsCmdClearColorImage(
+void VKAPI_CALL ctsCmdClearColorImage(
     VkCommandBuffer commandBuffer,
     VkImage image,
     VkImageLayout imageLayout,
@@ -102,7 +104,7 @@ void ctsCmdClearColorImage(
     const VkImageSubresourceRange* pRanges
 );
 
-void ctsCmdClearDepthStencilImage(
+void VKAPI_CALL ctsCmdClearDepthStencilImage(
     VkCommandBuffer commandBuffer,
     VkImage image,
     VkImageLayout imageLayout,
@@ -111,7 +113,7 @@ void ctsCmdClearDepthStencilImage(
     const VkImageSubresourceRange* pRanges
 );
 
-void ctsCmdCopyBuffer(
+void VKAPI_CALL ctsCmdCopyBuffer(
     VkCommandBuffer commandBuffer,
     VkBuffer srcBuffer,
     VkBuffer dstBuffer,
@@ -119,7 +121,7 @@ void ctsCmdCopyBuffer(
     const VkBufferCopy* pRegions
 );
 
-void ctsCmdCopyBufferToImage(
+void VKAPI_CALL ctsCmdCopyBufferToImage(
     VkCommandBuffer commandBuffer,
     VkBuffer srcBuffer,
     VkImage dstImage,
@@ -128,7 +130,7 @@ void ctsCmdCopyBufferToImage(
     const VkBufferImageCopy* pRegions
 );
 
-void ctsCmdCopyImage(
+void VKAPI_CALL ctsCmdCopyImage(
     VkCommandBuffer commandBuffer,
     VkImage srcImage,
     VkImageLayout srcImageLayout,
@@ -138,7 +140,7 @@ void ctsCmdCopyImage(
     const VkImageCopy* pRegions
 );
 
-void ctsCmdCopyImageToBuffer(
+void VKAPI_CALL ctsCmdCopyImageToBuffer(
     VkCommandBuffer commandBuffer,
     VkImage srcImage,
     VkImageLayout srcImageLayout,
@@ -147,7 +149,7 @@ void ctsCmdCopyImageToBuffer(
     const VkBufferImageCopy* pRegions
 );
 
-void ctsCmdCopyQueryPoolResults(
+void VKAPI_CALL ctsCmdCopyQueryPoolResults(
     VkCommandBuffer commandBuffer,
     VkQueryPool queryPool,
     uint32_t firstQuery,
@@ -158,20 +160,20 @@ void ctsCmdCopyQueryPoolResults(
     VkQueryResultFlags flags
 );
 
-void ctsCmdDispatch(
+void VKAPI_CALL ctsCmdDispatch(
     VkCommandBuffer commandBuffer,
     uint32_t groupCountX,
     uint32_t groupCountY,
     uint32_t groupCountZ
 );
 
-void ctsCmdDispatchIndirect(
+void VKAPI_CALL ctsCmdDispatchIndirect(
     VkCommandBuffer commandBuffer,
     VkBuffer buffer,
     VkDeviceSize offset
 );
 
-void ctsCmdDraw(
+void VKAPI_CALL ctsCmdDraw(
     VkCommandBuffer commandBuffer,
     uint32_t vertexCount,
     uint32_t instanceCount,
@@ -179,7 +181,7 @@ void ctsCmdDraw(
     uint32_t firstInstance
 );
 
-void ctsCmdDrawIndexed(
+void VKAPI_CALL ctsCmdDrawIndexed(
     VkCommandBuffer commandBuffer,
     uint32_t indexCount,
     uint32_t instanceCount,
@@ -188,7 +190,7 @@ void ctsCmdDrawIndexed(
     uint32_t firstInstance
 );
 
-void ctsCmdDrawIndexedIndirect(
+void VKAPI_CALL ctsCmdDrawIndexedIndirect(
     VkCommandBuffer commandBuffer,
     VkBuffer buffer,
     VkDeviceSize offset,
@@ -196,7 +198,7 @@ void ctsCmdDrawIndexedIndirect(
     uint32_t stride
 );
 
-void ctsCmdDrawIndirect(
+void VKAPI_CALL ctsCmdDrawIndirect(
     VkCommandBuffer commandBuffer,
     VkBuffer buffer,
     VkDeviceSize offset,
@@ -204,23 +206,23 @@ void ctsCmdDrawIndirect(
     uint32_t stride
 );
 
-void ctsCmdEndQuery(
+void VKAPI_CALL ctsCmdEndQuery(
     VkCommandBuffer commandBuffer,
     VkQueryPool queryPool,
     uint32_t query
 );
 
-void ctsCmdEndRenderPass(
+void VKAPI_CALL ctsCmdEndRenderPass(
     VkCommandBuffer commandBuffer
 );
 
-void ctsCmdExecuteCommands(
+void VKAPI_CALL ctsCmdExecuteCommands(
     VkCommandBuffer commandBuffer,
     uint32_t commandBufferCount,
     const VkCommandBuffer* pCommandBuffers
 );
 
-void ctsCmdFillBuffer(
+void VKAPI_CALL ctsCmdFillBuffer(
     VkCommandBuffer commandBuffer,
     VkBuffer dstBuffer,
     VkDeviceSize dstOffset,
@@ -228,12 +230,12 @@ void ctsCmdFillBuffer(
     uint32_t data
 );
 
-void ctsCmdNextSubpass(
+void VKAPI_CALL ctsCmdNextSubpass(
     VkCommandBuffer commandBuffer,
     VkSubpassContents contents
 );
 
-void ctsCmdPipelineBarrier(
+void VKAPI_CALL ctsCmdPipelineBarrier(
     VkCommandBuffer commandBuffer,
     VkPipelineStageFlags srcStageMask,
     VkPipelineStageFlags dstStageMask,
@@ -246,7 +248,7 @@ void ctsCmdPipelineBarrier(
     const VkImageMemoryBarrier* pImageMemoryBarriers
 );
 
-void ctsCmdPushConstants(
+void VKAPI_CALL ctsCmdPushConstants(
     VkCommandBuffer commandBuffer,
     VkPipelineLayout layout,
     VkShaderStageFlags stageFlags,
@@ -255,20 +257,20 @@ void ctsCmdPushConstants(
     const void* values
 );
 
-void ctsCmdResetEvent(
+void VKAPI_CALL ctsCmdResetEvent(
     VkCommandBuffer commandBuffer,
     VkEvent event,
     VkPipelineStageFlags stageMask
 );
 
-void ctsCmdResetQueryPool(
+void VKAPI_CALL ctsCmdResetQueryPool(
     VkCommandBuffer commandBuffer,
     VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount
 );
 
-void ctsCmdResolveImage(
+void VKAPI_CALL ctsCmdResolveImage(
     VkCommandBuffer commandBuffer,
     VkImage srcImage,
     VkImageLayout srcImageLayout,
@@ -278,73 +280,73 @@ void ctsCmdResolveImage(
     const VkImageResolve* pRegions
 );
 
-void ctsCmdSetBlendConstants(
+void VKAPI_CALL ctsCmdSetBlendConstants(
     VkCommandBuffer commandBuffer,
     const float blendConstants[4]
 );
 
-void ctsCmdSetDepthBias(
+void VKAPI_CALL ctsCmdSetDepthBias(
     VkCommandBuffer commandBuffer,
     float depthBiasConstantFactor,
     float depthBiasClamp,
     float depthBiasSlopeFactor
 );
 
-void ctsCmdSetDepthBounds(
+void VKAPI_CALL ctsCmdSetDepthBounds(
     VkCommandBuffer commandBuffer,
     float minDepthBounds,
     float maxDepthBounds
 );
 
-void ctsCmdSetDeviceMask(
+void VKAPI_CALL ctsCmdSetDeviceMask(
     VkCommandBuffer commandBuffer,
     uint32_t deviceMask
 );
 
-void ctsCmdSetEvent(
+void VKAPI_CALL ctsCmdSetEvent(
     VkCommandBuffer commandBuffer,
     VkEvent event,
     VkPipelineStageFlags stageMask
 );
 
-void ctsCmdSetLineWidth(
+void VKAPI_CALL ctsCmdSetLineWidth(
     VkCommandBuffer commandBuffer,
     float lineWidth
 );
 
-void ctsCmdSetScissor(
+void VKAPI_CALL ctsCmdSetScissor(
     VkCommandBuffer commandBuffer,
     uint32_t firstScissor,
     uint32_t scissorCount,
     const VkRect2D* pScissors
 );
 
-void ctsCmdSetStencilCompareMask(
+void VKAPI_CALL ctsCmdSetStencilCompareMask(
     VkCommandBuffer commandBuffer,
     VkStencilFaceFlags faceMask,
     uint32_t compareMask
 );
 
-void ctsCmdSetStencilReference(
+void VKAPI_CALL ctsCmdSetStencilReference(
     VkCommandBuffer commandBuffer,
     VkStencilFaceFlags faceMask,
     uint32_t reference
 );
 
-void ctsCmdSetStencilWriteMask(
+void VKAPI_CALL ctsCmdSetStencilWriteMask(
     VkCommandBuffer commandBuffer,
     VkStencilFaceFlags faceMask,
     uint32_t writeMask
 );
 
-void ctsCmdSetViewport(
+void VKAPI_CALL ctsCmdSetViewport(
     VkCommandBuffer commandBuffer,
     uint32_t firstViewport,
     uint32_t viewportCount,
     const VkViewport* pViewports
 );
 
-void ctsCmdUpdateBuffer(
+void VKAPI_CALL ctsCmdUpdateBuffer(
     VkCommandBuffer commandBuffer,
     VkBuffer dstBuffer,
     VkDeviceSize dstOffset,
@@ -352,7 +354,7 @@ void ctsCmdUpdateBuffer(
     const void* pData
 );
 
-void ctsCmdWaitEvents(
+void VKAPI_CALL ctsCmdWaitEvents(
     VkCommandBuffer commandBuffer,
     uint32_t eventCount,
     const VkEvent* events,
@@ -366,7 +368,7 @@ void ctsCmdWaitEvents(
     const VkImageMemoryBarrier* pImageMemoryBarriers
 );
 
-void ctsCmdWriteTimestamp(
+void VKAPI_CALL ctsCmdWriteTimestamp(
     VkCommandBuffer commandBuffer,
     VkPipelineStageFlagBits pipelineStage,
     VkQueryPool queryPool,

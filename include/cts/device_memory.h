@@ -1,19 +1,21 @@
 #pragma once
 
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsAllocateMemory(
+VkResult VKAPI_CALL ctsAllocateMemory(
     VkDevice device,
     const VkMemoryAllocateInfo* pAllocateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDeviceMemory* pMemory
 );
 
-VkResult ctsMapMemory(
+VkResult VKAPI_CALL ctsMapMemory(
     VkDevice device,
     VkDeviceMemory memory,
     VkDeviceSize offset,
@@ -22,44 +24,44 @@ VkResult ctsMapMemory(
     void** pData
 );
 
-void ctsUnmapMemory(
+void VKAPI_CALL ctsUnmapMemory(
     VkDevice device,
     VkDeviceMemory memory
 );
 
-VkResult ctsFlushMappedMemoryRanges(
+VkResult VKAPI_CALL ctsFlushMappedMemoryRanges(
     VkDevice device,
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges
 );
 
-void ctsFreeMemory(
+void VKAPI_CALL ctsFreeMemory(
     VkDevice device,
     VkDeviceMemory memory,
     const VkAllocationCallbacks* pAllocator
 );
 
-VkResult ctsBindBufferMemory(
+VkResult VKAPI_CALL ctsBindBufferMemory(
     VkDevice device,
     VkBuffer buffer, 
     VkDeviceMemory memory,
     VkDeviceSize offset
 );
 
-VkResult ctsBindImageMemory(
+VkResult VKAPI_CALL ctsBindImageMemory(
     VkDevice device,
     VkImage image, 
     VkDeviceMemory memory,
     VkDeviceSize offset
 );
 
-void ctsGetBufferMemoryRequirements(
+void VKAPI_CALL ctsGetBufferMemoryRequirements(
     VkDevice device,
     VkBuffer buffer,
     VkMemoryRequirements* pMemoryRequirements
 );
 
-void ctsGetImageMemoryRequirements(
+void VKAPI_CALL ctsGetImageMemoryRequirements(
     VkDevice device,
     VkImage image,
     VkMemoryRequirements* pMemoryRequirements

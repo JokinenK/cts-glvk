@@ -9,73 +9,68 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 if(CTS_BUILD_SAMPLES)
-    add_subdirectory(contrib/glm)
     add_subdirectory(sample)
-
-    list(APPEND INCLUDE_PATHS
-        contrib/stb
-        contrib/tinyobjloader
-    )
 endif(CTS_BUILD_SAMPLES)
 
 add_subdirectory(contrib/glad)
-add_subdirectory(contrib/vulkan)
+add_subdirectory(contrib/vulkan-headers)
+add_subdirectory(contrib/spirv-cross)
 
 list(APPEND HEADERS
 )
 
 list(APPEND SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/buffer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_buffer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_dispatcher.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/command_pool.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/constants.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_pool.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_set_layout.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/descriptor_set.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/device_memory.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/device.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fence.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/framebuffer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/fullscreen_texture.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image_view.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/image.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/instance.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/physical_device.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline_layout.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/pipeline.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/query_pool.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/queue.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/render_pass.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/sampler.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/semaphore.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/shader_module.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/swapchain.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/type_mapper.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/buffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/command_buffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/command_dispatcher.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/command_pool.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/descriptor_pool.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/descriptor_set_layout.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/descriptor_set.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/device_memory.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/fence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/framebuffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/fullscreen_texture.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/image_view.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/instance.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/physical_device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pipeline_layout.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pipeline.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/query_pool.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/queue.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/render_pass.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sampler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/semaphore.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/shader_module.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/swapchain.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/type_mapper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generic_queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/linear_allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pool_allocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uuid.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/icd.c
 )
 
 list(APPEND INCLUDE_PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl
     ${CMAKE_SOURCE_DIR}/contrib/glad/include
-    ${CMAKE_SOURCE_DIR}/contrib/vulkan/include
+    ${CMAKE_SOURCE_DIR}/contrib/vulkan-headers/include
 )
 
 list(APPEND LIBRARIES
     glad
+    spirv-cross-c
 )
 
 if(WIN32)
     list(APPEND SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/device_info.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32/surface.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/device_info.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/surface.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_time.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_condition_variable.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_mutex.c
@@ -85,9 +80,8 @@ if(WIN32)
     )
 
     list(APPEND INCLUDE_PATHS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/opengl/win32
         ${CMAKE_CURRENT_SOURCE_DIR}/include/win32
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl/win32
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/private/win32
     )
 
     list(APPEND LIBRARIES
@@ -115,9 +109,8 @@ elseif(UNIX)
     )
 endif(WIN32)
 
-
-
-add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+add_definitions(-DLIBRARY_EXPORTS=1)
+add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_PATHS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBRARIES})

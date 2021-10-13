@@ -1,30 +1,32 @@
 #pragma once
 
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsCreateFence(
+VkResult VKAPI_CALL ctsCreateFence(
     VkDevice device,
     const VkFenceCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkFence* pFence
 );
 
-VkResult ctsResetFences(
+VkResult VKAPI_CALL ctsResetFences(
     VkDevice device,
     uint32_t fenceCount,
     const VkFence* pFences
 );
 
-VkResult ctsGetFenceStatus(
+VkResult VKAPI_CALL ctsGetFenceStatus(
     VkDevice device,
     VkFence fence
 );
 
-VkResult ctsWaitForFences(
+VkResult VKAPI_CALL ctsWaitForFences(
     VkDevice device,
     uint32_t fenceCount,
     const VkFence* pFences,
@@ -32,7 +34,7 @@ VkResult ctsWaitForFences(
     uint64_t timeout
 );
 
-void ctsDestroyFence(
+void VKAPI_CALL ctsDestroyFence(
     VkDevice device,
     VkFence fence,
     const VkAllocationCallbacks* pAllocator

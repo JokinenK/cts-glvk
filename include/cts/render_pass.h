@@ -1,20 +1,21 @@
 #pragma once
 
-#include <stdint.h>
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsCreateRenderPass(
+VkResult VKAPI_CALL ctsCreateRenderPass(
     VkDevice device,
     const VkRenderPassCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkRenderPass* pRenderPass
 );
 
-void ctsDestroyRenderPass(
+void VKAPI_CALL ctsDestroyRenderPass(
     VkDevice device,
     VkRenderPass renderPass,
     const VkAllocationCallbacks* pAllocator

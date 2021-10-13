@@ -1,15 +1,25 @@
 #pragma once
 
 #include <stdint.h>
+#include "glad/glad.h"
 #include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsInitFSTextureHelper();
+struct CtsSurfaceHelper {
+    GLenum shaders[2];
+    GLuint shaderProgram;
+    GLuint readFramebuffer;
+    GLuint writeFramebuffer;
+};
+
+VkResult ctsInitSurfaceHelper(struct CtsSurfaceHelper* surfaceHelper);
+void ctsDestroySurfaceHelper(struct CtsSurfaceHelper* surfaceHelper);
 
 void ctsBlitTexture(
+    struct CtsSurfaceHelper* surfaceHelper,
     struct CtsDevice* device,
     struct CtsImage* src,
     struct CtsImage* dst,
@@ -19,11 +29,12 @@ void ctsBlitTexture(
 );
 
 void ctsDrawFSTexture(
+    struct CtsSurfaceHelper* surfaceHelper,
     struct CtsDevice* device,
     struct CtsImage* image
 );
 
-void ctsCleanupFSTextureHelper();
+
 
 #ifdef __cplusplus
 }

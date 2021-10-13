@@ -1,27 +1,29 @@
 #pragma once
 
 #include <stdint.h>
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsCreateDevice(
+VkResult VKAPI_CALL ctsCreateDevice(
     VkPhysicalDevice physicalDevice,
     const VkDeviceCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDevice* pDevice
 );
 
-void ctsGetDeviceQueue(
+void VKAPI_CALL ctsGetDeviceQueue(
     VkDevice device,
     uint32_t queueFamilyIndex,
     uint32_t queueIndex,
     VkQueue* pQueue
 );
 
-void ctsDestroyDevice(
+void VKAPI_CALL ctsDestroyDevice(
     VkDevice device,
     const VkAllocationCallbacks* pAllocator
 );

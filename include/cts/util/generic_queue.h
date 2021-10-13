@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include "vulkan/vulkan_core.h"
+#include "cts/platform/platform_mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,41 +16,36 @@ struct CtsGenericQueue {
     size_t tail;
 
     char* pData;
+    CtsPlatformMutex mutex;
 };
 
-typedef struct CtsGenericQueue* CtsGenericQueue;
-
-typedef struct CtsGenericQueueCreateInfo {
-    size_t size;
-    size_t itemSize;
-} CtsGenericQueueCreateInfo;
-
-VkResult ctsCreateGenericQueue(
-    const CtsGenericQueueCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    CtsGenericQueue* pGenericQueue
+bool ctsInitGenericQueue(
+    struct CtsGenericQueue* pGenericQueue,
+    uint32_t itemSize,
+    uint32_t size,
+    const VkAllocationCallbacks* pAllocator
 );
 
 void ctsDestroyGenericQueue(
-    CtsGenericQueue genericQueue,
+    struct CtsGenericQueue* genericQueue,
     const VkAllocationCallbacks* pAllocator
 );
 
 bool ctsGenericQueueEmpty(
-    CtsGenericQueue genericQueue
+    struct CtsGenericQueue* genericQueue
 );
 
 bool ctsGenericQueueFull(
-    CtsGenericQueue genericQueue
+    struct CtsGenericQueue* genericQueue
 );
 
 bool ctsGenericQueuePush(
-    CtsGenericQueue genericQueue,
+    struct CtsGenericQueue* genericQueue,
     const void* pData
 );
 
 bool ctsGenericQueuePop(
-    CtsGenericQueue genericQueue,
+    struct CtsGenericQueue* genericQueue,
     void* pData
 );
 

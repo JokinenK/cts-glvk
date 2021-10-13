@@ -1,13 +1,15 @@
 #pragma once
 
 #include <stdint.h>
+#include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-VkResult ctsCreateGraphicsPipelines(
+VkResult VKAPI_CALL ctsCreateGraphicsPipelines(
     VkDevice device,
     VkPipelineCache pipelineCache,
     uint32_t createInfoCount,
@@ -16,7 +18,7 @@ VkResult ctsCreateGraphicsPipelines(
     VkPipeline* pPipelines
 );
 
-void ctsDestroyPipeline(
+void VKAPI_CALL ctsDestroyPipeline(
     VkDevice device,
     VkPipeline pipeline,
     const VkAllocationCallbacks* pAllocator

@@ -1,4 +1,8 @@
-[submodule "contrib/vulkan"]
-	path = contrib/vulkan
+[submodule "contrib/vulkan-headers"]
+	path = contrib/vulkan-headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
-	branch = main
+	branch = sdk-1.2.182
+[submodule "contrib/spirv-cross"]
+	path = contrib/spirv-cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+	branch = master

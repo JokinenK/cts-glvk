@@ -1,4 +1,4 @@
-#version 330
+#version 400
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -17,7 +17,7 @@ layout(location = 1) out vec2 fragTexCoord;
 
 void main() {
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
-    gl_Position.y = -gl_Position.y;
+    //gl_Position.y = -gl_Position.y;
     fragColor = inColor;
     fragTexCoord = inTexCoord;
 }
