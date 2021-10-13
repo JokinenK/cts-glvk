@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include <cts/platform_time.h>
+#include "cts/platform/platform_time.h"
 
 #ifdef __cplusplus
 extern "C" {

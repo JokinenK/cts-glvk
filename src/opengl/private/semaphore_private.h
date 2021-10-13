@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cts/platform_semaphore.h>
+#include "cts/platform/platform_semaphore.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsSemaphoreImpl {
+struct CtsSemaphore {
     CtsPlatformSemaphore semaphore;
 };
 

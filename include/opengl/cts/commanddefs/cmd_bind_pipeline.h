@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct CtsCmdBindPipeline {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsPipelineBindPoint pipelineBindPoint;
-    CtsPipeline pipeline;
+    VkCommandBuffer commandBuffer;
+    VkPipelineBindPoint pipelineBindPoint;
+    VkPipeline pipeline;
 } CtsCmdBindPipeline;
 
 #ifdef __cplusplus

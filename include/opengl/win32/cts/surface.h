@@ -1,50 +1,49 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
-#include <cts/typedefs/win32_surface.h>
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_win32.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateWin32Surface(
-    CtsInstance instance,
-    const CtsWin32SurfaceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSurface* pSurface
+VkResult ctsCreateWin32Surface(
+    VkInstance instance,
+    const VkWin32SurfaceCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSurfaceKHR* pSurface
 );
 
 void ctsDestroyWin32Surface(
-    CtsSurface surface,
-    const CtsAllocationCallbacks* pAllocator
+    VkSurfaceKHR surface,
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsGetPhysicalDeviceSurfaceSupport(
-    CtsPhysicalDevice physicalDevice,
+VkResult ctsGetPhysicalDeviceSurfaceSupport(
+    VkPhysicalDevice physicalDevice,
     uint32_t queueFamilyIndex,
-    CtsSurface surface,
-    CtsBool32* pSupported
+    VkSurfaceKHR surface,
+    VkBool32* pSupported
 );
 
-CtsResult ctsGetPhysicalDeviceSurfaceCapabilities(
-    CtsPhysicalDevice physicalDevice,
-    CtsSurface surface,
-    CtsSurfaceCapabilities* pSurfaceCapabilities
+VkResult ctsGetPhysicalDeviceSurfaceCapabilities(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkSurfaceCapabilitiesKHR* pSurfaceCapabilities
 );
 
-CtsResult ctsGetPhysicalDeviceSurfaceFormats(
-    CtsPhysicalDevice physicalDevice,
-    CtsSurface surface,
+VkResult ctsGetPhysicalDeviceSurfaceFormats(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
     uint32_t* pSurfaceFormatCount,
-    CtsSurfaceFormat* pSurfaceFormats
+    VkSurfaceFormatKHR* pSurfaceFormats
 );
 
-CtsResult ctsGetPhysicalDeviceSurfacePresentModes(
-    CtsPhysicalDevice physicalDevice,
-    CtsSurface surface,
+VkResult ctsGetPhysicalDeviceSurfacePresentModes(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
     uint32_t* pPresentModeCount,
-    CtsPresentMode* pPresentModes
+    VkPresentModeKHR* pPresentModes
 );
 
 #ifdef __cplusplus

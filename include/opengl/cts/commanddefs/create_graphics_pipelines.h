@@ -1,9 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/allocator.h>
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,13 +10,13 @@ extern "C" {
 
 typedef struct CtsCreateGraphicsPipelines {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsPipelineCache pipelineCache;
+    VkDevice device;
+    VkPipelineCache pipelineCache;
     uint32_t createInfoCount;
-    const CtsGraphicsPipelineCreateInfo* pCreateInfos;
-    const CtsAllocationCallbacks* pAllocator;
-    CtsPipeline* pPipelines;
-    CtsResult* pResult;
+    const VkGraphicsPipelineCreateInfo* pCreateInfos;
+    const VkAllocationCallbacks* pAllocator;
+    VkPipeline* pPipelines;
+    VkResult* pResult;
 } CtsCreateGraphicsPipelines;
 
 #ifdef __cplusplus

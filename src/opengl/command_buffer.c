@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <string.h>
-#include <cts/allocator.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/semaphore.h"
 #include <cts/command_buffer.h>
 #include <cts/commands.h>
 #include <cts/command_dispatcher.h>
@@ -11,6 +13,7 @@
 #include <cts/typedefs/gl_shader.h>
 #include <cts/typedefs/gl_texture.h>
 #include <cts/typedefs/gl_descriptor.h>
+#include <private/private.h>
 #include <private/command_buffer_private.h>
 #include <private/command_pool_private.h>
 #include <private/buffer_private.h>
@@ -34,42 +37,44 @@ extern "C" {
 #endif
 
 static void* advance(void* pPtr, size_t amount);
-static bool hasFlag(CtsFlags flags, CtsFlags flag);
+static bool hasFlag(VkFlags flags, VkFlags flag);
 
 static bool shouldUpdateBool(bool enable, bool* pCurrent, bool* pPrevious);
 static bool shouldUpdateHandle(GLuint handle, GLuint* pCurrent, GLuint* pPrevious);
 static void enableFeature(GLenum feature, bool enable);
 static void enableFeatureIndexed(GLenum feature, uint32_t index, bool enable);
-static void enableDepthClamp(CtsDevice device, bool enable, bool* pPrevious);
-static void enableRasterizerDiscard(CtsDevice device, bool enable, bool* pPrevious);
-static void enableCullFace(CtsDevice device, bool enable, bool* pPrevious);
-static void enableDepthTest(CtsDevice device, bool enable, bool* pPrevious);
-static void enableStencilTest(CtsDevice device, bool enable, bool* pPrevious);
-static void enableBlend(CtsDevice device, uint32_t index, bool enable, bool* pPrevious);
-static void enableColorLogicOp(CtsDevice device, bool enable, bool* pPrevious);
-static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious);
+static void enableDepthClamp(struct CtsDevice* device, bool enable, bool* pPrevious);
+static void enableRasterizerDiscard(struct CtsDevice* device, bool enable, bool* pPrevious);
+static void enableCullFace(struct CtsDevice* device, bool enable, bool* pPrevious);
+static void enableDepthTest(struct CtsDevice* device, bool enable, bool* pPrevious);
+static void enableStencilTest(struct CtsDevice* device, bool enable, bool* pPrevious);
+static void enableBlend(struct CtsDevice* device, uint32_t index, bool enable, bool* pPrevious);
+static void enableColorLogicOp(struct CtsDevice* device, bool enable, bool* pPrevious);
+static void useProgram(struct CtsDevice* device, GLuint program, GLuint* pPrevious);
 
-static void bindTexture(CtsDevice device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsGlTextureBinding* pPrevious);
-static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious);
-static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRenderPass renderPass, uint32_t subpassNumber);
-static void bindDynamicState(CtsDevice device, CtsFlags pState);
-static void bindVertexInputState(CtsDevice device, CtsGlPipelineVertexInputState* pState);
-static void bindInputAssemblyState(CtsDevice device, CtsGlPipelineInputAssemblyState* pState);
-static void bindTessellationState(CtsDevice device, CtsGlPipelineTessellationState* pState);
-static void bindViewportState(CtsDevice device, CtsGlPipelineViewportState* pState);
-static void bindRasterizationState(CtsDevice device, CtsGlPipelineRasterizationState* pState);
-static void bindMultisampleState(CtsDevice device, CtsGlPipelineMultisampleState* pState);
-static void bindDepthStencilState(CtsDevice device, CtsGlPipelineDepthStencilState* pState);
-static void bindColorBlendState(CtsDevice device, CtsGlPipelineColorBlendState* pState);
+static void bindTexture(struct CtsDevice* device, uint32_t pSlot, GLenum pTarget, uint32_t pHandle, CtsGlTextureBinding* pPrevious);
+static void bindSampler(struct CtsDevice* device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious);
+static void bindRenderPass(struct CtsDevice* device, struct CtsFramebuffer* framebuffer, struct CtsRenderPass* renderPass, uint32_t subpassNumber);
+static void bindDynamicState(struct CtsDevice* device, VkFlags pState);
+static void bindVertexInputState(struct CtsDevice* device, CtsGlPipelineVertexInputState* pState);
+static void bindInputAssemblyState(struct CtsDevice* device, CtsGlPipelineInputAssemblyState* pState);
+static void bindTessellationState(struct CtsDevice* device, CtsGlPipelineTessellationState* pState);
+static void bindViewportState(struct CtsDevice* device, CtsGlPipelineViewportState* pState);
+static void bindRasterizationState(struct CtsDevice* device, CtsGlPipelineRasterizationState* pState);
+static void bindMultisampleState(struct CtsDevice* device, CtsGlPipelineMultisampleState* pState);
+static void bindDepthStencilState(struct CtsDevice* device, CtsGlPipelineDepthStencilState* pState);
+static void bindColorBlendState(struct CtsDevice* device, CtsGlPipelineColorBlendState* pState);
 
-static void resolveRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber);
+static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* renderPass, uint32_t subpassNumber);
 
-static void* allocateCommand(CtsCommandBuffer commandBuffer, CtsCommandType commandType, size_t extraDataLen);
+static void* allocateCommand(struct CtsCommandBuffer* pCommandBuffer, CtsCommandType commandType, size_t extraDataLen);
 
-CtsResult ctsBeginCommandBuffer(
-    CtsCommandBuffer commandBuffer,
-    const CtsCommandBufferBeginInfo* pBeginInfo
+VkResult ctsBeginCommandBuffer(
+    VkCommandBuffer commandBufferHandle,
+    const VkCommandBufferBeginInfo* pBeginInfo
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     (void) pBeginInfo->pInheritanceInfo;
 
     if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_INITIAL) {
@@ -79,13 +84,15 @@ CtsResult ctsBeginCommandBuffer(
         commandBuffer->state = CTS_COMMAND_BUFFER_STATE_RECORDING;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsResetCommandBuffer(
-    CtsCommandBuffer commandBuffer,
-    CtsCommandBufferResetFlags flags
+VkResult ctsResetCommandBuffer(
+    VkCommandBuffer commandBufferHandle,
+    VkCommandBufferResetFlags flags
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_RECORDING || commandBuffer->state == CTS_COMMAND_BUFFER_STATE_EXECUTABLE) {
         commandBuffer->root = NULL;
         commandBuffer->current = NULL;
@@ -94,38 +101,43 @@ CtsResult ctsResetCommandBuffer(
 
     ctsLinearAllocatorReset(commandBuffer->linearAllocator);
 
-    if (flags & CTS_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT) {
+    if (flags & VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT) {
         ctsLinearAllocatorTrim(commandBuffer->linearAllocator);    
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsEndCommandBuffer(
-    CtsCommandBuffer commandBuffer
+VkResult ctsEndCommandBuffer(
+    VkCommandBuffer commandBufferHandle
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_RECORDING) {
         commandBuffer->state = CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 
-CtsResult ctsQueueSubmit(
-    CtsQueue queue,
+VkResult ctsQueueSubmit(
+    VkQueue queueHandle,
     uint32_t submitCount,
-    const CtsSubmitInfo* pSubmits,
-    CtsFence fence
+    const VkSubmitInfo* pSubmits,
+    VkFence fence
 ) {
+    struct CtsQueue* queue = CtsQueueFromHandle(queueHandle);
+
     for (uint32_t i = 0; i < submitCount; ++i) {
-        const CtsSubmitInfo* submit = &pSubmits[i];
+        const VkSubmitInfo* submit = &pSubmits[i];
 
         // TODO: Handle waitDstStageMask
         ctsWaitSemaphores(submit->waitSemaphoreCount, submit->pWaitSemaphores);
 
         for (uint32_t j = 0; j < submit->commandBufferCount; ++j) {
-            CtsCommandBuffer commandBuffer = submit->pCommandBuffers[j];
+            VkCommandBuffer commandBufferHandle = submit->pCommandBuffers[j];
+            struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
             if (commandBuffer->state == CTS_COMMAND_BUFFER_STATE_EXECUTABLE) {
                 commandBuffer->state = CTS_COMMAND_BUFFER_STATE_PENDING;
@@ -134,10 +146,10 @@ CtsResult ctsQueueSubmit(
                 ctsSignalSemaphores(submit->signalSemaphoreCount, submit->pSignalSemaphores);
 
                 if (fence != NULL) {
-                    ctsSignalFence(commandBuffer->device, fence);
+                    ctsSignalFence(CtsDeviceToHandle(commandBuffer->device), fence);
                 }
 
-                if (commandBuffer->flags & CTS_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) {
+                if (commandBuffer->flags & VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) {
                     commandBuffer->state = CTS_COMMAND_BUFFER_STATE_INVALID;
                 } else {
                     commandBuffer->state = CTS_COMMAND_BUFFER_STATE_EXECUTABLE;
@@ -146,50 +158,56 @@ CtsResult ctsQueueSubmit(
         }
     }
    
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsCmdBeginQuery(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t query,
-    CtsQueryControlFlags flags
+    VkQueryControlFlags flags
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdBeginQuery* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_BEGIN_QUERY,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->queryPool = queryPool;
     cmd->query = query;
     cmd->flags = flags;
 }
 
 void ctsCmdEndQuery(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t query
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdEndQuery* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_END_QUERY,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->queryPool = queryPool;
     cmd->query = query;
 }
 
 void ctsCmdBeginRenderPass(
-    CtsCommandBuffer commandBuffer,
-    const CtsRenderPassBeginInfo* pRenderPassBegin,
-    CtsSubpassContents contents
+    VkCommandBuffer commandBufferHandle,
+    const VkRenderPassBeginInfo* pRenderPassBegin,
+    VkSubpassContents contents
 ) {
-    size_t renderPassBeginSize = sizeof(CtsRenderPassBeginInfo);
-    size_t clearValueSize = pRenderPassBegin->clearValueCount * sizeof(CtsClearValue);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t renderPassBeginSize = sizeof(VkRenderPassBeginInfo);
+    size_t clearValueSize = pRenderPassBegin->clearValueCount * sizeof(VkClearValue);
 
     CtsCmdBeginRenderPass* cmd = allocateCommand(
         commandBuffer,
@@ -203,35 +221,39 @@ void ctsCmdBeginRenderPass(
     memcpy(pRenderPassBeginCopy, pRenderPassBegin, renderPassBeginSize);
     memcpy(pClearValuesCopy, pRenderPassBegin->pClearValues, clearValueSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->pRenderPassBegin = pRenderPassBeginCopy;
     cmd->pRenderPassBegin->pClearValues = pClearValuesCopy;
     cmd->contents = contents;
 }
 
 void ctsCmdEndRenderPass(
-    CtsCommandBuffer commandBuffer
+    VkCommandBuffer commandBufferHandle
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdEndRenderPass* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_END_RENDER_PASS,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
 }
 
 void ctsCmdBindDescriptorSets(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineBindPoint pipelineBindPoint,
-    CtsPipelineLayout pipelineLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipelineLayout pipelineLayout,
     uint32_t firstSet,
     uint32_t descriptorSetCount,
-    const CtsDescriptorSet* pDescriptorSets,
+    const VkDescriptorSet* pDescriptorSets,
     uint32_t dynamicOffsetCount,
     const uint32_t* pDynamicOffsets
 ) {
-    size_t descriptorSetSize = descriptorSetCount * sizeof(CtsDescriptorSet);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t descriptorSetSize = descriptorSetCount * sizeof(VkDescriptorSet);
     size_t dynamicOffsetSize = dynamicOffsetCount * sizeof(uint32_t);
 
     CtsCmdBindDescriptorSets* cmd = allocateCommand(
@@ -246,7 +268,7 @@ void ctsCmdBindDescriptorSets(
     memcpy(pDescriptorSetsCopy, pDescriptorSets, descriptorSetSize);
     memcpy(pDynamicOffsetsCopy, pDynamicOffsets, dynamicOffsetSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->pipelineBindPoint = pipelineBindPoint;
     cmd->firstSet = firstSet;
     cmd->descriptorSetCount = descriptorSetCount;
@@ -256,48 +278,54 @@ void ctsCmdBindDescriptorSets(
 }
 
 void ctsCmdBindIndexBuffer(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
-    CtsIndexType indexType
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer buffer,
+    VkDeviceSize offset,
+    VkIndexType indexType
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdBindIndexBuffer* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_BIND_INDEX_BUFFER,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->buffer = buffer;
     cmd->offset = offset;
     cmd->indexType = indexType;
 }
 
 void ctsCmdBindPipeline(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineBindPoint pipelineBindPoint,
-    CtsPipeline pipeline
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipeline pipeline
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdBindPipeline* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_BIND_PIPELINE,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->pipelineBindPoint = pipelineBindPoint;
     cmd->pipeline = pipeline;
 }
 
 void ctsCmdBindVertexBuffers(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t firstBinding,
     uint32_t bindingCount,
-    const CtsBuffer* pBuffers,
-    const CtsDeviceSize* pOffsets
+    const VkBuffer* pBuffers,
+    const VkDeviceSize* pOffsets
 ) {
-    size_t buffersSize = bindingCount * sizeof(CtsBuffer);
-    size_t offsetsSize = bindingCount * sizeof(CtsDeviceSize);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t buffersSize = bindingCount * sizeof(VkBuffer);
+    size_t offsetsSize = bindingCount * sizeof(VkDeviceSize);
 
     CtsCmdBindVertexBuffers* cmd = allocateCommand(
         commandBuffer,
@@ -311,7 +339,7 @@ void ctsCmdBindVertexBuffers(
     memcpy(pBuffersCopy, pBuffers, buffersSize);
     memcpy(pOffsetsCopy, pOffsets, offsetsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->firstBinding = firstBinding;
     cmd->bindingCount = bindingCount;
     cmd->pBuffers = pBuffersCopy;
@@ -319,16 +347,18 @@ void ctsCmdBindVertexBuffers(
 }
 
 void ctsCmdBlitImage(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageBlit* pRegions,
-    CtsFilter filter
+    const VkImageBlit* pRegions,
+    VkFilter filter
 ) {
-    size_t regionsSize = regionCount * sizeof(CtsImageBlit);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t regionsSize = regionCount * sizeof(VkImageBlit);
 
     CtsCmdBlitImage* cmd = allocateCommand(
         commandBuffer,
@@ -339,7 +369,7 @@ void ctsCmdBlitImage(
     void* pRegionsCopy = advance(cmd, sizeof(CtsCmdBlitImage));
     memcpy(pRegionsCopy, pRegions, regionsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcImage = srcImage;
     cmd->srcImageLayout = srcImageLayout;
     cmd->dstImage = dstImage;
@@ -350,14 +380,16 @@ void ctsCmdBlitImage(
 }
 
 void ctsCmdClearAttachments(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t attachmentCount,
-    const CtsClearAttachment* pAttachments,
+    const VkClearAttachment* pAttachments,
     uint32_t rectCount,
-    const CtsClearRect* pRects
+    const VkClearRect* pRects
 ) {
-    size_t attachmentsSize = attachmentCount * sizeof(CtsClearAttachment);
-    size_t rectsSize = rectCount * sizeof(CtsClearRect);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t attachmentsSize = attachmentCount * sizeof(VkClearAttachment);
+    size_t rectsSize = rectCount * sizeof(VkClearRect);
 
     CtsCmdClearAttachments* cmd = allocateCommand(
         commandBuffer,
@@ -366,28 +398,30 @@ void ctsCmdClearAttachments(
     );
 
     void* pAttachmentsCopy = advance(cmd, sizeof(CtsCmdClearAttachments));
-    void* pRectsCopy = advance(pAttachmentsCopy, attachmentsSize);
+    void* pReVkCopy = advance(pAttachmentsCopy, attachmentsSize);
     
     memcpy(pAttachmentsCopy, pAttachments, attachmentsSize);
-    memcpy(pRectsCopy, pRects, rectsSize);
+    memcpy(pReVkCopy, pRects, rectsSize);
     
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->attachmentCount = attachmentCount;
     cmd->pAttachments = pAttachmentsCopy;
     cmd->rectCount = rectCount;
-    cmd->pRects = pRectsCopy;
+    cmd->pRects = pReVkCopy;
 }
 
 void ctsCmdClearColorImage(
-    CtsCommandBuffer commandBuffer,
-    CtsImage image,
-    CtsImageLayout imageLayout,
-    const CtsClearColorValue* pColor,
+    VkCommandBuffer commandBufferHandle,
+    VkImage image,
+    VkImageLayout imageLayout,
+    const VkClearColorValue* pColor,
     uint32_t rangeCount,
-    const CtsImageSubresourceRange* pRanges
+    const VkImageSubresourceRange* pRanges
 ) {
-    size_t colorSize = sizeof(CtsClearColorValue);
-    size_t rangesSize = rangeCount * sizeof(CtsImageSubresourceRange);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t colorSize = sizeof(VkClearColorValue);
+    size_t rangesSize = rangeCount * sizeof(VkImageSubresourceRange);
 
     CtsCmdClearColorImage* cmd = allocateCommand(
         commandBuffer,
@@ -401,7 +435,7 @@ void ctsCmdClearColorImage(
     memcpy(pColorCopy, pColor, colorSize);
     memcpy(pRangesCopy, pRanges, rangesSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->image = image;
     cmd->imageLayout = imageLayout;
     cmd->pColor = pColorCopy;
@@ -410,15 +444,17 @@ void ctsCmdClearColorImage(
 }
 
 void ctsCmdClearDepthStencilImage(
-    CtsCommandBuffer commandBuffer,
-    CtsImage image,
-    CtsImageLayout imageLayout,
-    const CtsClearDepthStencilValue* pDepthStencil,
+    VkCommandBuffer commandBufferHandle,
+    VkImage image,
+    VkImageLayout imageLayout,
+    const VkClearDepthStencilValue* pDepthStencil,
     uint32_t rangeCount,
-    const CtsImageSubresourceRange* pRanges
+    const VkImageSubresourceRange* pRanges
 ) {
-    size_t depthStencilSize = sizeof(CtsClearDepthStencilValue);
-    size_t rangesSize = rangeCount * sizeof(CtsImageSubresourceRange);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t depthStencilSize = sizeof(VkClearDepthStencilValue);
+    size_t rangesSize = rangeCount * sizeof(VkImageSubresourceRange);
 
     CtsCmdClearDepthStencilImage* cmd = allocateCommand(
         commandBuffer,
@@ -432,7 +468,7 @@ void ctsCmdClearDepthStencilImage(
     memcpy(pDepthStencilCopy, pDepthStencil, depthStencilSize);
     memcpy(pRangesCopy, pRanges, rangesSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->image = image;
     cmd->imageLayout = imageLayout;
     cmd->pDepthStencil = pDepthStencilCopy;
@@ -441,13 +477,15 @@ void ctsCmdClearDepthStencilImage(
 }
 
 void ctsCmdCopyBuffer(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer srcBuffer,
-    CtsBuffer dstBuffer,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer srcBuffer,
+    VkBuffer dstBuffer,
     uint32_t regionCount,
-    const CtsBufferCopy* pRegions
+    const VkBufferCopy* pRegions
 ) {
-    size_t regionSize = regionCount * sizeof(CtsBufferCopy);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t regionSize = regionCount * sizeof(VkBufferCopy);
 
     CtsCmdCopyBuffer* cmd = allocateCommand(
         commandBuffer,
@@ -458,7 +496,7 @@ void ctsCmdCopyBuffer(
     void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyBuffer));
     memcpy(pRegionsCopy, pRegions, regionSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcBuffer = srcBuffer;
     cmd->dstBuffer = dstBuffer;
     cmd->regionCount = regionCount;
@@ -466,14 +504,16 @@ void ctsCmdCopyBuffer(
 }
 
 void ctsCmdCopyBufferToImage(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer srcBuffer,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer srcBuffer,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsBufferImageCopy* pRegions
+    const VkBufferImageCopy* pRegions
 ) {
-    size_t regionSize = regionCount * sizeof(CtsBufferImageCopy);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t regionSize = regionCount * sizeof(VkBufferImageCopy);
 
     CtsCmdCopyBufferToImage* cmd = allocateCommand(
         commandBuffer,
@@ -484,7 +524,7 @@ void ctsCmdCopyBufferToImage(
     void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyBufferToImage));
     memcpy(pRegionsCopy, pRegions, regionSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcBuffer = srcBuffer;
     cmd->dstImage = dstImage;
     cmd->dstImageLayout = dstImageLayout;
@@ -493,15 +533,17 @@ void ctsCmdCopyBufferToImage(
 }
 
 void ctsCmdCopyImage(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageCopy* pRegions
+    const VkImageCopy* pRegions
 ) {
-    size_t regionsSize = regionCount * sizeof(CtsImageCopy);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t regionsSize = regionCount * sizeof(VkImageCopy);
 
     CtsCmdCopyImage* cmd = allocateCommand(
         commandBuffer,
@@ -512,7 +554,7 @@ void ctsCmdCopyImage(
     void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyImage));
     memcpy(pRegionsCopy, pRegions, regionsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcImage = srcImage;
     cmd->srcImageLayout = srcImageLayout;
     cmd->dstImage = dstImage;
@@ -522,14 +564,16 @@ void ctsCmdCopyImage(
 }
 
 void ctsCmdCopyImageToBuffer(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsBuffer dstBuffer,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkBuffer dstBuffer,
     uint32_t regionCount,
-    const CtsBufferImageCopy* pRegions
+    const VkBufferImageCopy* pRegions
 ) {
-    size_t regionsSize = regionCount * sizeof(CtsBufferImageCopy);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t regionsSize = regionCount * sizeof(VkBufferImageCopy);
 
     CtsCmdCopyImageToBuffer* cmd = allocateCommand(
         commandBuffer,
@@ -540,7 +584,7 @@ void ctsCmdCopyImageToBuffer(
     void* pRegionsCopy = advance(cmd, sizeof(CtsCmdCopyImage));
     memcpy(pRegionsCopy, pRegions, regionsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcImage = srcImage;
     cmd->srcImageLayout = srcImageLayout;
     cmd->dstBuffer = dstBuffer;
@@ -549,22 +593,24 @@ void ctsCmdCopyImageToBuffer(
 }
 
 void ctsCmdCopyQueryPoolResults(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize stride,
-    CtsQueryResultFlags flags
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize stride,
+    VkQueryResultFlags flags
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdCopyQueryPoolResults* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_COPY_QUERY_POOL_RESULTS,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->queryPool = queryPool;
     cmd->firstQuery = firstQuery;
     cmd->queryCount = queryCount;
@@ -575,53 +621,59 @@ void ctsCmdCopyQueryPoolResults(
 }
 
 void ctsCmdDispatch(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t groupCountX,
     uint32_t groupCountY,
     uint32_t groupCountZ
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdDispatch* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_DISPATCH,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->groupCountX = groupCountX;
     cmd->groupCountY = groupCountY;
     cmd->groupCountZ = groupCountZ;
 }
 
 void ctsCmdDispatchIndirect(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer buffer,
+    VkDeviceSize offset
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdDispatchIndirect* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_DISPATCH_INDIRECT,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->buffer = buffer;
     cmd->offset = offset;
 }
 
 void ctsCmdDraw(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t vertexCount,
     uint32_t instanceCount,
     uint32_t firstVertex,
     uint32_t firstInstance
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdDraw* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_DRAW,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->vertexCount = vertexCount;
     cmd->instanceCount = instanceCount;
     cmd->firstVertex = firstVertex;
@@ -629,20 +681,22 @@ void ctsCmdDraw(
 }
 
 void ctsCmdDrawIndexed(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t indexCount,
     uint32_t instanceCount,
     uint32_t firstIndex,
     int32_t vertexOffset,
     uint32_t firstInstance
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdDrawIndexed* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_DRAW_INDEXED,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->indexCount = indexCount;
     cmd->instanceCount = instanceCount;
     cmd->firstIndex = firstIndex;
@@ -651,19 +705,21 @@ void ctsCmdDrawIndexed(
 }
 
 void ctsCmdDrawIndexedIndirect(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer buffer,
+    VkDeviceSize offset,
     uint32_t drawCount,
     uint32_t stride
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdDrawIndexedIndirect* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_DRAW_INDEXED_INDIRECT,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->buffer = buffer;
     cmd->offset = offset;
     cmd->drawCount = drawCount;
@@ -671,19 +727,21 @@ void ctsCmdDrawIndexedIndirect(
 }
 
 void ctsCmdDrawIndirect(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer buffer,
+    VkDeviceSize offset,
     uint32_t drawCount,
     uint32_t stride
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdDrawIndirect* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_DRAW_INDIRECT,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->buffer = buffer;
     cmd->offset = offset;
     cmd->drawCount = drawCount;
@@ -691,11 +749,13 @@ void ctsCmdDrawIndirect(
 }
 
 void ctsCmdExecuteCommands(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
+    const VkCommandBuffer* pCommandBuffers
 ) {
-    size_t commandBuffersSize = commandBufferCount * sizeof(CtsCommandBuffer);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t commandBuffersSize = commandBufferCount * sizeof(VkCommandBuffer);
 
     CtsCmdExecuteCommands* cmd = allocateCommand(
         commandBuffer,
@@ -706,25 +766,27 @@ void ctsCmdExecuteCommands(
     void* pCommandBuffersCopy = advance(cmd, sizeof(CtsCmdExecuteCommands));
     memcpy(pCommandBuffersCopy, pCommandBuffers, commandBuffersSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->commandBufferCount = commandBufferCount;
     cmd->pCommandBuffers = pCommandBuffersCopy;
 }
 
 void ctsCmdFillBuffer(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize size,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize size,
     uint32_t data
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdFillBuffer* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_FILL_BUFFER,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->dstBuffer = dstBuffer;
     cmd->dstOffset = dstOffset;
     cmd->size = size;
@@ -732,34 +794,38 @@ void ctsCmdFillBuffer(
 }
 
 void ctsCmdNextSubpass(
-    CtsCommandBuffer commandBuffer,
-    CtsSubpassContents contents
+    VkCommandBuffer commandBufferHandle,
+    VkSubpassContents contents
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdNextSubpass* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_NEXT_SUBPASS,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->contents = contents;
 }
 
 void ctsCmdPipelineBarrier(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineStageFlags srcStageMask,
-    CtsPipelineStageFlags dstStageMask,
-    CtsDependencyFlags dependencyFlags,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
+    VkDependencyFlags dependencyFlags,
     uint32_t memoryBarrierCount,
-    const CtsMemoryBarrier* pMemoryBarriers,
+    const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount,
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount,
-    const CtsImageMemoryBarrier* pImageMemoryBarriers
+    const VkImageMemoryBarrier* pImageMemoryBarriers
 ) {
-    size_t memoryBarrierSize = memoryBarrierCount * sizeof(CtsMemoryBarrier);
-    size_t bufferMemoryBarrierSize = bufferMemoryBarrierCount * sizeof(CtsBufferMemoryBarrier);
-    size_t imageMemoryBarrierSize = imageMemoryBarrierCount * sizeof(CtsImageMemoryBarrier);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t memoryBarrierSize = memoryBarrierCount * sizeof(VkMemoryBarrier);
+    size_t bufferMemoryBarrierSize = bufferMemoryBarrierCount * sizeof(VkBufferMemoryBarrier);
+    size_t imageMemoryBarrierSize = imageMemoryBarrierCount * sizeof(VkImageMemoryBarrier);
 
     CtsCmdPipelineBarrier* cmd = allocateCommand(
         commandBuffer,
@@ -775,7 +841,7 @@ void ctsCmdPipelineBarrier(
     memcpy(pBufferMemoryBarriersCopy, pBufferMemoryBarriers, bufferMemoryBarrierSize);
     memcpy(pImageMemoryBarriersCopy, pImageMemoryBarriers, imageMemoryBarrierSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcStageMask = srcStageMask;
     cmd->dstStageMask = dstStageMask;
     cmd->dependencyFlags = dependencyFlags;
@@ -788,13 +854,15 @@ void ctsCmdPipelineBarrier(
 }
 
 void ctsCmdPushConstants(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineLayout layout,
-    CtsShaderStageFlags stageFlags,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineLayout layout,
+    VkShaderStageFlags stageFlags,
     uint32_t offset,
     uint32_t size,
     const void* pValues
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdPushConstants* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_PUSH_CONSTANTS,
@@ -804,7 +872,7 @@ void ctsCmdPushConstants(
     void* pValuesCopy = advance(cmd, sizeof(CtsCmdPushConstants));
     memcpy(pValuesCopy, pValues, size);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->layout = layout;
     cmd->stageFlags = stageFlags;
     cmd->offset = offset;
@@ -813,49 +881,55 @@ void ctsCmdPushConstants(
 }
 
 void ctsCmdResetEvent(
-    CtsCommandBuffer commandBuffer,
-    CtsEvent event,
-    CtsPipelineStageFlags stageMask
+    VkCommandBuffer commandBufferHandle,
+    VkEvent event,
+    VkPipelineStageFlags stageMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdResetEvent* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_RESET_EVENT,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->event = event;
     cmd->stageMask = stageMask;
 }
 
 void ctsCmdResetQueryPool(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdResetQueryPool* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_RESET_QUERY_POOL,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->queryPool = queryPool;
     cmd->firstQuery = firstQuery;
     cmd->queryCount = queryCount;
 }
 
 void ctsCmdResolveImage(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageResolve* pRegions
+    const VkImageResolve* pRegions
 ) {
-    size_t regionsSize = regionCount * sizeof(CtsImageBlit);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t regionsSize = regionCount * sizeof(VkImageBlit);
 
     CtsCmdResolveImage* cmd = allocateCommand(
         commandBuffer,
@@ -866,7 +940,7 @@ void ctsCmdResolveImage(
     void* pRegionsCopy = advance(cmd, sizeof(CtsCmdBlitImage));
     memcpy(pRegionsCopy, pRegions, regionsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->srcImage = srcImage;
     cmd->srcImageLayout = srcImageLayout;
     cmd->dstImage = dstImage;
@@ -876,9 +950,11 @@ void ctsCmdResolveImage(
 }
 
 void ctsCmdSetBlendConstants(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     const float blendConstants[4]
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     // TODO: This might need attention
     CtsCmdSetBlendConstants* cmd = allocateCommand(
         commandBuffer,
@@ -886,95 +962,107 @@ void ctsCmdSetBlendConstants(
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     memcpy(cmd->blendConstants, blendConstants, sizeof(float[4]));
 }
 
 void ctsCmdSetDepthBias(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     float depthBiasConstantFactor,
     float depthBiasClamp,
     float depthBiasSlopeFactor
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetDepthBias* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_DEPTH_BIAS,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->depthBiasConstantFactor = depthBiasConstantFactor;
     cmd->depthBiasClamp = depthBiasClamp;
     cmd->depthBiasSlopeFactor = depthBiasSlopeFactor;
 }
 
 void ctsCmdSetDepthBounds(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     float minDepthBounds,
     float maxDepthBounds
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetDepthBounds* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_DEPTH_BOUNDS,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->minDepthBounds = minDepthBounds;
     cmd->maxDepthBounds = maxDepthBounds;
 }
 
 void ctsCmdSetDeviceMask(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t deviceMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetDeviceMask* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_DEVICE_MASK,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->deviceMask = deviceMask;
 }
 
 void ctsCmdSetEvent(
-    CtsCommandBuffer commandBuffer,
-    CtsEvent event,
-    CtsPipelineStageFlags stageMask
+    VkCommandBuffer commandBufferHandle,
+    VkEvent event,
+    VkPipelineStageFlags stageMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetEvent* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_EVENT,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->event = event;
     cmd->stageMask = stageMask;
 }
 
 void ctsCmdSetLineWidth(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     float lineWidth
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetLineWidth* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_LINE_WIDTH,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->lineWidth = lineWidth;
 }
 
 void ctsCmdSetScissor(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t firstScissor,
     uint32_t scissorCount,
-    const CtsRect2D* pScissors
+    const VkRect2D* pScissors
 ) {
-    size_t scissorsSize = scissorCount * sizeof(CtsRect2D);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t scissorsSize = scissorCount * sizeof(VkRect2D);
 
     CtsCmdSetScissor* cmd = allocateCommand(
         commandBuffer,
@@ -985,67 +1073,75 @@ void ctsCmdSetScissor(
     void* pScissorsCopy = advance(cmd, sizeof(CtsCmdSetScissor));
     memcpy(pScissorsCopy, pScissors, scissorsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->firstScissor = firstScissor;
     cmd->scissorCount = scissorCount;
     cmd->pScissors = pScissorsCopy;
 }
 
 void ctsCmdSetStencilCompareMask(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBufferHandle,
+    VkStencilFaceFlags faceMask,
     uint32_t compareMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetStencilCompareMask* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_STENCIL_COMPARE_MASK,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->faceMask = faceMask;
     cmd->compareMask = compareMask;
 }
 
 void ctsCmdSetStencilReference(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBufferHandle,
+    VkStencilFaceFlags faceMask,
     uint32_t reference
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetStencilReference* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_STENCIL_REFERENCE,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->faceMask = faceMask;
     cmd->reference = reference;
 }
 
 void ctsCmdSetStencilWriteMask(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBufferHandle,
+    VkStencilFaceFlags faceMask,
     uint32_t writeMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdSetStencilWriteMask* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_SET_STENCIL_WRITE_MASK,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->faceMask = faceMask;
     cmd->writeMask = writeMask;
 }
 
 void ctsCmdSetViewport(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t firstViewport,
     uint32_t viewportCount,
-    const CtsViewport* pViewports
+    const VkViewport* pViewports
 ) {
-    size_t viewportsSize = viewportCount * sizeof(CtsViewport);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t viewportsSize = viewportCount * sizeof(VkViewport);
 
     CtsCmdSetViewport* cmd = allocateCommand(
         commandBuffer,
@@ -1056,19 +1152,21 @@ void ctsCmdSetViewport(
     void* pViewportsCopy = advance(cmd, sizeof(CtsCmdSetViewport));
     memcpy(pViewportsCopy, pViewports, viewportsSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->firstViewport = firstViewport;
     cmd->viewportCount = viewportCount;
     cmd->pViewports = pViewportsCopy;
 }
 
 void ctsCmdUpdateBuffer(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize dataSize,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize dataSize,
     const void* pData
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdUpdateBuffer* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_UPDATE_BUFFER,
@@ -1078,7 +1176,7 @@ void ctsCmdUpdateBuffer(
     void* pDataCopy = advance(cmd, sizeof(CtsCmdUpdateBuffer));
     memcpy(pDataCopy, pData, dataSize); 
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->dstBuffer = dstBuffer;
     cmd->dstOffset = dstOffset;
     cmd->dataSize = dataSize;
@@ -1086,21 +1184,23 @@ void ctsCmdUpdateBuffer(
 }
 
 void ctsCmdWaitEvents(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t eventCount,
-    const CtsEvent* events,
-    CtsPipelineStageFlags srcStageMask,
-    CtsPipelineStageFlags dstStageMask,
+    const VkEvent* events,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
     uint32_t memoryBarrierCount,
-    const CtsMemoryBarrier* pMemoryBarriers,
+    const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount,
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount,
-    const CtsImageMemoryBarrier* pImageMemoryBarriers
+    const VkImageMemoryBarrier* pImageMemoryBarriers
 ) {
-    size_t memoryBarriersSize = memoryBarrierCount * sizeof(CtsMemoryBarrier);
-    size_t bufferMemoryBarriersSize = bufferMemoryBarrierCount * sizeof(CtsBufferMemoryBarrier);
-    size_t imageMemoryBarriersSize = imageMemoryBarrierCount * sizeof(CtsImageMemoryBarrier);
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    size_t memoryBarriersSize = memoryBarrierCount * sizeof(VkMemoryBarrier);
+    size_t bufferMemoryBarriersSize = bufferMemoryBarrierCount * sizeof(VkBufferMemoryBarrier);
+    size_t imageMemoryBarriersSize = imageMemoryBarrierCount * sizeof(VkImageMemoryBarrier);
 
     CtsCmdWaitEvents* cmd = allocateCommand(
         commandBuffer,
@@ -1116,7 +1216,7 @@ void ctsCmdWaitEvents(
     memcpy(pBufferMemoryBarriersCopy, pBufferMemoryBarriers, bufferMemoryBarriersSize);
     memcpy(pImageMemoryBarriersCopy, pImageMemoryBarriers, imageMemoryBarriersSize);
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->eventCount = eventCount;
     cmd->events = events;
     cmd->srcStageMask = srcStageMask;
@@ -1130,52 +1230,60 @@ void ctsCmdWaitEvents(
 }
 
 void ctsCmdWriteTimestamp(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineStageFlagBits pipelineStage,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineStageFlagBits pipelineStage,
+    VkQueryPool queryPool,
     uint32_t query
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     CtsCmdWriteTimestamp* cmd = allocateCommand(
         commandBuffer,
         CTS_COMMAND_CMD_WRITE_TIMESTAMP,
         0
     );
 
-    cmd->commandBuffer = commandBuffer;
+    cmd->commandBuffer = commandBufferHandle;
     cmd->pipelineStage = pipelineStage;
     cmd->queryPool = queryPool;
     cmd->query = query;
 }
 
 void ctsCmdBeginQueryImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t query,
-    CtsQueryControlFlags flags
+    VkQueryControlFlags flags
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     // TODO: Implement this
     //glBeginQuery()
 }
 
 void ctsCmdEndQueryImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t query
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     //glEndQuery()
 }
 
 void ctsCmdBeginRenderPassImpl(
-    CtsCommandBuffer commandBuffer,
-    const CtsRenderPassBeginInfo* pRenderPassBegin,
-    CtsSubpassContents contents
+    VkCommandBuffer commandBufferHandle,
+    const VkRenderPassBeginInfo* pRenderPassBegin,
+    VkSubpassContents contents
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     (void) pRenderPassBegin->renderArea;
     (void) contents;
 
-    CtsDevice device = commandBuffer->device;
-    CtsFramebuffer framebuffer = pRenderPassBegin->framebuffer;
-    CtsRenderPass renderPass = pRenderPassBegin->renderPass;
+    struct CtsDevice* device = commandBuffer->device;
+    struct CtsFramebuffer* framebuffer = CtsFramebufferFromHandle(pRenderPassBegin->framebuffer);
+    struct CtsRenderPass* renderPass = CtsRenderPassFromHandle(pRenderPassBegin->renderPass);
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->handle);
     bindRenderPass(device, framebuffer, renderPass, 0);
@@ -1185,16 +1293,16 @@ void ctsCmdBeginRenderPassImpl(
         : framebuffer->attachmentCount;
 
     for (uint32_t i = 0; i < lastAttachment; ++i) {
-        const CtsClearValue* clearValue = &pRenderPassBegin->pClearValues[i];
-        const CtsAttachmentDescription* description = &renderPass->pAttachments[i];
+        const VkClearValue* clearValue = &pRenderPassBegin->pClearValues[i];
+        const VkAttachmentDescription* description = &renderPass->pAttachments[i];
 
-        if (description->format == CTS_FORMAT_D16_UNORM ||
-            description->format == CTS_FORMAT_D32_SFLOAT
+        if (description->format == VK_FORMAT_D16_UNORM ||
+            description->format == VK_FORMAT_D32_SFLOAT
         ) {
             glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
         } else if (
-            description->format == CTS_FORMAT_D24_UNORM_S8_UINT ||
-            description->format == CTS_FORMAT_D32_SFLOAT_S8_UINT
+            description->format == VK_FORMAT_D24_UNORM_S8_UINT ||
+            description->format == VK_FORMAT_D32_SFLOAT_S8_UINT
         ) {
             glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth, clearValue->depthStencil.stencil);
         } else {
@@ -1207,9 +1315,11 @@ void ctsCmdBeginRenderPassImpl(
 }
 
 void ctsCmdEndRenderPassImpl(
-    CtsCommandBuffer commandBuffer
+    VkCommandBuffer commandBufferHandle
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
+
     resolveRenderPass(device, device->activeRenderPass, device->activeSubpassNumber);
 
     device->activeWriteFramebuffer = NULL;
@@ -1220,12 +1330,12 @@ void ctsCmdEndRenderPassImpl(
 }
 
 void ctsCmdBindDescriptorSetsImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineBindPoint pipelineBindPoint,
-    CtsPipelineLayout pipelineLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipelineLayout pipelineLayout,
     uint32_t firstSet,
     uint32_t descriptorSetCount,
-    const CtsDescriptorSet* pDescriptorSets,
+    const VkDescriptorSet* pDescriptorSets,
     uint32_t dynamicOffsetCount,
     const uint32_t* pDynamicOffsets
 ) {
@@ -1234,26 +1344,27 @@ void ctsCmdBindDescriptorSetsImpl(
     (void) dynamicOffsetCount;
     (void) pDynamicOffsets;
 
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
     const CtsGlShader* shader = &device->activeGraphicsPipeline->shader;
 
     for (uint32_t i = firstSet; i < descriptorSetCount; ++i) {
-        CtsDescriptorSet descriptorSet = pDescriptorSets[i];
-        CtsDescriptorSetLayout layout = descriptorSet->layout;
+        struct CtsDescriptorSet* descriptorSet = CtsDescriptorSetFromHandle(pDescriptorSets[i]);
+        struct CtsDescriptorSetLayout* layout = descriptorSet->layout;
 
         for (uint32_t j = 0; j < layout->bindingCount; ++j) {
-            const CtsGlDescriptorSetLayoutBinding* binding = &layout->bindings[j];
+            const struct CtsGlDescriptorSetLayoutBinding* binding = &layout->bindings[j];
             CtsGlDescriptor* descriptor = &descriptorSet->descriptors[binding->binding];
 
             switch (descriptor->type) {
-                case CTS_DESCRIPTOR_TYPE_SAMPLER:
-                case CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-                case CTS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-                case CTS_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-                case CTS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
+                case VK_DESCRIPTOR_TYPE_SAMPLER:
+                case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+                case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+                case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+                case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
                     CtsGlDescriptorImageView* imageViewContainer = &descriptor->imageViewContainer;
-                    CtsImageView imageView = imageViewContainer->imageView;
-                    CtsSampler sampler = imageViewContainer->sampler;
+                    struct CtsImageView* imageView = CtsImageViewFromHandle(imageViewContainer->imageView);
+                    struct CtsSampler* sampler = CtsSamplerFromHandle(imageViewContainer->sampler);
 
                     if (imageView != NULL) {
                         bindTexture(device, binding->binding, imageView->target, imageView->handle, NULL);
@@ -1264,10 +1375,10 @@ void ctsCmdBindDescriptorSetsImpl(
                     }
                 } break;
 
-                case CTS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-                case CTS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: {
+                case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+                case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: {
                     CtsGlDescriptorBufferView* bufferViewContainer = &descriptor->bufferViewContainer;
-                    CtsBufferView bufferView = bufferViewContainer->bufferView;
+                    struct CtsBufferView* bufferView = CtsBufferViewFromHandle(bufferViewContainer->bufferView);
 
                     if (bufferView != NULL) {
                         bindTexture(device, binding->binding, GL_TEXTURE_BUFFER, bufferView->handle, NULL);
@@ -1281,12 +1392,12 @@ void ctsCmdBindDescriptorSetsImpl(
                     }
                 } break;
 
-                case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-                case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-                case CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-                case CTS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: {
+                case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+                case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+                case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: {
                     CtsGlDescriptorBuffer* bufferContainer = &descriptor->bufferContainer;
-                    CtsBuffer buffer = bufferContainer->buffer;
+                    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferContainer->buffer);
 
                     if (buffer != NULL) {
                         glBindBuffer(buffer->type, buffer->memory->handle);
@@ -1309,16 +1420,19 @@ void ctsCmdBindDescriptorSetsImpl(
 }
 
 void ctsCmdBindIndexBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
-    CtsIndexType indexType
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer bufferHandle,
+    VkDeviceSize offset,
+    VkIndexType indexType
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    struct CtsDevice* device = commandBuffer->device;
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
 
     device->activeIndexBuffer.buffer = buffer;
     device->activeIndexBuffer.offset = 0;
-    device->activeIndexBuffer.indexType = (indexType == CTS_INDEX_TYPE_UINT16)
+    device->activeIndexBuffer.indexType = (indexType == VK_INDEX_TYPE_UINT16)
         ? GL_UNSIGNED_SHORT
         : GL_UNSIGNED_INT;
 
@@ -1326,13 +1440,15 @@ void ctsCmdBindIndexBufferImpl(
 }
 
 void ctsCmdBindPipelineImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineBindPoint pipelineBindPoint,
-    CtsPipeline pipeline
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipeline pipelineHandle
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
+    struct CtsPipeline* pipeline = CtsPipelineFromHandle(pipelineHandle);
 
-    if (pipeline->bindPoint == CTS_PIPELINE_BIND_POINT_GRAPHICS) {
+    if (pipeline->bindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS) {
         CtsGlGraphicsPipeline* graphicsPipeline = pipeline->graphics;
 
         if (device->activeGraphicsPipeline != graphicsPipeline) {
@@ -1353,20 +1469,22 @@ void ctsCmdBindPipelineImpl(
 }
 
 void ctsCmdBindVertexBuffersImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t firstBinding,
     uint32_t bindingCount,
-    const CtsBuffer* pBuffers,
-    const CtsDeviceSize* pOffsets
+    const VkBuffer* pBuffers,
+    const VkDeviceSize* pOffsets
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    struct CtsDevice* device = commandBuffer->device;
 
     for (uint32_t i = 0; i < bindingCount; ++i) {
-        CtsBuffer buffer = pBuffers[i];
-        CtsDeviceSize offset = pOffsets[i];
+        struct CtsBuffer* buffer = CtsBufferFromHandle(pBuffers[i]);
+        VkDeviceSize offset = pOffsets[i];
 
         const CtsGlPipelineVertexInputState* pVertexInputState = &device->activeGraphicsPipeline->vertexInputState;
-        const CtsVertexInputBindingDescription* vertexBindingDescription = &pVertexInputState->pVertexBindingDescriptions[i + firstBinding];
+        const VkVertexInputBindingDescription* vertexBindingDescription = &pVertexInputState->pVertexBindingDescriptions[i + firstBinding];
 
         glBindVertexBuffer(
             vertexBindingDescription->binding,
@@ -1378,17 +1496,22 @@ void ctsCmdBindVertexBuffersImpl(
 }
 
 void ctsCmdBlitImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImageHandle,
+    VkImageLayout srcImageLayout,
+    VkImage dstImageHandle,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageBlit* pRegions,
-    CtsFilter filter
+    const VkImageBlit* pRegions,
+    VkFilter filter
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     (void) srcImageLayout;
     (void) dstImageLayout;
+
+    struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
+    struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
 
     ctsBlitTexture(
         commandBuffer->device,
@@ -1401,56 +1524,67 @@ void ctsCmdBlitImageImpl(
 }
 
 void ctsCmdClearAttachmentsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t attachmentCount,
-    const CtsClearAttachment* pAttachments,
+    const VkClearAttachment* pAttachments,
     uint32_t rectCount,
-    const CtsClearRect* pRects
+    const VkClearRect* pRects
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdClearColorImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage image,
-    CtsImageLayout imageLayout,
-    const CtsClearColorValue* pColor,
+    VkCommandBuffer commandBufferHandle,
+    VkImage imageHandle,
+    VkImageLayout imageLayout,
+    const VkClearColorValue* pColor,
     uint32_t rangeCount,
-    const CtsImageSubresourceRange* pRanges
+    const VkImageSubresourceRange* pRanges
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsImage* image = CtsImageFromHandle(imageHandle);
+
     for (uint32_t i = 0; i < rangeCount; ++i) {
-        const CtsImageSubresourceRange* pRange = &pRanges[i];
+        const VkImageSubresourceRange* pRange = &pRanges[i];
         // TODO: Check if format is float or int
         glClearTexImage(image->handle, pRange->baseMipLevel, image->format, image->type, &pColor->float32);
     }
 }
 
 void ctsCmdClearDepthStencilImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage image,
-    CtsImageLayout imageLayout,
-    const CtsClearDepthStencilValue* pDepthStencil,
+    VkCommandBuffer commandBufferHandle,
+    VkImage imageHandle,
+    VkImageLayout imageLayout,
+    const VkClearDepthStencilValue* pDepthStencil,
     uint32_t rangeCount,
-    const CtsImageSubresourceRange* pRanges
+    const VkImageSubresourceRange* pRanges
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsImage* image = CtsImageFromHandle(imageHandle);
+
     for (uint32_t i = 0; i < rangeCount; ++i) {
-        const CtsImageSubresourceRange* pRange = &pRanges[i];
+        const VkImageSubresourceRange* pRange = &pRanges[i];
         // TODO: Check if format is float or int
         glClearTexImage(image->handle, pRange->baseMipLevel, image->format, image->type, &pDepthStencil->depth);
     }
 }
 
 void ctsCmdCopyBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer srcBuffer,
-    CtsBuffer dstBuffer,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer srcBufferHandle,
+    VkBuffer dstBufferHandle,
     uint32_t regionCount,
-    const CtsBufferCopy* pRegions
+    const VkBufferCopy* pRegions
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsBuffer* srcBuffer = CtsBufferFromHandle(srcBufferHandle);
+    struct CtsBuffer* dstBuffer = CtsBufferFromHandle(dstBufferHandle);
+
     glBindBuffer(GL_COPY_READ_BUFFER, srcBuffer->memory->handle);
     glBindBuffer(GL_COPY_WRITE_BUFFER, dstBuffer->memory->handle);
 
     for (uint32_t i = 0; i < regionCount; ++i) {
-        const CtsBufferCopy* region = &pRegions[i];
+        const VkBufferCopy* region = &pRegions[i];
         glCopyBufferSubData(
             GL_COPY_READ_BUFFER,
             GL_COPY_WRITE_BUFFER,
@@ -1465,16 +1599,20 @@ void ctsCmdCopyBufferImpl(
 }
 
 void ctsCmdCopyBufferToImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer srcBuffer,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer srcBufferHandle,
+    VkImage dstImageHandle,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsBufferImageCopy* pRegions
+    const VkBufferImageCopy* pRegions
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsBuffer* srcBuffer = CtsBufferFromHandle(srcBufferHandle);
+    struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
+
     (void) dstImageLayout;
 
-    CtsDevice device = commandBuffer->device;
+    struct CtsDevice* device = commandBuffer->device;
     GLenum target = dstImage->target;
  
     CtsGlTextureBinding previous;
@@ -1482,7 +1620,7 @@ void ctsCmdCopyBufferToImageImpl(
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, srcBuffer->memory->handle);
     
     for (uint32_t i = 0; i < regionCount; ++i) {
-        const CtsBufferImageCopy* region = &pRegions[i];
+        const VkBufferImageCopy* region = &pRegions[i];
         glPixelStorei(GL_UNPACK_ROW_LENGTH, region->bufferRowLength);
 
         (void) region->bufferImageHeight;
@@ -1549,19 +1687,23 @@ void ctsCmdCopyBufferToImageImpl(
 }
 
 void ctsCmdCopyImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImageHandle,
+    VkImageLayout srcImageLayout,
+    VkImage dstImageHandle,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageCopy* pRegions
+    const VkImageCopy* pRegions
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
+    struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
+
     (void) srcImageLayout;
     (void) dstImageLayout;
     
     for (uint32_t i = 0; i < regionCount; ++i) {
-        const CtsImageCopy* region = &pRegions[i];
+        const VkImageCopy* region = &pRegions[i];
 
         glCopyImageSubData(
             srcImage->handle,
@@ -1584,24 +1726,28 @@ void ctsCmdCopyImageImpl(
 }
 
 void ctsCmdCopyImageToBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsBuffer dstBuffer,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImageHandle,
+    VkImageLayout srcImageLayout,
+    VkBuffer dstBufferHandle,
     uint32_t regionCount,
-    const CtsBufferImageCopy* pRegions
+    const VkBufferImageCopy* pRegions
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
+    struct CtsBuffer* dstBuffer = CtsBufferFromHandle(dstBufferHandle);
+
     (void) srcImageLayout;
 
     GLenum target = srcImage->target;
-    CtsDevice device = commandBuffer->device;
+    struct CtsDevice* device = commandBuffer->device;
 
     CtsGlTextureBinding previous;
     bindTexture(device, 0, target, srcImage->handle, &previous);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, dstBuffer->memory->handle);
     
     for (uint32_t i = 0; i < regionCount; ++i) {
-        const CtsBufferImageCopy* region = &pRegions[i];
+        const VkBufferImageCopy* region = &pRegions[i];
 
         (void) region->bufferImageHeight;
         (void) region->imageSubresource.aspectMask;
@@ -1649,43 +1795,50 @@ void ctsCmdCopyImageToBufferImpl(
 }
 
 void ctsCmdCopyQueryPoolResultsImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize stride,
-    CtsQueryResultFlags flags
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize stride,
+    VkQueryResultFlags flags
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdDispatchImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t groupCountX,
     uint32_t groupCountY,
     uint32_t groupCountZ
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     glDispatchCompute(groupCountX, groupCountY, groupCountZ);
 }
 
 void ctsCmdDispatchIndirectImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer bufferHandle,
+    VkDeviceSize offset
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
+
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer->memory->handle);
     glDispatchComputeIndirect((GLintptr) buffer->offset);
 }
 
 void ctsCmdDrawImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t vertexCount,
     uint32_t instanceCount,
     uint32_t firstVertex,
     uint32_t firstInstance
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     glDrawArraysInstancedBaseInstance(
         device->state.primitiveTopology,
@@ -1697,14 +1850,15 @@ void ctsCmdDrawImpl(
 }
 
 void ctsCmdDrawIndexedImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t indexCount,
     uint32_t instanceCount,
     uint32_t firstIndex,
     int32_t vertexOffset,
     uint32_t firstInstance
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
     CtsGlIndexBuffer* activeIndexBuffer = &device->activeIndexBuffer;
 
     size_t indexSize = (activeIndexBuffer->indexType == GL_UNSIGNED_SHORT)
@@ -1723,13 +1877,16 @@ void ctsCmdDrawIndexedImpl(
 }
 
 void ctsCmdDrawIndexedIndirectImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer bufferHandle,
+    VkDeviceSize offset,
     uint32_t drawCount,
     uint32_t stride
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
+
     CtsGlIndexBuffer* activeIndexBuffer = &device->activeIndexBuffer;
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->memory->handle);
@@ -1743,13 +1900,16 @@ void ctsCmdDrawIndexedIndirectImpl(
 }
 
 void ctsCmdDrawIndirectImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer bufferHandle,
+    VkDeviceSize offset,
     uint32_t drawCount,
     uint32_t stride
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
+
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->memory->handle);
     glMultiDrawArraysIndirect(
         device->state.primitiveTopology,
@@ -1760,13 +1920,15 @@ void ctsCmdDrawIndirectImpl(
 }
 
 void ctsCmdExecuteCommandsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
+    const VkCommandBuffer* pCommandBuffers
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
     const CtsCommandMetadata* commandMetadata;
+
     for (uint32_t i = 0; i < commandBufferCount; ++i) {
-        const CtsCommandBuffer commandBuffer = pCommandBuffers[i];
+        const struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(pCommandBuffers[i]);
 
         if (commandBuffer->state != CTS_COMMAND_BUFFER_STATE_EXECUTABLE) {
             continue;
@@ -1782,12 +1944,15 @@ void ctsCmdExecuteCommandsImpl(
 }
 
 void ctsCmdFillBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize size,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer dstBufferHandle,
+    VkDeviceSize dstOffset,
+    VkDeviceSize size,
     uint32_t data
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsBuffer* dstBuffer = CtsBufferFromHandle(dstBufferHandle);
+
     glBindBuffer(GL_COPY_WRITE_BUFFER, dstBuffer->memory->handle);
     void* bufferData = glMapBuffer(GL_COPY_WRITE_BUFFER, GL_READ_WRITE);
 
@@ -1806,69 +1971,79 @@ void ctsCmdFillBufferImpl(
 }
 
 void ctsCmdNextSubpassImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsSubpassContents contents
+    VkCommandBuffer commandBufferHandle,
+    VkSubpassContents contents
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
+
     resolveRenderPass(device, device->activeRenderPass, device->activeSubpassNumber);
     bindRenderPass(device, device->activeReadFramebuffer, device->activeRenderPass, device->activeSubpassNumber + 1);
 }
 
 void ctsCmdPipelineBarrierImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineStageFlags srcStageMask,
-    CtsPipelineStageFlags dstStageMask,
-    CtsDependencyFlags dependencyFlags,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
+    VkDependencyFlags dependencyFlags,
     uint32_t memoryBarrierCount,
-    const CtsMemoryBarrier* pMemoryBarriers,
+    const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount,
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount,
-    const CtsImageMemoryBarrier* pImageMemoryBarriers
+    const VkImageMemoryBarrier* pImageMemoryBarriers
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdPushConstantsImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineLayout layout,
-    CtsShaderStageFlags stageFlags,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineLayout layout,
+    VkShaderStageFlags stageFlags,
     uint32_t offset,
     uint32_t size,
     const void* pValues
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdResetEventImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsEvent event,
-    CtsPipelineStageFlags stageMask
+    VkCommandBuffer commandBufferHandle,
+    VkEvent event,
+    VkPipelineStageFlags stageMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdResetQueryPoolImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdResolveImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBufferHandle,
+    VkImage srcImageHandle,
+    VkImageLayout srcImageLayout,
+    VkImage dstImageHandle,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageResolve* pRegions
+    const VkImageResolve* pRegions
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
+    struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
+
     for (uint32_t i = 0; i < regionCount; ++i) {
-        const CtsImageResolve* pRegion = &pRegions[i];
+        const VkImageResolve* pRegion = &pRegions[i];
         
-        CtsImageBlit imageBlit;
+        VkImageBlit imageBlit;
         imageBlit.srcSubresource = pRegion->srcSubresource;
         imageBlit.srcOffsets[0] = pRegion->srcOffset;
-        imageBlit.srcOffsets[1] = (CtsOffset3D){
+        imageBlit.srcOffsets[1] = (VkOffset3D){
             .x = pRegion->srcOffset.x + pRegion->extent.width,
             .y = pRegion->srcOffset.y + pRegion->extent.height,
             .z = pRegion->srcOffset.z + pRegion->extent.depth
@@ -1876,21 +2051,22 @@ void ctsCmdResolveImageImpl(
 
         imageBlit.dstSubresource = pRegion->dstSubresource;
         imageBlit.dstOffsets[0] = pRegion->dstOffset;
-        imageBlit.dstOffsets[1] = (CtsOffset3D){
+        imageBlit.dstOffsets[1] = (VkOffset3D){
             .x = pRegion->dstOffset.x + pRegion->extent.width,
             .y = pRegion->dstOffset.y + pRegion->extent.height,
             .z = pRegion->dstOffset.z + pRegion->extent.depth
         };
 
-        ctsBlitTexture(commandBuffer->device, srcImage, dstImage, 1, &imageBlit, CTS_FILTER_LINEAR);
+        ctsBlitTexture(commandBuffer->device, srcImage, dstImage, 1, &imageBlit, VK_FILTER_LINEAR);
     }
 }
 
 void ctsCmdSetBlendConstantsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     const float blendConstants[4]
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)) {
         glBlendColor(
@@ -1903,39 +2079,45 @@ void ctsCmdSetBlendConstantsImpl(
 }
 
 void ctsCmdSetDepthBiasImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     float depthBiasConstantFactor,
     float depthBiasClamp,
     float depthBiasSlopeFactor
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdSetDepthBoundsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     float minDepthBounds,
     float maxDepthBounds
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
     glDepthBoundsEXT(minDepthBounds, maxDepthBounds);
 }
 
 void ctsCmdSetDeviceMaskImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t deviceMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdSetEventImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsEvent event,
-    CtsPipelineStageFlags stageMask
+    VkCommandBuffer commandBufferHandle,
+    VkEvent event,
+    VkPipelineStageFlags stageMask
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdSetLineWidthImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     float lineWidth
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_LINE_WIDTH_BIT)) {
         glLineWidth(lineWidth);
@@ -1943,35 +2125,37 @@ void ctsCmdSetLineWidthImpl(
 }
 
 void ctsCmdSetScissorImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t firstScissor,
     uint32_t scissorCount,
-    const CtsRect2D* pScissors
+    const VkRect2D* pScissors
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_SCISSOR_BIT)) {
         for (uint32_t i = firstScissor; i < scissorCount; ++i) {
-            const CtsRect2D* scissor = &pScissors[i];
+            const VkRect2D* scissor = &pScissors[i];
             glScissorIndexed(i, scissor->offset.x, scissor->offset.y, scissor->extent.width, scissor->extent.height); 
         }
     }
 }
 
 void ctsCmdSetStencilCompareMaskImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBufferHandle,
+    VkStencilFaceFlags faceMask,
     uint32_t compareMask
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
-    if (faceMask & CTS_STENCIL_FACE_FRONT_BIT) {
+    if (faceMask & VK_STENCIL_FACE_FRONT_BIT) {
         CtsGlStencilState* state = &device->state.frontStencil;
         state->compareMask = compareMask;
         glStencilMaskSeparate(GL_FRONT, state->compareMask);
     } 
 
-    if (faceMask & CTS_STENCIL_FACE_BACK_BIT) {
+    if (faceMask & VK_STENCIL_FACE_BACK_BIT) {
         CtsGlStencilState* state = &device->state.frontStencil;
         state->compareMask = compareMask;
         glStencilMaskSeparate(GL_BACK, state->compareMask);
@@ -1979,20 +2163,21 @@ void ctsCmdSetStencilCompareMaskImpl(
 }
 
 void ctsCmdSetStencilReferenceImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBufferHandle,
+    VkStencilFaceFlags faceMask,
     uint32_t reference
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     // Add some helper here
-    if (faceMask & CTS_STENCIL_FACE_FRONT_BIT) {
+    if (faceMask & VK_STENCIL_FACE_FRONT_BIT) {
         CtsGlStencilState* state = &device->state.frontStencil;
         state->ref = reference;
         glStencilFuncSeparate(GL_FRONT, state->func, state->ref, state->mask);
     } 
 
-    if (faceMask & CTS_STENCIL_FACE_BACK_BIT) {
+    if (faceMask & VK_STENCIL_FACE_BACK_BIT) {
         CtsGlStencilState* state = &device->state.backStencil;
         state->ref = reference;
         glStencilFuncSeparate(GL_BACK, state->func, state->ref, state->mask);
@@ -2000,20 +2185,21 @@ void ctsCmdSetStencilReferenceImpl(
 }
 
 void ctsCmdSetStencilWriteMaskImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBufferHandle,
+    VkStencilFaceFlags faceMask,
     uint32_t writeMask
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     // Add some helper here
-    if (faceMask & CTS_STENCIL_FACE_FRONT_BIT) {
+    if (faceMask & VK_STENCIL_FACE_FRONT_BIT) {
         CtsGlStencilState* state = &device->state.frontStencil;
         state->mask = writeMask;
         glStencilFuncSeparate(GL_FRONT, state->func, state->ref, state->mask);
     } 
 
-    if (faceMask & CTS_STENCIL_FACE_BACK_BIT) {
+    if (faceMask & VK_STENCIL_FACE_BACK_BIT) {
         CtsGlStencilState* state = &device->state.backStencil;
         state->mask = writeMask;
         glStencilFuncSeparate(GL_BACK, state->func, state->ref, state->mask);
@@ -2021,16 +2207,17 @@ void ctsCmdSetStencilWriteMaskImpl(
 }
 
 void ctsCmdSetViewportImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t firstViewport,
     uint32_t viewportCount,
-    const CtsViewport* pViewports
+    const VkViewport* pViewports
 ) {
-    CtsDevice device = commandBuffer->device;
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsDevice* device = commandBuffer->device;
 
     if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
         for (uint32_t i = firstViewport; i < viewportCount; ++i) {
-            const CtsViewport* viewport = &pViewports[i];
+            const VkViewport* viewport = &pViewports[i];
 
             float y = viewport->y + viewport->height;
             float height = -viewport->height;
@@ -2042,12 +2229,15 @@ void ctsCmdSetViewportImpl(
 }
 
 void ctsCmdUpdateBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize dataSize,
+    VkCommandBuffer commandBufferHandle,
+    VkBuffer dstBufferHandle,
+    VkDeviceSize dstOffset,
+    VkDeviceSize dataSize,
     const void* pData
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+    struct CtsBuffer* dstBuffer = CtsBufferFromHandle(dstBufferHandle);
+
     glBindBuffer(GL_COPY_WRITE_BUFFER, dstBuffer->memory->handle);
     void* bufferData = glMapBuffer(GL_COPY_WRITE_BUFFER, GL_READ_WRITE);
 
@@ -2066,33 +2256,35 @@ void ctsCmdUpdateBufferImpl(
 }
 
 void ctsCmdWaitEventsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBufferHandle,
     uint32_t eventCount,
-    const CtsEvent* events,
-    CtsPipelineStageFlags srcStageMask,
-    CtsPipelineStageFlags dstStageMask,
+    const VkEvent* events,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
     uint32_t memoryBarrierCount,
-    const CtsMemoryBarrier* pMemoryBarriers,
+    const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount,
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount,
-    const CtsImageMemoryBarrier* pImageMemoryBarriers
+    const VkImageMemoryBarrier* pImageMemoryBarriers
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 void ctsCmdWriteTimestampImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineStageFlagBits pipelineStage,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBufferHandle,
+    VkPipelineStageFlagBits pipelineStage,
+    VkQueryPool queryPool,
     uint32_t query
 ) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 }
 
 static void* advance(void* pPtr, size_t amount) {
     return (char*)pPtr + amount;
 }
 
-static bool hasFlag(CtsFlags flags, CtsFlagBit flag) {
+static bool hasFlag(VkFlags flags, uint32_t flag) {
     return ((flags & flag) == flag);
 }
 
@@ -2138,55 +2330,55 @@ static void enableFeatureIndexed(GLenum feature, uint32_t index, bool enable) {
     }
 }
 
-static void enableDepthClamp(CtsDevice device, bool enable, bool* pPrevious) {
+static void enableDepthClamp(struct CtsDevice* device, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.depthClamp, pPrevious)) {
         enableFeature(GL_DEPTH_CLAMP, enable);
     }
 }
 
-static void enableRasterizerDiscard(CtsDevice device, bool enable, bool* pPrevious) {
+static void enableRasterizerDiscard(struct CtsDevice* device, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.rasterizerDiscard, pPrevious)) {
         enableFeature(GL_RASTERIZER_DISCARD, enable);
     }
 }
 
-static void enableCullFace(CtsDevice device, bool enable, bool* pPrevious) {
+static void enableCullFace(struct CtsDevice* device, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.cullFace, pPrevious)) {
         enableFeature(GL_CULL_FACE, enable);
     }
 }
 
-static void enableDepthTest(CtsDevice device, bool enable, bool* pPrevious) {
+static void enableDepthTest(struct CtsDevice* device, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.depthTest, pPrevious)) {
         enableFeature(GL_DEPTH_TEST, enable);
     }
 }
 
-static void enableStencilTest(CtsDevice device, bool enable, bool* pPrevious) {
+static void enableStencilTest(struct CtsDevice* device, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.stencilTest, pPrevious)) {
         enableFeature(GL_STENCIL_TEST, enable);
     }
 }
 
-static void enableBlend(CtsDevice device, uint32_t index, bool enable, bool* pPrevious) {
+static void enableBlend(struct CtsDevice* device, uint32_t index, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.blend[index], pPrevious)) {
         enableFeatureIndexed(GL_BLEND, index, enable);
     }
 }
 
-static void enableColorLogicOp(CtsDevice device, bool enable, bool* pPrevious) {
+static void enableColorLogicOp(struct CtsDevice* device, bool enable, bool* pPrevious) {
     if (shouldUpdateBool(enable, &device->state.colorLogicOp, pPrevious)) {
         enableFeature(GL_COLOR_LOGIC_OP, enable);
     }
 }
 
-static void useProgram(CtsDevice device, GLuint program, GLuint* pPrevious) {
+static void useProgram(struct CtsDevice* device, GLuint program, GLuint* pPrevious) {
     if (shouldUpdateHandle(program, &device->state.program, pPrevious)) {
         glUseProgram(program);
     }
 }
 
-static void bindTexture(CtsDevice device, uint32_t unit, GLenum target, uint32_t texture, CtsGlTextureBinding* pPrevious) {
+static void bindTexture(struct CtsDevice* device, uint32_t unit, GLenum target, uint32_t texture, CtsGlTextureBinding* pPrevious) {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(target, texture);
 
@@ -2201,7 +2393,7 @@ static void bindTexture(CtsDevice device, uint32_t unit, GLenum target, uint32_t
     data->texture = texture;
 }
 
-static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious) {
+static void bindSampler(struct CtsDevice* device, uint32_t unit, uint32_t sampler, uint32_t* pPrevious) {
     glBindSampler(unit, sampler);
     uint32_t* data = &device->state.sampler[unit];
 
@@ -2212,7 +2404,7 @@ static void bindSampler(CtsDevice device, uint32_t unit, uint32_t sampler, uint3
     *data = sampler;
 }
 
-static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRenderPass renderPass, uint32_t subpassNumber) {
+static void bindRenderPass(struct CtsDevice* device, struct CtsFramebuffer* framebuffer, struct CtsRenderPass* renderPass, uint32_t subpassNumber) {
     const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
 
     (void) subpassDescription->flags;
@@ -2222,17 +2414,17 @@ static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRend
     (void) subpassDescription->pPreserveAttachments;
 
     for (uint32_t i = 0; i < subpassDescription->inputAttachmentCount; ++i) {
-        const CtsAttachmentReference* inputAttachment = &subpassDescription->pInputAttachments[i];
+        const VkAttachmentReference* inputAttachment = &subpassDescription->pInputAttachments[i];
         //bindTexture(device, inputAttachment->attachment, imageView->target, imageView->handle, NULL);
     }
 
     uint32_t drawBufferCount = 0;
     for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
-        const CtsAttachmentReference* colorAttachment = &subpassDescription->pColorAttachments[i];
+        const VkAttachmentReference* colorAttachment = &subpassDescription->pColorAttachments[i];
         uint32_t attachmentIndex = colorAttachment->attachment;
         
-        if (attachmentIndex != CTS_ATTACHMENT_UNUSED) {
-            CtsImageView imageView = framebuffer->attachments[attachmentIndex];
+        if (attachmentIndex != VK_ATTACHMENT_UNUSED) {
+            struct CtsImageView* imageView = framebuffer->ppAttachments[attachmentIndex];
             GLenum buffer = framebuffer->types[attachmentIndex];
 
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, buffer, imageView->target, imageView->handle, 0);
@@ -2242,7 +2434,7 @@ static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRend
 
     if (subpassDescription->pDepthStencilAttachment != NULL) {
         uint32_t attachmentIndex = subpassDescription->pDepthStencilAttachment->attachment;
-        CtsImageView imageView = framebuffer->attachments[attachmentIndex];
+        struct CtsImageView* imageView = framebuffer->ppAttachments[attachmentIndex];
         GLenum buffer = framebuffer->types[attachmentIndex];
         
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, buffer, imageView->target, imageView->handle, 0);
@@ -2258,21 +2450,21 @@ static void bindRenderPass(CtsDevice device, CtsFramebuffer framebuffer, CtsRend
 }
 
 static void bindDynamicState(
-    CtsDevice device,
-    CtsFlags state
+    struct CtsDevice* device,
+    VkFlags state
 ) {
     device->dynamicStateFlags = state;
 }
 
 static void bindVertexInputState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineVertexInputState* pState
 ) {
     glBindVertexArray(pState->vao);
 }
 
 static void bindInputAssemblyState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineInputAssemblyState* pState
 ) {
     device->state.primitiveTopology  = pState->topology;
@@ -2280,13 +2472,13 @@ static void bindInputAssemblyState(
 }
 
 static void bindTessellationState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineTessellationState* pState
 ) {
 }
 
 static void bindViewportState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineViewportState* pState
 ) {
     uint32_t viewportCount = pState->viewportCount;
@@ -2294,7 +2486,7 @@ static void bindViewportState(
 
     if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
         for (uint32_t i = 0; i < viewportCount; ++i) {
-            CtsViewport* viewport = &pState->pViewports[i];
+            VkViewport* viewport = &pState->pViewports[i];
             glViewportIndexedf(i, viewport->x, viewport->y, viewport->width, viewport->height);
             glDepthRangeIndexed(i, viewport->minDepth, viewport->maxDepth);
         }
@@ -2302,14 +2494,14 @@ static void bindViewportState(
 
     if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_SCISSOR_BIT)) {
         for (uint32_t i = 0; i < scissorCount; ++i) {
-            CtsRect2D* scissor = &pState->pScissors[i];
+            VkRect2D* scissor = &pState->pScissors[i];
             glScissorIndexed(i, scissor->offset.x, scissor->offset.y, scissor->extent.width, scissor->extent.height);    
         }
     }
 }
 
 static void bindRasterizationState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineRasterizationState* pState
 ) {
     enableDepthClamp(device, pState->depthClampEnable, NULL);
@@ -2336,7 +2528,7 @@ static void bindRasterizationState(
 }
 
 static void bindMultisampleState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineMultisampleState* pState)
 {
     enableFeature(GL_SAMPLE_SHADING_ARB, pState->sampleShadingEnable);
@@ -2344,7 +2536,7 @@ static void bindMultisampleState(
 }
 
 static void bindDepthStencilState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineDepthStencilState* pState
 ) {
     enableDepthTest(device, pState->depthTestEnable, NULL);
@@ -2389,45 +2581,45 @@ static void bindDepthStencilState(
     glStencilMaskSeparate(GL_BACK, pState->backWriteMask);
 }
 
-static void resolveRenderPass(CtsDevice device, CtsRenderPass renderPass, uint32_t subpassNumber) {
+static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* renderPass, uint32_t subpassNumber) {
     const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
-    CtsFramebuffer framebuffer = device->activeWriteFramebuffer;
+    struct CtsFramebuffer* framebuffer = device->activeWriteFramebuffer;
 
-    CtsImageBlit imageBlit;
-    imageBlit.srcSubresource = (CtsImageSubresourceLayers) {
-        .aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT,
+    VkImageBlit imageBlit;
+    imageBlit.srcSubresource = (VkImageSubresourceLayers) {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseArrayLayer = 1,
         .layerCount = 1,
         .mipLevel = 0
     };
 
-    imageBlit.dstSubresource = (CtsImageSubresourceLayers) {
-        .aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT,
+    imageBlit.dstSubresource = (VkImageSubresourceLayers) {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseArrayLayer = 1,
         .layerCount = 1,
         .mipLevel = 0
     };
 
     for (uint32_t i = 0; i < subpassDescription->colorAttachmentCount; ++i) {
-        const CtsAttachmentReference* colorAttachment = &subpassDescription->pColorAttachments[i];
-        const CtsAttachmentReference* resolveAttachment = &subpassDescription->pResolveAttachments[i];
+        const VkAttachmentReference* colorAttachment = &subpassDescription->pColorAttachments[i];
+        const VkAttachmentReference* resolveAttachment = &subpassDescription->pResolveAttachments[i];
 
-        if (colorAttachment->attachment != CTS_ATTACHMENT_UNUSED && resolveAttachment->attachment != CTS_ATTACHMENT_UNUSED) {
-            CtsImage srcImage = framebuffer->attachments[colorAttachment->attachment]->image;
-            CtsImage dstImage = framebuffer->attachments[resolveAttachment->attachment]->image;
+        if (colorAttachment->attachment != VK_ATTACHMENT_UNUSED && resolveAttachment->attachment != VK_ATTACHMENT_UNUSED) {
+            struct CtsImage* srcImage = framebuffer->ppAttachments[colorAttachment->attachment]->image;
+            struct CtsImage* dstImage = framebuffer->ppAttachments[resolveAttachment->attachment]->image;
 
-            imageBlit.srcOffsets[0] = (CtsOffset3D){0, 0, 1};
-            imageBlit.srcOffsets[1] = (CtsOffset3D){srcImage->width, srcImage->height, 1};
-            imageBlit.dstOffsets[0] = (CtsOffset3D){0, 0, 1};
-            imageBlit.dstOffsets[1] = (CtsOffset3D){dstImage->width, dstImage->height, 1};
+            imageBlit.srcOffsets[0] = (VkOffset3D){0, 0, 1};
+            imageBlit.srcOffsets[1] = (VkOffset3D){srcImage->width, srcImage->height, 1};
+            imageBlit.dstOffsets[0] = (VkOffset3D){0, 0, 1};
+            imageBlit.dstOffsets[1] = (VkOffset3D){dstImage->width, dstImage->height, 1};
 
-            ctsBlitTexture(device, srcImage, dstImage, 1, &imageBlit, CTS_FILTER_LINEAR);
+            ctsBlitTexture(device, srcImage, dstImage, 1, &imageBlit, VK_FILTER_LINEAR);
         }
     }
 }
 
 static void bindColorBlendState(
-    CtsDevice device,
+    struct CtsDevice* device,
     CtsGlPipelineColorBlendState* pState
 ) {
     if (!hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_BLEND_CONSTANTS_BIT)) {
@@ -2448,10 +2640,10 @@ static void bindColorBlendState(
 
         glColorMaski(
             i,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_R_BIT) == CTS_COLOR_COMPONENT_R_BIT,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_G_BIT) == CTS_COLOR_COMPONENT_G_BIT,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_B_BIT) == CTS_COLOR_COMPONENT_B_BIT,
-            (attachmentState->colorWriteMask & CTS_COLOR_COMPONENT_A_BIT) == CTS_COLOR_COMPONENT_A_BIT
+            (attachmentState->colorWriteMask & VK_COLOR_COMPONENT_R_BIT) == VK_COLOR_COMPONENT_R_BIT,
+            (attachmentState->colorWriteMask & VK_COLOR_COMPONENT_G_BIT) == VK_COLOR_COMPONENT_G_BIT,
+            (attachmentState->colorWriteMask & VK_COLOR_COMPONENT_B_BIT) == VK_COLOR_COMPONENT_B_BIT,
+            (attachmentState->colorWriteMask & VK_COLOR_COMPONENT_A_BIT) == VK_COLOR_COMPONENT_A_BIT
         );
 
         glBlendFuncSeparateiARB(
@@ -2472,28 +2664,28 @@ static void bindColorBlendState(
 
 
 static void* allocateCommand(
-    CtsCommandBuffer commandBuffer,
+    struct CtsCommandBuffer* pCommandBuffer,
     CtsCommandType commandType,
     size_t extraDataLen
 ) {
     const CtsCommandMetadata* metadata = ctsGetCommandMetadata(commandType);
     CtsCmdBase* cmd = ctsAllocation(
-        &commandBuffer->allocator,
+        &pCommandBuffer->allocator,
         metadata->size + extraDataLen,
         metadata->align,
-        CTS_SYSTEM_ALLOCATION_SCOPE_COMMAND
+        VK_SYSTEM_ALLOCATION_SCOPE_COMMAND
     );
 
     cmd->type = commandType;
     cmd->pNext = NULL;
 
-    if (commandBuffer->root == NULL) {
-        commandBuffer->root = cmd;
+    if (pCommandBuffer->root == NULL) {
+        pCommandBuffer->root = cmd;
     } else {
-        commandBuffer->current->pNext = cmd;
+        pCommandBuffer->current->pNext = cmd;
     }
     
-    commandBuffer->current = cmd;
+    pCommandBuffer->current = cmd;
     return cmd;
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct CtsDestroyPipelineLayout {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsPipelineLayout pipelineLayout;
-    const CtsAllocationCallbacks* pAllocator;
+    VkDevice device;
+    VkPipelineLayout pipelineLayout;
+    const VkAllocationCallbacks* pAllocator;
 } CtsDestroyPipelineLayout;
 
 #ifdef __cplusplus

@@ -1,23 +1,22 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateSampler(
-    CtsDevice device,
-    const CtsSamplerCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSampler* pSampler
+VkResult ctsCreateSampler(
+    VkDevice device,
+    const VkSamplerCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSampler* pSampler
 );
 
 void ctsDestroySampler(
-    CtsDevice device,
-    CtsSampler sampler,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkSampler sampler,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

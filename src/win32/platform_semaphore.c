@@ -1,4 +1,4 @@
-#include <cts/platform_semaphore.h>
+#include "cts/platform/platform_semaphore.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,29 +1,32 @@
 #include <stddef.h>
 #include <string.h>
 #include <cts/shader_module.h>
+#include <cts/allocator.h>
+#include <cts/util/align.h>
+#include <private/private.h>
 #include <private/shader_module_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateShaderModule(
-    CtsDevice device,
-    const CtsShaderModuleCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsShaderModule* pShaderModule
+VkResult ctsCreateShaderModule(
+    VkDevice deviceHandle,
+    const VkShaderModuleCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkShaderModule* pShaderModule
 ) {
-    (void) device;
+    (void) deviceHandle;
 
-    CtsShaderModule shaderModule = ctsAllocation(
+    struct CtsShaderModule* shaderModule = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsShaderModuleImpl),
-        alignof(struct CtsShaderModuleImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsShaderModule),
+        alignof(struct CtsShaderModule),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (shaderModule == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     shaderModule->codeSize = pCreateInfo->codeSize;
@@ -31,20 +34,22 @@ CtsResult ctsCreateShaderModule(
         pAllocator,
         sizeof(char) * pCreateInfo->codeSize,
         alignof(char),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     memcpy(shaderModule->code, pCreateInfo->pCode, pCreateInfo->codeSize);
-    *pShaderModule = shaderModule;
-    return CTS_SUCCESS;
+    *pShaderModule = CtsShaderModuleToHandle(shaderModule);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyShaderModule(
-    CtsDevice device,
-    CtsShaderModule shaderModule,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkShaderModule shaderModuleHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    (void) deviceHandle;
+
+    struct CtsShaderModule* shaderModule = CtsShaderModuleFromHandle(shaderModuleHandle);
 
     if (shaderModule != NULL) {
         ctsFree(pAllocator, shaderModule->code);

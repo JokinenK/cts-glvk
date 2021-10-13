@@ -1,55 +1,48 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/swapchain.h>
-#include <cts/typedefs/swapchain.h>
-#include <cts/typedefs/bool.h>
-#include <cts/typedefs/device.h>
-#include <cts/typedefs/image.h>
-#include <cts/typedefs/fence.h>
-#include <cts/typedefs/semaphore.h>
-#include <cts/typedefs/surface.h>
-#include <cts/typedefs/extension_properties.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/swapchain.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static const CtsExtensionProperties swapchainExtensionProperties = {
-    .extensionName = CTS_SWAPCHAIN_EXTENSION_NAME,
+static const VkExtensionProperties swapchainExtensionProperties = {
+    .extensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     .specVersion = 1,
 };
 
-typedef struct CtsSwapchainEntry {
-    CtsImage image;
-    CtsSemaphore semaphore;
-} CtsSwapchainEntry;
-
-struct CtsSwapchainImpl {
-    CtsDevice device;
-    uint32_t entryCount;
-    uint32_t nextEntry;
-    CtsSwapchainEntry* pEntries;
-    CtsExtent2D extent;
-    CtsSurfaceCapabilities surfaceCapabilities;
+struct CtsSwapchainEntry {
+    VkImage image;
+    VkSemaphore semaphore;
 };
 
-CtsResult ctsCreateSwapchainImpl(
-    CtsDevice device,
-    const CtsSwapchainCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSwapchain* pSwapchain
+struct CtsSwapchain {
+    struct CtsDevice* device;
+    uint32_t entryCount;
+    uint32_t nextEntry;
+    struct CtsSwapchainEntry* pEntries;
+    VkExtent2D extent;
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+};
+
+VkResult ctsCreateSwapchainImpl(
+    VkDevice device,
+    const VkSwapchainCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSwapchainKHR* pSwapchain
 );
 
 void ctsDestroySwapchainImpl(
-    CtsDevice device,
-    CtsSwapchain swapchain,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsQueuePresentImpl(
-    CtsQueue queue,
-    const CtsPresentInfo* pPresentInfo
+VkResult ctsQueuePresentImpl(
+    VkQueue queue,
+    const VkPresentInfoKHR* pPresentInfo
 );
 
 #ifdef __cplusplus

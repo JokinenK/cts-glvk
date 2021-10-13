@@ -1,25 +1,25 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <cts/typedefs/render_pass.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
 #include <cts/typedefs/gl_render_pass.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsRenderPassImpl {
-    CtsRenderPassCreateFlags flags;
+struct CtsRenderPass {
+    VkRenderPassCreateFlags flags;
     
     uint32_t attachmentCount;
-    CtsAttachmentDescription* pAttachments;
+    VkAttachmentDescription* pAttachments;
     GLenum* pDrawBuffers;
 
     uint32_t subpassCount;
     CtsGlSubpassDescription* pSubpasses;
     
     uint32_t dependencyCount;
-    CtsSubpassDependency* pDependencies;
+    VkSubpassDependency* pDependencies;
 };
 
 #ifdef __cplusplus

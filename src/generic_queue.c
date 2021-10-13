@@ -1,37 +1,29 @@
 #include <stddef.h>
 #include <string.h>
-#include <cts/align.h>
-#include <cts/generic_queue.h>
-#include <cts/platform_mutex.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/util/align.h"
+#include "cts/util/generic_queue.h"
+#include "cts/platform/platform_mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsGenericQueueImpl {
-    size_t size;
-    size_t itemSize;
-
-    size_t head;
-    size_t tail;
-
-    char* pData;
-};
-
-CtsResult ctsCreateGenericQueue(
+VkResult ctsCreateGenericQueue(
     const CtsGenericQueueCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkAllocationCallbacks* pAllocator,
     CtsGenericQueue* pGenericQueue
 ) {
-    CtsGenericQueue genericQueue = ctsAllocation(
+    struct CtsGenericQueue* genericQueue = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsGenericQueueImpl),
-        alignof(struct CtsGenericQueueImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsGenericQueue),
+        alignof(struct CtsGenericQueue),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (genericQueue == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     genericQueue->size = pCreateInfo->size;
@@ -42,16 +34,16 @@ CtsResult ctsCreateGenericQueue(
         pAllocator,
         sizeof(char) * (pCreateInfo->itemSize * pCreateInfo->size),
         alignof(char),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     *pGenericQueue = genericQueue;
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsDestroyGenericQueue(
     CtsGenericQueue genericQueue,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     if (genericQueue) {
         ctsFree(pAllocator, genericQueue->pData);

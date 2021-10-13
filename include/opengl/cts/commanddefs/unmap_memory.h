@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,8 +10,8 @@ extern "C" {
 
 typedef struct CtsUnmapMemory {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsDeviceMemory memory;
+    VkDevice device;
+    VkDeviceMemory memory;
 } CtsUnmapMemory;
 
 #ifdef __cplusplus

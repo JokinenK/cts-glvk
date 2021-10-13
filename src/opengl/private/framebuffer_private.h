@@ -1,34 +1,31 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/allocator.h>
-#include <cts/typedefs/framebuffer.h>
-#include <cts/typedefs/render_pass.h>
-#include <cts/typedefs/image_view.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsFramebufferImpl {
+struct CtsFramebuffer {
     GLuint handle;
-    CtsRenderPass renderPass;
+    struct CtsRenderPass* renderPass;
     uint32_t attachmentCount;
-    CtsImageView* attachments;
+    struct CtsImageView** ppAttachments;
     GLenum* types;
 };
 
-CtsResult ctsCreateFramebufferImpl(
-    CtsDevice device,
-    const CtsFramebufferCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFramebuffer* pFramebuffer
+VkResult ctsCreateFramebufferImpl(
+    VkDevice device,
+    const VkFramebufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFramebuffer* pFramebuffer
 );
 
 void ctsDestroyFramebufferImpl(
-    CtsDevice device,
-    CtsFramebuffer framebuffer,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkFramebuffer framebuffer,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

@@ -1,8 +1,9 @@
-#include <cts/align.h>
+#include "cts/util/align.h"
 #include <stdio.h>
 #include <string.h>
-#include <cts/allocator.h>
+#include "cts/allocator.h"
 #include <cts/command_dispatcher.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/instance_private.h>
 #include <private/physical_device_private.h>
@@ -13,23 +14,23 @@
 extern "C" {
 #endif
 
-static bool waitForSurface(CtsQueue queue);
+static bool waitForSurface(struct CtsQueue* queue);
 static void workerEntry(void* pArgs);
 
-CtsResult ctsCreateQueue(
+VkResult ctsCreateQueue(
     const CtsQueueCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsQueue* pQueue
+    const VkAllocationCallbacks* pAllocator,
+    struct CtsQueue** ppQueue
 ) {
-    CtsQueue queue = ctsAllocation(
+    struct CtsQueue* queue = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsQueueImpl),
-        alignof(struct CtsQueueImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsQueue),
+        alignof(struct CtsQueue),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (queue == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     queue->physicalDevice = pCreateInfo->physicalDevice;
@@ -45,14 +46,14 @@ CtsResult ctsCreateQueue(
 
     ctsInitPlatformThread(&queue->thread, workerEntry, queue);
 
-    *pQueue = queue;
-    return CTS_SUCCESS;
+    *ppQueue = queue;
+    return VK_SUCCESS;
 }
 
 
 void ctsDestroyQueue(
-    CtsQueue queue,
-    const CtsAllocationCallbacks* pAllocator
+    struct CtsQueue* queue,
+    const VkAllocationCallbacks* pAllocator
 ) {
     if (queue) {
         ctsWakeAllPlatformConditionVariable(&queue->cmdFinishedCondVar);
@@ -71,9 +72,11 @@ void ctsDestroyQueue(
     }
 }
 
-CtsResult ctsQueueWaitIdle(
-    CtsQueue queue
+VkResult ctsQueueWaitIdle(
+    VkQueue queueHandle
 ) {
+    struct CtsQueue* queue = CtsQueueFromHandle(queueHandle);
+
     ctsLockPlatformMutex(&queue->mutex);
     
     while (!ctsQueueEmpty(queue)) {
@@ -81,11 +84,11 @@ CtsResult ctsQueueWaitIdle(
     }
 
     ctsUnlockPlatformMutex(&queue->mutex);
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsQueueDispatch(
-    CtsQueue queue,
+    struct CtsQueue* queue,
     const CtsCmdBase* pCmd
 ) {
     volatile bool finished = false;
@@ -104,7 +107,7 @@ void ctsQueueDispatch(
     ctsUnlockPlatformMutex(&queue->mutex);
 }
 
-bool ctsQueuePop(CtsQueue queue, CtsQueueItem* pQueueItem) {
+bool ctsQueuePop(struct CtsQueue* queue, CtsQueueItem* pQueueItem) {
     ctsLockPlatformMutex(&queue->mutex);
     bool result = ctsGenericQueuePop(queue->queue, pQueueItem);
     ctsUnlockPlatformMutex(&queue->mutex);
@@ -112,7 +115,7 @@ bool ctsQueuePop(CtsQueue queue, CtsQueueItem* pQueueItem) {
 }
 
 
-bool ctsQueueEmpty(CtsQueue queue) {
+bool ctsQueueEmpty(struct CtsQueue* queue) {
     ctsLockPlatformMutex(&queue->mutex);
     bool result = ctsGenericQueueEmpty(queue->queue);
     ctsUnlockPlatformMutex(&queue->mutex);
@@ -120,8 +123,8 @@ bool ctsQueueEmpty(CtsQueue queue) {
 }
 
 static void workerEntry(void* pArgs) {
-    CtsQueue queue = (CtsQueue) pArgs;
-    CtsPhysicalDevice physicalDevice = queue->physicalDevice;
+    struct CtsQueue* queue = (struct CtsQueue*) pArgs;
+    struct CtsPhysicalDevice* physicalDevice = queue->physicalDevice;
 
     if (!ctsPhysicalDeviceWaitSurface(physicalDevice)) {
         return;

@@ -2,22 +2,21 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <cts/commanddefs/cmd_base.h>
-#include <cts/typedefs/queue.h>
-#include <cts/typedefs/device.h>
-#include <cts/allocator.h>
-#include <cts/generic_queue.h>
-#include <cts/queue.h>
-#include <cts/platform_condition_variable.h>
-#include <cts/platform_mutex.h>
-#include <cts/platform_thread.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/commanddefs/cmd_base.h"
+#include "cts/queue.h"
+#include "cts/util/generic_queue.h"
+#include "cts/platform/platform_condition_variable.h"
+#include "cts/platform/platform_mutex.h"
+#include "cts/platform/platform_thread.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct CtsQueueCreateInfo {
-    CtsPhysicalDevice physicalDevice;
+    struct CtsPhysicalDevice* physicalDevice;
     size_t size;
 } CtsQueueCreateInfo;
 
@@ -26,8 +25,8 @@ typedef struct CtsQueueItem {
     volatile bool* pFinished;
 } CtsQueueItem;
 
-struct CtsQueueImpl {
-    CtsPhysicalDevice physicalDevice;
+struct CtsQueue {
+    struct CtsPhysicalDevice* physicalDevice;
     CtsPlatformThread thread;
     
     CtsPlatformMutex mutex;
@@ -37,29 +36,29 @@ struct CtsQueueImpl {
     CtsGenericQueue queue;
 };
 
-CtsResult ctsCreateQueue(
+VkResult ctsCreateQueue(
     const CtsQueueCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsQueue* pQueue
+    const VkAllocationCallbacks* pAllocator,
+    struct CtsQueue** ppQueue
 );
 
 void ctsDestroyQueue(
-    CtsQueue queue,
-    const CtsAllocationCallbacks* pAllocator
+    struct CtsQueue* queue,
+    const VkAllocationCallbacks* pAllocator
 );
 
 void ctsQueueDispatch(
-    CtsQueue queue,
+    struct CtsQueue* queue,
     const CtsCmdBase* pCmd
 );
 
 bool ctsQueuePop(
-    CtsQueue queue,
+    struct CtsQueue* queue,
     CtsQueueItem* pQueueItem
 );
 
 bool ctsQueueEmpty(
-    CtsQueue queue
+    struct CtsQueue* queue
 );
 
 #ifdef __cplusplus

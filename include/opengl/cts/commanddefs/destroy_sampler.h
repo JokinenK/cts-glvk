@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,9 +9,9 @@ extern "C" {
 
 typedef struct CtsDestroySampler {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsSampler sampler;
-    const CtsAllocationCallbacks* pAllocator;
+    VkDevice device;
+    VkSampler sampler;
+    const VkAllocationCallbacks* pAllocator;
 } CtsDestroySampler;
 
 #ifdef __cplusplus

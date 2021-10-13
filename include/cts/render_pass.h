@@ -1,24 +1,23 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateRenderPass(
-    CtsDevice device,
-    const CtsRenderPassCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsRenderPass* pRenderPass
+VkResult ctsCreateRenderPass(
+    VkDevice device,
+    const VkRenderPassCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkRenderPass* pRenderPass
 );
 
 void ctsDestroyRenderPass(
-    CtsDevice device,
-    CtsRenderPass renderPass,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkRenderPass renderPass,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

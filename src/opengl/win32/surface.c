@@ -1,11 +1,11 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <glad/glad.h>
+#include <Windows.h>
+#include "glad/glad.h"
 #include <cts/surface.h>
 #include <cts/device_info.h>
-#include <cts/typedefs/bool.h>
-#include <cts/typedefs/physical_device.h>
+#include <private/private.h>
 #include <private/surface_private.h>
 #include <private/instance_private.h>
 #include <private/queue_private.h>
@@ -33,7 +33,7 @@ static PFN_wglCreateContextAttribsARB* wglCreateContextAttribsARB = NULL;
 static PFN_wglChoosePixelFormatARB* wglChoosePixelFormatARB = NULL;
 static bool gladLoaded = false;
 
-static CtsSurfaceCapabilities surfaceCapabilities = {
+static VkSurfaceCapabilitiesKHR surfaceCapabilities = {
     .minImageCount = 1,
     .maxImageCount = 2,
     .currentExtent = {0xFFFFFFFF, 0xFFFFFFFF},
@@ -63,21 +63,22 @@ static CtsSurfaceCapabilities surfaceCapabilities = {
 static bool initGlad();
 static bool initOpenGLExtensions();
 
-CtsResult ctsCreateWin32Surface(
-    CtsInstance instance,
-    const CtsWin32SurfaceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSurface* pSurface
+VkResult ctsCreateWin32Surface(
+    VkInstance instanceHandle,
+    const VkWin32SurfaceCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSurfaceKHR* pSurface
 ) {
     if (!initOpenGLExtensions()) {
-        return CTS_NOT_READY;
+        return VK_NOT_READY;
     }
 
-    CtsSurface surface = ctsAllocation(
+    struct CtsInstance* instance = CtsInstanceFromHandle(instanceHandle);
+    struct CtsSurface* surface = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSurfaceImpl),
-        alignof(struct CtsSurfaceImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_INSTANCE
+        sizeof(struct CtsSurface),
+        alignof(struct CtsSurface),
+        VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE
     );
 
     if (surface) {
@@ -114,7 +115,7 @@ CtsResult ctsCreateWin32Surface(
 
         if (!numFormats) {
             fprintf(stderr, "Failed to set the OpenGL 3.3 pixel format.");
-            return CTS_NOT_READY;
+            return VK_NOT_READY;
         }
 
         PIXELFORMATDESCRIPTOR pfd;
@@ -122,7 +123,7 @@ CtsResult ctsCreateWin32Surface(
         
         if (!SetPixelFormat(device, pixelFormat, &pfd)) {
             fprintf(stderr, "Failed to set the OpenGL 3.3 pixel format.");
-            return CTS_NOT_READY;
+            return VK_NOT_READY;
         }
 
         // Specify that we want to create an OpenGL 3.3 core profile context
@@ -136,7 +137,7 @@ CtsResult ctsCreateWin32Surface(
         HGLRC gl33Context = wglCreateContextAttribsARB(device, 0, gl33Attribs);
         if (!gl33Context) {
             fprintf(stderr, "Failed to create OpenGL 3.2 context.");
-            return CTS_NOT_READY;
+            return VK_NOT_READY;
         }
 
         surface->device = device;
@@ -147,17 +148,19 @@ CtsResult ctsCreateWin32Surface(
 
         ctsPhysicalDeviceSetSurface(&instance->physicalDevice, surface);
 
-        *pSurface = surface;
-        return CTS_SUCCESS;
+        *pSurface = CtsSurfaceToHandle(surface);
+        return VK_SUCCESS;
     }
 
-    return CTS_NOT_READY;
+    return VK_NOT_READY;
 }
 
 void ctsDestroyWin32Surface(
-    CtsSurface surface,
-    const CtsAllocationCallbacks* pAllocator
+    VkSurfaceKHR surfaceHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsSurface* surface = CtsSurfaceFromHandle(surfaceHandle);
+
     if (surface) {
         wglMakeCurrent(NULL, NULL);
         wglDeleteContext(surface->context);
@@ -165,64 +168,64 @@ void ctsDestroyWin32Surface(
     }
 }
 
-CtsResult ctsGetPhysicalDeviceSurfaceSupport(
-    CtsPhysicalDevice physicalDevice,
+VkResult ctsGetPhysicalDeviceSurfaceSupport(
+    VkPhysicalDevice physicalDevice,
     uint32_t queueFamilyIndex,
-    CtsSurface surface,
-    CtsBool32* pSupported
+    VkSurfaceKHR surface,
+    VkBool32* pSupported
 ) {
     *pSupported = true;
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsGetPhysicalDeviceSurfaceCapabilities(
-    CtsPhysicalDevice physicalDevice,
-    CtsSurface surface,
-    CtsSurfaceCapabilities* pSurfaceCapabilities
+VkResult ctsGetPhysicalDeviceSurfaceCapabilities(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkSurfaceCapabilitiesKHR* pSurfaceCapabilities
 ) {
     *pSurfaceCapabilities = surfaceCapabilities;
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsGetPhysicalDeviceSurfaceFormats(
-    CtsPhysicalDevice physicalDevice,
-    CtsSurface surface,
+VkResult ctsGetPhysicalDeviceSurfaceFormats(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
     uint32_t* pSurfaceFormatCount,
-    CtsSurfaceFormat* pSurfaceFormats
+    VkSurfaceFormatKHR* pSurfaceFormats
 ) {
     if (pSurfaceFormatCount != NULL) {
         *pSurfaceFormatCount = 2;
     }
 
     if (pSurfaceFormats != NULL) {
-        pSurfaceFormats[0].format = CTS_FORMAT_B8G8R8A8_SRGB;
-        pSurfaceFormats[0].colorSpace = CTS_COLOR_SPACE_SRGB_NONLINEAR;
+        pSurfaceFormats[0].format = VK_FORMAT_B8G8R8A8_SRGB;
+        pSurfaceFormats[0].colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
-        pSurfaceFormats[1].format = CTS_FORMAT_B8G8R8A8_UNORM;
-        pSurfaceFormats[1].colorSpace = CTS_COLOR_SPACE_SRGB_NONLINEAR;
+        pSurfaceFormats[1].format = VK_FORMAT_B8G8R8A8_UNORM;
+        pSurfaceFormats[1].colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsGetPhysicalDeviceSurfacePresentModes(
-    CtsPhysicalDevice physicalDevice,
-    CtsSurface surface,
+VkResult ctsGetPhysicalDeviceSurfacePresentModes(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
     uint32_t* pPresentModeCount,
-    CtsPresentMode* pPresentModes
+    VkPresentModeKHR* pPresentModes
 ) {
     if (pPresentModeCount != NULL) {
         *pPresentModeCount = 1;
     }
 
     if (pPresentModes != NULL) {
-        *pPresentModes = CTS_PRESENT_MODE_FIFO;
+        *pPresentModes = VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-bool ctsSurfaceQueryDeviceDetails(CtsSurface surface, uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID)
+bool ctsSurfaceQueryDeviceDetails(struct CtsSurface* surface, uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID)
 {
     CtsWin32DeviceInfo deviceInfo;
     if (ctsWin32ParseDeviceInfo(vendorId, &deviceInfo)) {
@@ -235,7 +238,7 @@ bool ctsSurfaceQueryDeviceDetails(CtsSurface surface, uint32_t vendorId, uint32_
     return false;
 }
 
-void ctsSurfaceMakeCurrent(CtsSurface surface)
+void ctsSurfaceMakeCurrent(struct CtsSurface* surface)
 {
     if (surface->device && surface->context) {
         wglMakeCurrent(surface->device, surface->context);
@@ -243,21 +246,21 @@ void ctsSurfaceMakeCurrent(CtsSurface surface)
     }
 }
 
-void ctsSurfaceSwapBuffers(CtsSurface surface)
+void ctsSurfaceSwapBuffers(struct CtsSurface* surface)
 {
     SwapBuffers(surface->device);
 }
 
-CtsResult ctsGetSurfaceExtent(CtsSurface surface, CtsExtent2D* pExtent)
+VkResult ctsGetSurfaceExtent(struct CtsSurface* surface, VkExtent2D* pExtent)
 {
     RECT rect;
     if (GetWindowRect(surface->window, &rect)) {
         pExtent->width = rect.right - rect.left;
         pExtent->height = rect.bottom - rect.top;
-        return CTS_SUCCESS;
+        return VK_SUCCESS;
     }
 
-    return CTS_ERROR_UNKNOWN;
+    return VK_ERROR_UNKNOWN;
 }
 
 static bool initOpenGLExtensions() 

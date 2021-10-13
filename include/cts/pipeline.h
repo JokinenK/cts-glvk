@@ -1,26 +1,25 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateGraphicsPipelines(
-    CtsDevice device,
-    CtsPipelineCache pipelineCache,
+VkResult ctsCreateGraphicsPipelines(
+    VkDevice device,
+    VkPipelineCache pipelineCache,
     uint32_t createInfoCount,
-    const CtsGraphicsPipelineCreateInfo* pCreateInfos,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipeline* pPipelines
+    const VkGraphicsPipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines
 );
 
 void ctsDestroyPipeline(
-    CtsDevice device,
-    CtsPipeline pipeline,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkPipeline pipeline,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

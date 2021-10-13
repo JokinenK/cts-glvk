@@ -5,6 +5,7 @@
 #include <cts/device_memory.h>
 #include <cts/commands.h>
 #include <cts/type_mapper.h>
+#include <private/private.h>
 #include <private/device_memory_private.h>
 #include <private/device_private.h>
 #include <private/buffer_private.h>
@@ -16,32 +17,33 @@
 extern "C" {
 #endif
 
-static bool isHostVisible(CtsDeviceMemory memory);
-static bool isBufferMemory(CtsDeviceMemory memory);
-static bool isImageMemory(CtsDeviceMemory memory);
-static bool isMappableImage(CtsDeviceMemory memory);
+static bool isHostVisible(struct CtsDeviceMemory* memory);
+static bool isBufferMemory(struct CtsDeviceMemory* memory);
+static bool isImageMemory(struct CtsDeviceMemory* memory);
+static bool isMappableImage(struct CtsDeviceMemory* memory);
 
-static void flushMemoryRange(CtsDeviceMemory memory, size_t offset, size_t size);
-static GLuint createBufferMapFlags(CtsMemoryPropertyFlags propertyFlags);
-static CtsDeviceSize multipleOf(CtsDeviceSize value, CtsDeviceSize multiple);
+static void flushMemoryRange(struct CtsDeviceMemory* memory, size_t offset, size_t size);
+static GLuint createBufferMapFlags(VkMemoryPropertyFlags propertyFlags);
+static VkDeviceSize multipleOf(VkDeviceSize value, VkDeviceSize multiple);
 
-static void appendImage(CtsDeviceMemory deviceMemory, CtsImage image);
+static void appendImage(struct CtsDeviceMemory* deviceMemory, struct CtsImage* image);
+static void readImages(struct CtsDeviceMemory* deviceMemory);
+static void writeImages(struct CtsDeviceMemory* deviceMemory);
 
-static void readImages(CtsDeviceMemory deviceMemory);
-static void writeImages(CtsDeviceMemory deviceMemory);
-
-CtsResult ctsAllocateMemory(
-    CtsDevice device,
-    const CtsMemoryAllocateInfo* pAllocateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDeviceMemory* pMemory
+VkResult ctsAllocateMemory(
+    VkDevice deviceHandle,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDeviceMemory* pMemory
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsAllocateMemory cmd;
     cmd.base.type = CTS_COMMAND_ALLOCATE_MEMORY;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pAllocateInfo = pAllocateInfo;
     cmd.pAllocator = pAllocator;
     cmd.pMemory = pMemory;
@@ -52,20 +54,22 @@ CtsResult ctsAllocateMemory(
     return result;
 }
 
-CtsResult ctsMapMemory(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset,
-    CtsDeviceSize size,
-    CtsMemoryMapFlags flags,
+VkResult ctsMapMemory(
+    VkDevice deviceHandle,
+    VkDeviceMemory memory,
+    VkDeviceSize offset,
+    VkDeviceSize size,
+    VkMemoryMapFlags flags,
     void** ppData
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsMapMemory cmd;
     cmd.base.type = CTS_COMMAND_MAP_MEMORY;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.memory = memory;
     cmd.offset = offset;
     cmd.size = size;
@@ -78,30 +82,34 @@ CtsResult ctsMapMemory(
 }
 
 void ctsUnmapMemory(
-    CtsDevice device,
-    CtsDeviceMemory memory
+    VkDevice deviceHandle,
+    VkDeviceMemory memory
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsMapMemory cmd;
     cmd.base.type = CTS_COMMAND_UNMAP_MEMORY;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.memory = memory;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsFlushMappedMemoryRanges(
-    CtsDevice device,
+VkResult ctsFlushMappedMemoryRanges(
+    VkDevice deviceHandle,
     uint32_t memoryRangeCount,
-    const CtsMappedMemoryRange* pMemoryRanges
+    const VkMappedMemoryRange* pMemoryRanges
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsFlushMappedMemoryRanges cmd;
     cmd.base.type = CTS_COMMAND_FLUSH_MAPPED_MEMORY_RANGES;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.memoryRangeCount = memoryRangeCount;
     cmd.pMemoryRanges = pMemoryRanges;
     cmd.pResult = &result;
@@ -111,41 +119,43 @@ CtsResult ctsFlushMappedMemoryRanges(
 }
 
 void ctsFreeMemory(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkDeviceMemory memory,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsFreeMemory cmd;
     cmd.base.type = CTS_COMMAND_FREE_MEMORY;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.memory = memory;
     cmd.pAllocator = pAllocator;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsAllocateMemoryImpl(
-    CtsDevice device,
-    const CtsMemoryAllocateInfo* pAllocateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDeviceMemory* pMemory
+VkResult ctsAllocateMemoryImpl(
+    VkDevice deviceHandle,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDeviceMemory* pMemory
 ) {
-    (void) device;
+    (void) deviceHandle;
     
-    CtsDeviceMemory memory = ctsAllocation(
+    struct CtsDeviceMemory* memory = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsDeviceMemoryImpl),
-        alignof(struct CtsDeviceMemoryImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsDeviceMemory),
+        alignof(struct CtsDeviceMemory),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     ); 
 
     if (memory == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    const CtsMemoryType* pMemoryType = ctsGetMemoryType(pAllocateInfo->memoryTypeIndex);
+    const VkMemoryType* pMemoryType = ctsGetMemoryType(pAllocateInfo->memoryTypeIndex);
     GLuint mapFlags = createBufferMapFlags(pMemoryType->propertyFlags);
     
     memory->size = pAllocateInfo->allocationSize;
@@ -169,22 +179,24 @@ CtsResult ctsAllocateMemoryImpl(
         /* Unmappable image, do nothing */
     }
 
-    *pMemory = memory;
-    return CTS_SUCCESS;
+    *pMemory = CtsDeviceMemoryToHandle(memory);
+    return VK_SUCCESS;
 }
 
-CtsResult ctsMapMemoryImpl(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset,
-    CtsDeviceSize size,
-    CtsMemoryMapFlags flags,
+VkResult ctsMapMemoryImpl(
+    VkDevice deviceHandle,
+    VkDeviceMemory memoryHandle,
+    VkDeviceSize offset,
+    VkDeviceSize size,
+    VkMemoryMapFlags flags,
     void** ppData
 ) {
     (void) flags;
 
+    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
+
     if (!isHostVisible(memory)) {
-        return CTS_ERROR_MEMORY_MAP_FAILED;
+        return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
     GLuint mapFlags = createBufferMapFlags(memory->propertyFlags);
@@ -203,17 +215,19 @@ CtsResult ctsMapMemoryImpl(
     }
 
     if (memory->pMappedMemory == NULL) {
-        return CTS_ERROR_MEMORY_MAP_FAILED;
+        return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
     *ppData = memory->pMappedMemory;
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsUnmapMemoryImpl(
-    CtsDevice device,
-    CtsDeviceMemory memory
+    VkDevice deviceHandle,
+    VkDeviceMemory memoryHandle
 ) {
+    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
+
     if (memory->pMappedMemory == NULL) {
         return;
     }
@@ -234,26 +248,30 @@ void ctsUnmapMemoryImpl(
     memory->pMappedMemory = NULL;
 }
 
-CtsResult ctsFlushMappedMemoryRangesImpl(
-    CtsDevice device,
+VkResult ctsFlushMappedMemoryRangesImpl(
+    VkDevice deviceHandle,
     uint32_t memoryRangeCount,
-    const CtsMappedMemoryRange* pMemoryRanges
+    const VkMappedMemoryRange* pMemoryRanges
 ) {
     for (uint32_t i = 0; i < memoryRangeCount; ++i) {
-        const CtsMappedMemoryRange* pMemoryRange = &pMemoryRanges[i];
-        flushMemoryRange(pMemoryRange->memory, pMemoryRange->offset, pMemoryRange->size);
+        const VkMappedMemoryRange* pMemoryRange = &pMemoryRanges[i];
+        struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(pMemoryRange->memory);
+        flushMemoryRange(memory, pMemoryRange->offset, pMemoryRange->size);
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsFreeMemoryImpl(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkDeviceMemory memoryHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
+
     if (memory != NULL) {
-        ctsUnmapMemoryImpl(device, memory);
+        ctsUnmapMemoryImpl(deviceHandle, memoryHandle);
 
         if (isBufferMemory(memory)) {
             glDeleteBuffers(1, &memory->handle);
@@ -267,41 +285,49 @@ void ctsFreeMemoryImpl(
     }
 }
 
-CtsResult ctsBindBufferMemory(
-    CtsDevice device,
-    CtsBuffer buffer, 
-    CtsDeviceMemory memory,
-    CtsDeviceSize memoryOffset
+VkResult ctsBindBufferMemory(
+    VkDevice deviceHandle,
+    VkBuffer bufferHandle, 
+    VkDeviceMemory memoryHandle,
+    VkDeviceSize memoryOffset
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
+    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
+
     if (!isBufferMemory(memory)) {
-        return CTS_ERROR_FORMAT_NOT_SUPPORTED;
+        return VK_ERROR_FORMAT_NOT_SUPPORTED;
     }
 
     if (buffer->memory == NULL) {
         if (buffer->size > memory->size - memoryOffset) {
-            return CTS_ERROR_OUT_OF_DEVICE_MEMORY;
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
         buffer->memory = memory;
         buffer->offset = (GLsizei)memoryOffset;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsBindImageMemory(
-    CtsDevice device,
-    CtsImage image,
-    CtsDeviceMemory memory,
-    CtsDeviceSize memoryOffset
+VkResult ctsBindImageMemory(
+    VkDevice deviceHandle,
+    VkImage imageHandle,
+    VkDeviceMemory memoryHandle,
+    VkDeviceSize memoryOffset
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsImage* image = CtsImageFromHandle(imageHandle);
+    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
+
     if (!isImageMemory(memory)) {
-        return CTS_ERROR_FORMAT_NOT_SUPPORTED;
+        return VK_ERROR_FORMAT_NOT_SUPPORTED;
     }
 
     if (image->memory == NULL) {
         if (image->size > memory->size - memoryOffset) {
-            return CTS_ERROR_OUT_OF_DEVICE_MEMORY;
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
         image->memory = memory;
@@ -309,15 +335,18 @@ CtsResult ctsBindImageMemory(
         appendImage(memory, image);
     }
     
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsGetBufferMemoryRequirements(
-    CtsDevice device,
-    CtsBuffer buffer,
-    CtsMemoryRequirements* pMemoryRequirements
+    VkDevice deviceHandle,
+    VkBuffer bufferHandle,
+    VkMemoryRequirements* pMemoryRequirements
 ) {
-    CtsDeviceSize align = 0;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
+
+    VkDeviceSize align = 0;
     GLenum bufferType = parseBufferUsage(buffer->usage);
 
     switch (bufferType) {
@@ -341,32 +370,35 @@ void ctsGetBufferMemoryRequirements(
 }
 
 void ctsGetImageMemoryRequirements(
-    CtsDevice device,
-    CtsImage image,
-    CtsMemoryRequirements* pMemoryRequirements
+    VkDevice deviceHandle,
+    VkImage imageHandle,
+    VkMemoryRequirements* pMemoryRequirements
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsImage* image = CtsImageFromHandle(imageHandle);
+
     pMemoryRequirements->size = image->size;
     pMemoryRequirements->alignment = 1;
     pMemoryRequirements->memoryTypeBits = HEAP_BITS_IMAGE;
 }
 
-static bool isHostVisible(CtsDeviceMemory memory) {
-    return (memory->propertyFlags & CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+static bool isHostVisible(struct CtsDeviceMemory* memory) {
+    return (memory->propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 }
 
-static bool isBufferMemory(CtsDeviceMemory memory) {
+static bool isBufferMemory(struct CtsDeviceMemory* memory) {
     return (HEAP_BITS_BUFFER & (1 << memory->heapIndex));
 }
 
-static bool isImageMemory(CtsDeviceMemory memory) {
+static bool isImageMemory(struct CtsDeviceMemory* memory) {
     return (HEAP_BITS_IMAGE & (1 << memory->heapIndex));
 }
 
-static bool isMappableImage(CtsDeviceMemory memory) {
+static bool isMappableImage(struct CtsDeviceMemory* memory) {
     return isImageMemory(memory) && isHostVisible(memory);
 }
 
-static void flushMemoryRange(CtsDeviceMemory memory, size_t offset, size_t size) {
+static void flushMemoryRange(struct CtsDeviceMemory* memory, size_t offset, size_t size) {
     if (isBufferMemory(memory)) {
         glBindBuffer(GL_COPY_WRITE_BUFFER, memory->handle);
         glFlushMappedBufferRange(GL_COPY_WRITE_BUFFER, offset, size);
@@ -380,24 +412,24 @@ static void flushMemoryRange(CtsDeviceMemory memory, size_t offset, size_t size)
     }
 }
 
-static GLuint createBufferMapFlags(CtsMemoryPropertyFlags propertyFlags) {
+static GLuint createBufferMapFlags(VkMemoryPropertyFlags propertyFlags) {
     GLuint flags = (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
 
-    if (propertyFlags & CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
+    if (propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
         flags |= (GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT);
     }
 
     return flags;
 }
 
-static CtsDeviceSize multipleOf(CtsDeviceSize value, CtsDeviceSize multiple) {
+static VkDeviceSize multipleOf(VkDeviceSize value, VkDeviceSize multiple) {
     assert(multiple);
     return ((value + multiple - 1) / multiple) * multiple;
 }
 
-static void appendImage(CtsDeviceMemory deviceMemory, CtsImage image) {
+static void appendImage(struct CtsDeviceMemory* deviceMemory, struct CtsImage* image) {
     if (deviceMemory->images != NULL) {
-        /*CtsImage lastImage = NULL;
+        /*VkImage lastImage = NULL;
 
         for (
             lastImage = deviceMemory->images;
@@ -411,8 +443,8 @@ static void appendImage(CtsDeviceMemory deviceMemory, CtsImage image) {
     }
 }
 
-static void readImages(CtsDeviceMemory deviceMemory) {
-    CtsImage image = deviceMemory->images;
+static void readImages(struct CtsDeviceMemory* deviceMemory) {
+    struct CtsImage* image = deviceMemory->images;
     uintptr_t offset = 0;
 
     for (; image != NULL; image = image->nextSibling) {
@@ -421,8 +453,8 @@ static void readImages(CtsDeviceMemory deviceMemory) {
     }
 }
 
-static void writeImages(CtsDeviceMemory deviceMemory) {
-    CtsImage image = deviceMemory->images;
+static void writeImages(struct CtsDeviceMemory* deviceMemory) {
+    struct CtsImage* image = deviceMemory->images;
     uintptr_t offset = 0;
 
     for (; image != NULL; image = image->nextSibling) {

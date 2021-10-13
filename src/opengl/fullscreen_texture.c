@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <glad/glad.h>
+#include "glad/glad.h"
 #include <cts/fullscreen_texture.h>
 #include <cts/type_mapper.h>
 #include <cts/typedefs/gl_shader.h>
 #include <cts/typedefs/gl_pipeline.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/framebuffer_private.h>
 #include <private/image_private.h>
@@ -16,8 +17,8 @@ extern "C" {
 
 #define SHADER_MODULE_COUNT 2
 
-static GLenum parseAttachment(CtsImageAspectFlags aspectFlags);
-static GLenum parseMask(CtsImageAspectFlags aspectFlags);
+static GLenum parseAttachment(VkImageAspectFlags aspectFlags);
+static GLenum parseMask(VkImageAspectFlags aspectFlags);
 
 static const char gVsShaderSource[] = 
     "#version 330\n"
@@ -60,9 +61,9 @@ struct ShaderData {
     { GL_INVALID_ENUM, GL_FRAGMENT_SHADER, gFsShaderSource, sizeof(gFsShaderSource) },
 };
 
-CtsResult ctsInitFSTextureHelper() {
+VkResult ctsInitFSTextureHelper() {
     if (gReferenceCount++ > 0) {
-        return CTS_SUCCESS;
+        return VK_SUCCESS;
     }
     
     GLint success;
@@ -87,7 +88,7 @@ CtsResult ctsInitFSTextureHelper() {
         }
         else {
             glGetShaderInfoLog(data->handle, sizeof(buffer), NULL, buffer);
-            fprintf(stderr, "Shader compilation failed for type %s. Reason %s", data->type, buffer);
+            fprintf(stderr, "Shader compilation failed for type %d. Reason %s", data->type, buffer);
         }
     }
 
@@ -97,7 +98,7 @@ CtsResult ctsInitFSTextureHelper() {
     if (!success) {
         glGetProgramInfoLog(gShaderProgram, sizeof(buffer), NULL, buffer);
         fprintf(stderr, "Shader linking failed: %s", buffer);
-        return CTS_NOT_READY;
+        return VK_NOT_READY;
     }
 
     glUseProgram(gShaderProgram);
@@ -105,16 +106,16 @@ CtsResult ctsInitFSTextureHelper() {
     glUseProgram(0);
     glActiveTexture(GL_TEXTURE0);
     
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsBlitTexture(
-    CtsDevice device,
-    CtsImage src,
-    CtsImage dst,
+    struct CtsDevice* device,
+    struct CtsImage* src,
+    struct CtsImage* dst,
     uint32_t regionCount,
-    const CtsImageBlit* pRegions,
-    CtsFilter filter
+    const VkImageBlit* pRegions,
+    VkFilter filter
 ) {
     GLuint prevReadFramebuffer = (device->activeReadFramebuffer != NULL)
         ? device->activeReadFramebuffer->handle
@@ -128,12 +129,12 @@ void ctsBlitTexture(
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gWriteFramebuffer);
 
     for (uint32_t i = 0; i < regionCount; ++i) {
-        const CtsImageBlit* pRegion = &pRegions[i];
+        const VkImageBlit* pRegion = &pRegions[i];
 
         GLuint srcMask = parseMask(pRegions->srcSubresource.aspectMask);
         GLuint dstMask = parseMask(pRegions->dstSubresource.aspectMask);
 
-        if (srcMask & dstMask == 0) {
+        if ((srcMask & dstMask) == 0) {
             continue;
         }
 
@@ -156,7 +157,7 @@ void ctsBlitTexture(
             pRegions->dstOffsets[1].x,
             pRegions->dstOffsets[1].y,
             srcMask & dstMask,
-            parseMagFilter(filter, NUM_CTS_SAMPLER_MIPMAP_MODES) // Enum is ignored
+            parseMagFilter(filter, VK_DESCRIPTOR_TYPE_MAX_ENUM) // Enum is ignored
         );
     }
 
@@ -165,8 +166,8 @@ void ctsBlitTexture(
 }
 
 void ctsDrawFSTexture(
-    CtsDevice device,
-    CtsImage image
+    struct CtsDevice* device,
+    struct CtsImage* image
 ) {
     GLenum prevTarget = device->state.texture[0].target;
     GLint prevTexture = device->state.texture[0].texture;
@@ -209,30 +210,30 @@ void ctsCleanupFSTextureHelper() {
     }
 }
 
-static GLenum parseAttachment(CtsImageAspectFlags aspectFlags) {
-    if (aspectFlags & CTS_IMAGE_ASPECT_COLOR_BIT) {
+static GLenum parseAttachment(VkImageAspectFlags aspectFlags) {
+    if (aspectFlags & VK_IMAGE_ASPECT_COLOR_BIT) {
         return GL_COLOR_ATTACHMENT0;
-    } else if (aspectFlags & CTS_IMAGE_ASPECT_DEPTH_BIT && aspectFlags & CTS_IMAGE_ASPECT_STENCIL_BIT) {
+    } else if (aspectFlags & VK_IMAGE_ASPECT_DEPTH_BIT && aspectFlags & VK_IMAGE_ASPECT_STENCIL_BIT) {
         return GL_DEPTH_STENCIL_ATTACHMENT;
-    } else if (aspectFlags & CTS_IMAGE_ASPECT_DEPTH_BIT) {
+    } else if (aspectFlags & VK_IMAGE_ASPECT_DEPTH_BIT) {
         return GL_DEPTH_ATTACHMENT;
-    } else if (aspectFlags & CTS_IMAGE_ASPECT_STENCIL_BIT) {
+    } else if (aspectFlags & VK_IMAGE_ASPECT_STENCIL_BIT) {
         return GL_STENCIL_ATTACHMENT;
     }
 
     return GL_INVALID_ENUM;
 }
 
-static GLenum parseMask(CtsImageAspectFlags aspectFlags) {
+static GLenum parseMask(VkImageAspectFlags aspectFlags) {
     GLuint flags = 0;
 
-    if (aspectFlags & CTS_IMAGE_ASPECT_COLOR_BIT) {
+    if (aspectFlags & VK_IMAGE_ASPECT_COLOR_BIT) {
         flags |= GL_COLOR_BUFFER_BIT;
     } 
-    if (aspectFlags & CTS_IMAGE_ASPECT_DEPTH_BIT) {
+    if (aspectFlags & VK_IMAGE_ASPECT_DEPTH_BIT) {
         flags |= GL_DEPTH_BUFFER_BIT;
     }
-    if (aspectFlags & CTS_IMAGE_ASPECT_STENCIL_BIT) {
+    if (aspectFlags & VK_IMAGE_ASPECT_STENCIL_BIT) {
         flags |= GL_STENCIL_BUFFER_BIT;
     }
 

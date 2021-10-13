@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,12 +9,12 @@ extern "C" {
 
 typedef struct CtsCmdClearDepthStencilImage {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsImage image;
-    CtsImageLayout imageLayout;
-    const CtsClearDepthStencilValue* pDepthStencil;
+    VkCommandBuffer commandBuffer;
+    VkImage image;
+    VkImageLayout imageLayout;
+    const VkClearDepthStencilValue* pDepthStencil;
     uint32_t rangeCount;
-    const CtsImageSubresourceRange* pRanges;
+    const VkImageSubresourceRange* pRanges;
 } CtsCmdClearDepthStencilImage;
 
 #ifdef __cplusplus

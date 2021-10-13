@@ -1,32 +1,30 @@
 #pragma once
 
-#include <cts/typedefs/image.h>
-#include <cts/typedefs/image_view.h>
-#include <cts/typedefs/sampler.h>
+#include "vulkan/vulkan_core.h"
     
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsImageViewImpl {
-    CtsImage image;
-    CtsImageViewType viewType;
-    CtsImageAspectFlags aspectMask;
+struct CtsImageView {
+    struct CtsImage* image;
+    VkImageViewType viewType;
+    VkImageAspectFlags aspectMask;
     GLuint handle;
     GLenum target;
 };
 
-CtsResult ctsCreateImageViewImpl(
-    CtsDevice device,
-    const CtsImageViewCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImageView* pImageView
+VkResult ctsCreateImageViewImpl(
+    VkDevice device,
+    const VkImageViewCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImageView* pImageView
 );
 
 void ctsDestroyImageViewImpl(
-    CtsDevice device,
-    CtsImageView imageView,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkImageView imageView,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

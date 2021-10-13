@@ -1,15 +1,12 @@
 #pragma once
 
 #include <stdbool.h>
-#include <cts/typedefs/device.h>
-#include <cts/typedefs/instance.h>
-#include <cts/typedefs/physical_device.h>
-#include <cts/typedefs/queue.h>
-#include <cts/typedefs/gl_pipeline.h>
-#include <cts/typedefs/gl_render_pass.h>
-#include <cts/platform_thread.h>
-#include <cts/platform_mutex.h>
-#include <cts/platform_condition_variable.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/typedefs/gl_pipeline.h"
+#include "cts/typedefs/gl_render_pass.h"
+#include "cts/platform/platform_thread.h"
+#include "cts/platform/platform_mutex.h"
+#include "cts/platform/platform_condition_variable.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,24 +46,24 @@ typedef struct CtsGlState {
 } CtsGlState;
 
 typedef struct CtsGlIndexBuffer {
-    CtsBuffer buffer;
+    struct CtsBuffer* buffer;
     uint32_t offset;
     GLenum indexType;
 } CtsGlIndexBuffer;
 
-struct CtsDeviceImpl {
-    CtsQueue queue;
+struct CtsDevice {
+    struct CtsQueue* queue;
     const CtsGlGraphicsPipeline* activeGraphicsPipeline;
     
     CtsGlState state;
-    CtsFramebuffer activeReadFramebuffer;
-    CtsFramebuffer activeWriteFramebuffer;
-    CtsRenderPass activeRenderPass;
+    struct CtsFramebuffer* activeReadFramebuffer;
+    struct CtsFramebuffer* activeWriteFramebuffer;
+    struct CtsRenderPass* activeRenderPass;
     uint32_t activeSubpassNumber;
     const CtsGlSubpassDescription* activeSubpass;
 
-    CtsPhysicalDevice physicalDevice;
-    CtsFlags dynamicStateFlags;
+    struct CtsPhysicalDevice* physicalDevice;
+    VkFlags dynamicStateFlags;
 
     CtsGlIndexBuffer activeIndexBuffer;
 };

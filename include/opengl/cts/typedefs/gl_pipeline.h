@@ -1,9 +1,9 @@
 #pragma once
 
 #include <stdbool.h>
-#include <glad/glad.h>
-#include <cts/types.h>
-#include <cts/typedefs/gl_shader.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
+#include "cts/typedefs/gl_shader.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,7 +13,7 @@ typedef struct CtsGlPipelineVertexInputState {
     bool initialized;
     GLuint vao;
     uint32_t vertexBindingDescriptionCount;
-    CtsVertexInputBindingDescription* pVertexBindingDescriptions;
+    VkVertexInputBindingDescription* pVertexBindingDescriptions;
 } CtsGlPipelineVertexInputState;
 
 typedef struct CtsGlPipelineInputAssemblyState {
@@ -31,8 +31,8 @@ typedef struct CtsGlPipelineViewportState {
     bool initialized;
     uint32_t viewportCount;
     uint32_t scissorCount;
-    CtsViewport* pViewports;
-    CtsRect2D* pScissors;
+    VkViewport* pViewports;
+    VkRect2D* pScissors;
 } CtsGlPipelineViewportState;
 
 typedef struct CtsGlPipelineRasterizationState {
@@ -114,11 +114,11 @@ typedef struct CtsGlGraphicsPipeline {
     CtsGlPipelineMultisampleState multisampleState;
     CtsGlPipelineDepthStencilState depthStencilState;
     CtsGlPipelineColorBlendState colorBlendState;
-    CtsFlags dynamicState;
-    CtsPipelineLayout layout;
-    CtsRenderPass renderPass;
+    VkFlags dynamicState;
+    VkPipelineLayout layout;
+    VkRenderPass renderPass;
     uint32_t subpass;
-    CtsPipeline basePipelineHandle;
+    VkPipeline basePipelineHandle;
     int32_t basePipelineIndex;
 } CtsGlGraphicsPipeline;
 

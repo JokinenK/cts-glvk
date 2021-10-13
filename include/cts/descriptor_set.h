@@ -1,30 +1,30 @@
 #pragma once
 
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsAllocateDescriptorSets(
-    CtsDevice device,
-    const CtsDescriptorSetAllocateInfo* pAllocateInfo,
-    CtsDescriptorSet* pDescriptorSets
+VkResult ctsAllocateDescriptorSets(
+    VkDevice device,
+    const VkDescriptorSetAllocateInfo* pAllocateInfo,
+    VkDescriptorSet* pDescriptorSets
 );
 
 void ctsUpdateDescriptorSets(
-    CtsDevice device,
+    VkDevice device,
     uint32_t descriptorWriteCount,
-    const CtsWriteDescriptorSet* pDescriptorWrites,
+    const VkWriteDescriptorSet* pDescriptorWrites,
     uint32_t descriptorCopyCount,
-    const CtsCopyDescriptorSet* pDescriptorCopies
+    const VkCopyDescriptorSet* pDescriptorCopies
 );
 
-CtsResult ctsFreeDescriptorSets(
-    CtsDevice device,
-    CtsDescriptorPool descriptorPool,
+VkResult ctsFreeDescriptorSets(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
     uint32_t descriptorSetCount,
-    const CtsDescriptorSet* pDescriptorSets
+    const VkDescriptorSet* pDescriptorSets
 );
 
 #ifdef __cplusplus

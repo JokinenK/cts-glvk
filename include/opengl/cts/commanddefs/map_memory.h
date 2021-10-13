@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,13 +10,13 @@ extern "C" {
 
 typedef struct CtsMapMemory {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsDeviceMemory memory;
-    CtsDeviceSize offset;
-    CtsDeviceSize size;
-    CtsMemoryMapFlags flags;
+    VkDevice device;
+    VkDeviceMemory memory;
+    VkDeviceSize offset;
+    VkDeviceSize size;
+    VkMemoryMapFlags flags;
     void** ppData;
-    CtsResult* pResult;
+    VkResult* pResult;
 } CtsMapMemory;
 
 #ifdef __cplusplus

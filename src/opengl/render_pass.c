@@ -1,49 +1,53 @@
 #include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 #include <cts/render_pass.h>
+#include <cts/allocator.h>
+#include <cts/util/align.h>
+#include <private/private.h>
 #include <private/render_pass_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateRenderPass(
-    CtsDevice device,
-    const CtsRenderPassCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsRenderPass* pRenderPass
+VkResult ctsCreateRenderPass(
+    VkDevice deviceHandle,
+    const VkRenderPassCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkRenderPass* pRenderPass
 ) {
-    (void) device;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
-    CtsRenderPass renderPass = ctsAllocation(
+    struct CtsRenderPass* renderPass = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsRenderPassImpl),
-        alignof(struct CtsRenderPassImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsRenderPass),
+        alignof(struct CtsRenderPass),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (renderPass == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     renderPass->attachmentCount = pCreateInfo->attachmentCount;
     renderPass->pAttachments = ctsAllocation(
         pAllocator,
-        sizeof(CtsAttachmentDescription) * pCreateInfo->attachmentCount,
-        alignof(CtsAttachmentDescription),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(VkAttachmentDescription) * pCreateInfo->attachmentCount,
+        alignof(VkAttachmentDescription),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     renderPass->pDrawBuffers = ctsAllocation(
         pAllocator,
         sizeof(GLenum) * pCreateInfo->attachmentCount,
         alignof(GLenum),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (renderPass->pAttachments == NULL || renderPass->pDrawBuffers == NULL) {
-        ctsDestroyRenderPass(device, renderPass, pAllocator);
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        ctsDestroyRenderPass(deviceHandle, CtsRenderPassToHandle(renderPass), pAllocator);
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
@@ -56,14 +60,14 @@ CtsResult ctsCreateRenderPass(
     if (pCreateInfo->dependencyCount > 0) {
         renderPass->pDependencies = ctsAllocation(
             pAllocator,
-            sizeof(CtsSubpassDependency) * pCreateInfo->dependencyCount,
-            alignof(CtsSubpassDependency),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+            sizeof(VkSubpassDependency) * pCreateInfo->dependencyCount,
+            alignof(VkSubpassDependency),
+            VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
         if (renderPass->pDependencies == NULL) {
-            ctsDestroyRenderPass(device, renderPass, pAllocator);
-            return CTS_ERROR_OUT_OF_HOST_MEMORY;
+            ctsDestroyRenderPass(deviceHandle, CtsRenderPassToHandle(renderPass), pAllocator);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
         for (uint32_t i = 0; i < pCreateInfo->dependencyCount; ++i) {
@@ -74,9 +78,9 @@ CtsResult ctsCreateRenderPass(
     renderPass->subpassCount = pCreateInfo->subpassCount;
     renderPass->pSubpasses = NULL;
 
-    CtsAttachmentReference unusedAttachment = {
-        .attachment = CTS_ATTACHMENT_UNUSED,
-        .layout = CTS_IMAGE_LAYOUT_UNDEFINED
+    VkAttachmentReference unusedAttachment = {
+        .attachment = VK_ATTACHMENT_UNUSED,
+        .layout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
     if (pCreateInfo->subpassCount > 0) {
@@ -84,22 +88,22 @@ CtsResult ctsCreateRenderPass(
             pAllocator,
             sizeof(CtsGlSubpassDescription) * pCreateInfo->subpassCount,
             alignof(CtsGlSubpassDescription),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+            VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
         if (renderPass->pSubpasses == NULL) {
-            ctsDestroyRenderPass(device, renderPass, pAllocator);
-            return CTS_ERROR_OUT_OF_HOST_MEMORY;
+            ctsDestroyRenderPass(deviceHandle, CtsRenderPassToHandle(renderPass), pAllocator);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
         for (uint32_t i = 0; i < pCreateInfo->subpassCount; ++i) {
-            const CtsSubpassDescription* source = &pCreateInfo->pSubpasses[i];
+            const VkSubpassDescription* source = &pCreateInfo->pSubpasses[i];
             CtsGlSubpassDescription* dest = &renderPass->pSubpasses[i];
 
-            size_t inputAttachmentSize      = (source->inputAttachmentCount * sizeof(CtsAttachmentReference));
-            size_t colorAttachmentSize      = (source->colorAttachmentCount * sizeof(CtsAttachmentReference));
-            size_t resolveAttachmentSize    = (source->colorAttachmentCount * sizeof(CtsAttachmentReference));
-            size_t depthStencilSize         = (sizeof(CtsAttachmentReference));
+            size_t inputAttachmentSize      = (source->inputAttachmentCount * sizeof(VkAttachmentReference));
+            size_t colorAttachmentSize      = (source->colorAttachmentCount * sizeof(VkAttachmentReference));
+            size_t resolveAttachmentSize    = (source->colorAttachmentCount * sizeof(VkAttachmentReference));
+            size_t depthStencilSize         = (sizeof(VkAttachmentReference));
             size_t preserveAttachmentSize   = (source->preserveAttachmentCount * sizeof(uint32_t));
             size_t extraDataLen             = (inputAttachmentSize + colorAttachmentSize +  resolveAttachmentSize +  depthStencilSize +  preserveAttachmentSize);
 
@@ -107,7 +111,7 @@ CtsResult ctsCreateRenderPass(
                 pAllocator,
                 sizeof(char) * extraDataLen,
                 alignof(char),
-                CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+                VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
             );
 
             dest->flags                     = source->flags;
@@ -166,16 +170,18 @@ CtsResult ctsCreateRenderPass(
         }
     }
 
-    *pRenderPass = renderPass;
-    return CTS_SUCCESS;
+    *pRenderPass = CtsRenderPassToHandle(renderPass);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyRenderPass(
-    CtsDevice device,
-    CtsRenderPass renderPass,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkRenderPass renderPassHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    (void) deviceHandle;
+
+    struct CtsRenderPass* renderPass = CtsRenderPassFromHandle(renderPassHandle);
 
     if (renderPass != NULL) {
         if (renderPass->pAttachments != NULL) {

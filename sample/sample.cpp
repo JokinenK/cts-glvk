@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <set>
 #include <chrono>
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_win32.h"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_ENABLE_EXPERIMENTAL
@@ -16,11 +18,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 #include <cts/renderer.h>
-#include <cts/typedefs/win32_surface.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
+#include "private/private.h"
 
 struct QueueFamilyIndices {
     enum { INVALID_QUEUE_FAMILY = UINT32_MAX };
@@ -37,9 +39,9 @@ struct QueueFamilyIndices {
 };
 
 struct SwapChainSupportDetails {
-    CtsSurfaceCapabilities capabilities;
-    std::vector<CtsSurfaceFormat> formats;
-    std::vector<CtsPresentMode> presentModes;
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
 };
 
 struct Vertex {
@@ -47,32 +49,32 @@ struct Vertex {
     glm::vec3 color;
     glm::vec2 texCoord;
 
-    static CtsVertexInputBindingDescription getBindingDescription() {
-        CtsVertexInputBindingDescription bindingDescription{};
+    static VkVertexInputBindingDescription getBindingDescription() {
+        VkVertexInputBindingDescription bindingDescription{};
         
         bindingDescription.binding = 0;
         bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = CTS_VERTEX_INPUT_RATE_VERTEX;
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
         return bindingDescription;
     }
 
-    static std::array<CtsVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<CtsVertexInputAttributeDescription, 3> attributeDescriptions{};
+    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = CTS_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = CTS_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = offsetof(Vertex, color);
 
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = CTS_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
 
         return attributeDescriptions;
@@ -218,34 +220,34 @@ private:
     }
 
     void createInstance() {
-        CtsApplicationInfo appInfo{};
-        appInfo.sType = CTS_STRUCTURE_TYPE_APPLICATION_INFO;
+        VkApplicationInfo appInfo{};
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = "Hello Triangle";
-        appInfo.applicationVersion = CTS_MAKE_VERSION(1, 0, 0);
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "No Engine";
-        appInfo.engineVersion = CTS_MAKE_VERSION(1, 0, 0);
-        appInfo.apiVersion = CTS_API_VERSION_1_0;
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        CtsInstanceCreateInfo createInfo{};
-        createInfo.sType = CTS_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        VkInstanceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
         createInfo.enabledExtensionCount = 0;
-        createInfo.pEnabledExtensionNames = nullptr;
+        createInfo.ppEnabledExtensionNames = nullptr;
         createInfo.enabledLayerCount = 0;
-        createInfo.pEnabledLayerNames = nullptr;
+        createInfo.ppEnabledLayerNames = nullptr;
 
-        if (ctsCreateInstance(&createInfo, mAllocator, &mInstance) != CTS_SUCCESS) {
+        if (ctsCreateInstance(&createInfo, mAllocator, &mInstance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create instance!");
         }
     }
 
     void createSurface() {
-        CtsWin32SurfaceCreateInfo createInfo{};
-        createInfo.sType = CTS_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO;
+        VkWin32SurfaceCreateInfoKHR createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         createInfo.hwnd = mWindow;
         createInfo.hinstance = GetModuleHandle(nullptr);
 
-        if (ctsCreateWin32Surface(mInstance, &createInfo, mAllocator, &mSurface) != CTS_SUCCESS) {
+        if (ctsCreateWin32Surface(mInstance, &createInfo, mAllocator, &mSurface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
     }
@@ -258,7 +260,7 @@ private:
             throw std::runtime_error("failed to find supported GPUs!");
         }
 
-        std::vector<CtsPhysicalDevice> devices(deviceCount);
+        std::vector<VkPhysicalDevice> devices(deviceCount);
         ctsEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
 
         for (const auto& device : devices) {
@@ -269,7 +271,7 @@ private:
             }
         }
 
-        if (mPhysicalDevice == CTS_NULL_HANDLE) {
+        if (mPhysicalDevice == VK_NULL_HANDLE) {
             throw std::runtime_error("failed to find a suitable GPU!");
         }
     }
@@ -277,33 +279,33 @@ private:
     void createLogicalDevice() {
         QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice);
 
-        std::vector<CtsDeviceQueueCreateInfo> queueCreateInfos;
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
         std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
 
         float queuePriority = 1.0f;
         for (uint32_t queueFamily : uniqueQueueFamilies) {
-            CtsDeviceQueueCreateInfo queueCreateInfo{};
-            queueCreateInfo.sType = CTS_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
             queueCreateInfo.queueFamilyIndex = queueFamily;
             queueCreateInfo.queueCount = 1;
             queueCreateInfo.pQueuePriorities = &queuePriority;
             queueCreateInfos.push_back(queueCreateInfo);
         }
   
-        CtsDeviceCreateInfo createInfo{};
-        createInfo.sType = CTS_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pQueueCreateInfos = queueCreateInfos.data();
         
         createInfo.enabledExtensionCount = 0;
-        createInfo.pEnabledExtensionNames = nullptr;
+        createInfo.ppEnabledExtensionNames = nullptr;
 
-        CtsPhysicalDeviceFeatures deviceFeatures{};
+        VkPhysicalDeviceFeatures deviceFeatures{};
         createInfo.pEnabledFeatures = &deviceFeatures;
         createInfo.enabledLayerCount = 0;
-        createInfo.pEnabledLayerNames = nullptr;
+        createInfo.ppEnabledLayerNames = nullptr;
         
-        if (ctsCreateDevice(mPhysicalDevice, &createInfo, mAllocator, &mDevice) != CTS_SUCCESS) {
+        if (ctsCreateDevice(mPhysicalDevice, &createInfo, mAllocator, &mDevice) != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
 
@@ -331,34 +333,34 @@ private:
     void createSwapChain() {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(mPhysicalDevice);
 
-        CtsSurfaceFormat surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-        CtsPresentMode presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-        CtsExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+        VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+        VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+        VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
         uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
             imageCount = swapChainSupport.capabilities.maxImageCount;
         }
 
-        CtsSwapchainCreateInfo createInfo{};
-        createInfo.sType = CTS_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO;
+        VkSwapchainCreateInfoKHR createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface = mSurface;
         createInfo.minImageCount = imageCount;
         createInfo.imageFormat = surfaceFormat.format;
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
         createInfo.imageExtent = extent;
         createInfo.imageArrayLayers = 1;
-        createInfo.imageUsage = CTS_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
         QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice);
         uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
 
         if (indices.graphicsFamily != indices.presentFamily) {
-            createInfo.imageSharingMode = CTS_SHARING_MODE_CONCURRENT;
+            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
             createInfo.pQueueFamilyIndices = queueFamilyIndices;
         } else {
-            createInfo.imageSharingMode = CTS_SHARING_MODE_EXCLUSIVE;
+            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
             createInfo.queueFamilyIndexCount = 0; // Optional
             createInfo.pQueueFamilyIndices = nullptr; // Optional
         }
@@ -366,10 +368,10 @@ private:
         //createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
         //createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode = presentMode;
-        createInfo.clipped = CTS_TRUE;
-        createInfo.oldSwapchain = CTS_NULL_HANDLE;
+        createInfo.clipped = VK_TRUE;
+        createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-        if (ctsCreateSwapchain(mDevice, &createInfo, mAllocator, &mSwapChain) != CTS_SUCCESS) {
+        if (ctsCreateSwapchain(mDevice, &createInfo, mAllocator, &mSwapChain) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swap chain!");
         }
 
@@ -386,71 +388,71 @@ private:
         mSwapChainImageViews.resize(mSwapChainImages.size());
 
         for (size_t i = 0; i < mSwapChainImages.size(); i++) {
-            mSwapChainImageViews[i] = createImageView(mSwapChainImages[i], mSwapChainImageFormat, CTS_IMAGE_ASPECT_COLOR_BIT, 1);
+            mSwapChainImageViews[i] = createImageView(mSwapChainImages[i], mSwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
         }
     }
 
     void createRenderPass() {
-        CtsAttachmentDescription colorAttachment{};
+        VkAttachmentDescription colorAttachment{};
         colorAttachment.format = mSwapChainImageFormat;
         colorAttachment.samples = mMsaaSamples;
-        colorAttachment.loadOp = CTS_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = CTS_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.stencilLoadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.stencilStoreOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = CTS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        CtsAttachmentDescription depthAttachment{};
+        VkAttachmentDescription depthAttachment{};
         depthAttachment.format = findDepthFormat();
         depthAttachment.samples = mMsaaSamples;
-        depthAttachment.loadOp = CTS_ATTACHMENT_LOAD_OP_CLEAR;
-        depthAttachment.storeOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.stencilLoadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
-        depthAttachment.stencilStoreOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
-        depthAttachment.finalLayout = CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        CtsAttachmentDescription colorAttachmentResolve{};
+        VkAttachmentDescription colorAttachmentResolve{};
         colorAttachmentResolve.format = mSwapChainImageFormat;
-        colorAttachmentResolve.samples = CTS_SAMPLE_COUNT_1_BIT;
-        colorAttachmentResolve.loadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachmentResolve.storeOp = CTS_ATTACHMENT_STORE_OP_STORE;
-        colorAttachmentResolve.stencilLoadOp = CTS_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachmentResolve.stencilStoreOp = CTS_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachmentResolve.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachmentResolve.finalLayout = CTS_IMAGE_LAYOUT_PRESENT_SRC;
+        colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-        CtsAttachmentReference colorAttachmentRef{};
+        VkAttachmentReference colorAttachmentRef{};
         colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = CTS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        CtsAttachmentReference depthAttachmentRef{};
+        VkAttachmentReference depthAttachmentRef{};
         depthAttachmentRef.attachment = 1;
-        depthAttachmentRef.layout = CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        CtsAttachmentReference colorAttachmentResolveRef{};
+        VkAttachmentReference colorAttachmentResolveRef{};
         colorAttachmentResolveRef.attachment = 2;
-        colorAttachmentResolveRef.layout = CTS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        CtsSubpassDescription subpass{};
-        subpass.pipelineBindPoint = CTS_PIPELINE_BIND_POINT_GRAPHICS;
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
         subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
-        CtsSubpassDependency dependency{};
-        dependency.srcSubpass = CTS_SUBPASS_EXTERNAL;
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
-        dependency.srcStageMask = CTS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.srcAccessMask = 0;
-        dependency.dstStageMask = CTS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstAccessMask = CTS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-        std::array<CtsAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
-        CtsRenderPassCreateInfo renderPassInfo{};
-        renderPassInfo.sType = CTS_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.subpassCount = 1;
@@ -458,33 +460,33 @@ private:
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
 
-        if (ctsCreateRenderPass(mDevice, &renderPassInfo, mAllocator, &mRenderPass) != CTS_SUCCESS) {
+        if (ctsCreateRenderPass(mDevice, &renderPassInfo, mAllocator, &mRenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
     }
 
     void createDescriptorSetLayout() {
-        CtsDescriptorSetLayoutBinding uboLayoutBinding{};
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorType = CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.stageFlags = CTS_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-        CtsDescriptorSetLayoutBinding samplerLayoutBinding{};
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
         samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorType = CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.stageFlags = CTS_SHADER_STAGE_FRAGMENT_BIT;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         samplerLayoutBinding.pImmutableSamplers = nullptr; // Optional 
 
-        std::array<CtsDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
-        CtsDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = CTS_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
         layoutInfo.pBindings = bindings.data();
 
-        if (ctsCreateDescriptorSetLayout(mDevice, &layoutInfo, mAllocator, &mDescriptorSetLayout) != CTS_SUCCESS) {
+        if (ctsCreateDescriptorSetLayout(mDevice, &layoutInfo, mAllocator, &mDescriptorSetLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor set layout!");
         }
     }
@@ -493,38 +495,38 @@ private:
         auto vertShaderCode = readFile("shaders/shader.vert");
         auto fragShaderCode = readFile("shaders/shader.frag"); 
 
-        CtsShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-        CtsShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 
-        CtsPipelineShaderStageCreateInfo vertShaderStageInfo{};
-        vertShaderStageInfo.sType = CTS_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertShaderStageInfo.stage = CTS_SHADER_STAGE_VERTEX_BIT;
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
         vertShaderStageInfo.module = vertShaderModule;
         vertShaderStageInfo.pName = "main";
 
-        CtsPipelineShaderStageCreateInfo fragShaderStageInfo{};
-        fragShaderStageInfo.sType = CTS_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragShaderStageInfo.stage = CTS_SHADER_STAGE_FRAGMENT_BIT;
+        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         fragShaderStageInfo.module = fragShaderModule;
         fragShaderStageInfo.pName = "main";
 
-        CtsPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
         auto bindingDescription = Vertex::getBindingDescription();
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
-        CtsPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.sType = CTS_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexBindingDescriptionCount = 1;
         vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
-        CtsPipelineInputAssemblyStateCreateInfo inputAssembly{};
-        inputAssembly.sType = CTS_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology = CTS_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        inputAssembly.primitiveRestartEnable = CTS_FALSE;
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+        inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-        CtsViewport viewport{};
+        VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
         viewport.width = (float) mSwapChainExtent.width;
@@ -532,53 +534,53 @@ private:
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
-        CtsRect2D scissor{};
+        VkRect2D scissor{};
         scissor.offset = {0, 0};
         scissor.extent = mSwapChainExtent;
 
-        CtsPipelineViewportStateCreateInfo viewportState{};
-        viewportState.sType = CTS_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        VkPipelineViewportStateCreateInfo viewportState{};
+        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportState.viewportCount = 1;
         viewportState.pViewports = &viewport;
         viewportState.scissorCount = 1;
         viewportState.pScissors = &scissor;
 
-        CtsPipelineRasterizationStateCreateInfo rasterizer{};
-        rasterizer.sType = CTS_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        rasterizer.depthClampEnable = CTS_FALSE;
-        rasterizer.rasterizerDiscardEnable = CTS_FALSE;
-        rasterizer.polygonMode = CTS_POLYGON_MODE_FILL;
+        VkPipelineRasterizationStateCreateInfo rasterizer{};
+        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizer.depthClampEnable = VK_FALSE;
+        rasterizer.rasterizerDiscardEnable = VK_FALSE;
+        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = CTS_CULL_MODE_BACK_BIT;
-        rasterizer.frontFace = CTS_FRONT_FACE_COUNTER_CLOCKWISE;
-        rasterizer.depthBiasEnable = CTS_FALSE;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        rasterizer.depthBiasEnable = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0f; // Optional
         rasterizer.depthBiasClamp = 0.0f; // Optional
         rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 
-        CtsPipelineMultisampleStateCreateInfo multisampling{};
-        multisampling.sType = CTS_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampling.sampleShadingEnable = CTS_TRUE; // enable sample shading in the pipeline
+        VkPipelineMultisampleStateCreateInfo multisampling{};
+        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampling.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
         multisampling.minSampleShading = .2f;
         multisampling.rasterizationSamples = mMsaaSamples;
         multisampling.pSampleMask = nullptr; // Optional
-        multisampling.alphaToCoverageEnable = CTS_FALSE; // Optional
-        multisampling.alphaToOneEnable = CTS_FALSE; // Optional
+        multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+        multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
-        CtsPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.colorWriteMask = CTS_COLOR_COMPONENT_R_BIT | CTS_COLOR_COMPONENT_G_BIT | CTS_COLOR_COMPONENT_B_BIT | CTS_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = CTS_FALSE;
-        colorBlendAttachment.srcColorBlendFactor = CTS_BLEND_FACTOR_ONE; // Optional
-        colorBlendAttachment.dstColorBlendFactor = CTS_BLEND_FACTOR_ZERO; // Optional
-        colorBlendAttachment.colorBlendOp = CTS_BLEND_OP_ADD; // Optional
-        colorBlendAttachment.srcAlphaBlendFactor = CTS_BLEND_FACTOR_ONE; // Optional
-        colorBlendAttachment.dstAlphaBlendFactor = CTS_BLEND_FACTOR_ZERO; // Optional
-        colorBlendAttachment.alphaBlendOp = CTS_BLEND_OP_ADD; // Optional
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
 
-        CtsPipelineColorBlendStateCreateInfo colorBlending{};
-        colorBlending.sType = CTS_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlending.logicOpEnable = CTS_FALSE;
-        colorBlending.logicOp = CTS_LOGIC_OP_COPY; // Optional
+        VkPipelineColorBlendStateCreateInfo colorBlending{};
+        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlending.logicOpEnable = VK_FALSE;
+        colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
         colorBlending.attachmentCount = 1;
         colorBlending.pAttachments = &colorBlendAttachment;
         colorBlending.blendConstants[0] = 0.0f; // Optional
@@ -586,31 +588,31 @@ private:
         colorBlending.blendConstants[2] = 0.0f; // Optional
         colorBlending.blendConstants[3] = 0.0f; // Optional
 
-        CtsPipelineDepthStencilStateCreateInfo depthStencil{};
-        depthStencil.sType = CTS_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencil.depthTestEnable = CTS_TRUE;
-        depthStencil.depthWriteEnable = CTS_TRUE;
-        depthStencil.depthCompareOp = CTS_COMPARE_OP_LESS;
-        depthStencil.depthBoundsTestEnable = CTS_FALSE;
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.minDepthBounds = 0.0f; // Optional
         depthStencil.maxDepthBounds = 1.0f; // Optional
-        depthStencil.stencilTestEnable = CTS_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
         depthStencil.front = {}; // Optional
         depthStencil.back = {}; // Optional
 
-        CtsPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = CTS_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1; // Optional
         pipelineLayoutInfo.pSetLayouts = &mDescriptorSetLayout; // Optional
         pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-        if (ctsCreatePipelineLayout(mDevice, &pipelineLayoutInfo, mAllocator, &mPipelineLayout) != CTS_SUCCESS) {
+        if (ctsCreatePipelineLayout(mDevice, &pipelineLayoutInfo, mAllocator, &mPipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
-        CtsGraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.sType = CTS_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        VkGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo.stageCount = 2;
         pipelineInfo.pStages = shaderStages;
         pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -624,10 +626,10 @@ private:
         pipelineInfo.layout = mPipelineLayout;
         pipelineInfo.renderPass = mRenderPass;
         pipelineInfo.subpass = 0;
-        pipelineInfo.basePipelineHandle = CTS_NULL_HANDLE; // Optional
+        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1; // Optional
 
-        if (ctsCreateGraphicsPipelines(mDevice, CTS_NULL_HANDLE, 1, &pipelineInfo, mAllocator, &mGraphicsPipeline) != CTS_SUCCESS) {
+        if (ctsCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineInfo, mAllocator, &mGraphicsPipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
@@ -639,13 +641,13 @@ private:
         mSwapChainFramebuffers.resize(mSwapChainImages.size());
 
         for (size_t i = 0; i < mSwapChainImageViews.size(); i++) {
-            std::array<CtsImageView, 3> attachments;
+            std::array<VkImageView, 3> attachments;
             attachments[0] = mColorImageView;
             attachments[1] = mDepthImageView;
             attachments[2] = mSwapChainImageViews[i];
 
-            CtsFramebufferCreateInfo framebufferInfo{};
-            framebufferInfo.sType = CTS_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = mRenderPass;
             framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
             framebufferInfo.pAttachments = attachments.data();
@@ -653,7 +655,7 @@ private:
             framebufferInfo.height = mSwapChainExtent.height;
             framebufferInfo.layers = 1;
 
-            if (ctsCreateFramebuffer(mDevice, &framebufferInfo, mAllocator, &mSwapChainFramebuffers[i]) != CTS_SUCCESS) {
+            if (ctsCreateFramebuffer(mDevice, &framebufferInfo, mAllocator, &mSwapChainFramebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
@@ -662,18 +664,18 @@ private:
     void createCommandPool() {
         QueueFamilyIndices queueFamilyIndices = findQueueFamilies(mPhysicalDevice);
 
-        CtsCommandPoolCreateInfo poolInfo{};
-        poolInfo.sType = CTS_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
         poolInfo.flags = 0; // Optional
 
-        if (ctsCreateCommandPool(mDevice, &poolInfo, mAllocator, &mCommandPool) != CTS_SUCCESS) {
+        if (ctsCreateCommandPool(mDevice, &poolInfo, mAllocator, &mCommandPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
     }
 
     void createColorResources() {
-        CtsFormat colorFormat = mSwapChainImageFormat;
+        VkFormat colorFormat = mSwapChainImageFormat;
 
         createImage(
             mSwapChainExtent.width, 
@@ -681,18 +683,18 @@ private:
             1, 
             mMsaaSamples, 
             colorFormat, 
-            CTS_IMAGE_TILING_OPTIMAL, 
-            CTS_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | CTS_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
-            CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+            VK_IMAGE_TILING_OPTIMAL, 
+            VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
             mColorImage, 
             mColorImageMemory
         );
 
-        mColorImageView = createImageView(mColorImage, colorFormat, CTS_IMAGE_ASPECT_COLOR_BIT, 1);
+        mColorImageView = createImageView(mColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
     }
 
     void createDepthResources() {
-        CtsFormat depthFormat = findDepthFormat();
+        VkFormat depthFormat = findDepthFormat();
 
         createImage(
             mSwapChainExtent.width,
@@ -700,35 +702,35 @@ private:
             1,
             mMsaaSamples,
             depthFormat,
-            CTS_IMAGE_TILING_OPTIMAL,
-            CTS_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             mDepthImage,
             mDepthImageMemory
         );
 
-        mDepthImageView = createImageView(mDepthImage, depthFormat, CTS_IMAGE_ASPECT_DEPTH_BIT, 1);
+        mDepthImageView = createImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
-        transitionImageLayout(mDepthImage, depthFormat, CTS_IMAGE_LAYOUT_UNDEFINED, CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+        transitionImageLayout(mDepthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
     }
 
     void createTextureImage() {
         int texWidth, texHeight, texChannels;
         stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
-        CtsDeviceSize imageSize = texWidth * texHeight * 4;
+        VkDeviceSize imageSize = texWidth * texHeight * 4;
 
         if (!pixels) {
             throw std::runtime_error("failed to load texture image!");
         }
 
-        CtsBuffer stagingBuffer;
-        CtsDeviceMemory stagingBufferMemory;
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
 
         createBuffer(
             imageSize,
-            CTS_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             stagingBuffer,
             stagingBufferMemory
         );
@@ -744,16 +746,16 @@ private:
             texWidth,
             texHeight,
             mMipLevels,
-            CTS_SAMPLE_COUNT_1_BIT,
-            CTS_FORMAT_R8G8B8A8_SRGB,
-            CTS_IMAGE_TILING_OPTIMAL, 
-            CTS_IMAGE_USAGE_TRANSFER_DST_BIT | CTS_IMAGE_USAGE_SAMPLED_BIT, 
-            CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_SAMPLE_COUNT_1_BIT,
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_TILING_OPTIMAL, 
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             mTextureImage, 
             mTextureImageMemory
         );
 
-        transitionImageLayout(mTextureImage, CTS_FORMAT_R8G8B8A8_SRGB, CTS_IMAGE_LAYOUT_UNDEFINED, CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mMipLevels);
+        transitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mMipLevels);
         copyBufferToImage(stagingBuffer, mTextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
         generateMipmaps(mTextureImage, texWidth, texHeight, mMipLevels);
         
@@ -762,29 +764,29 @@ private:
     }
 
     void createTextureImageView() {
-        mTextureImageView = createImageView(mTextureImage, CTS_FORMAT_R8G8B8A8_SRGB, CTS_IMAGE_ASPECT_COLOR_BIT, mMipLevels);
+        mTextureImageView = createImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mMipLevels);
     }
 
     void createTextureSampler() {
-        CtsSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = CTS_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = CTS_FILTER_LINEAR;
-        samplerInfo.minFilter = CTS_FILTER_LINEAR;
-        samplerInfo.addressModeU = CTS_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = CTS_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = CTS_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = CTS_FALSE;
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.anisotropyEnable = VK_FALSE;
         samplerInfo.maxAnisotropy = 0.0f;
-        samplerInfo.borderColor = CTS_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = CTS_FALSE;
-        samplerInfo.compareEnable = CTS_FALSE;
-        samplerInfo.compareOp = CTS_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = CTS_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = static_cast<float>(mMipLevels);
         samplerInfo.mipLodBias = 0.0f;
 
-        if (ctsCreateSampler(mDevice, &samplerInfo, mAllocator, &mTextureSampler) != CTS_SUCCESS) {
+        if (ctsCreateSampler(mDevice, &samplerInfo, mAllocator, &mTextureSampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }
     }
@@ -829,18 +831,18 @@ private:
     }
 
     void createVertexBuffer() {
-        CtsDeviceSize bufferSize = sizeof(mVertices[0]) * mVertices.size();
+        VkDeviceSize bufferSize = sizeof(mVertices[0]) * mVertices.size();
 
-        CtsBuffer stagingBuffer;
-        CtsDeviceMemory stagingBufferMemory;
-        createBuffer(bufferSize, CTS_BUFFER_USAGE_TRANSFER_SRC_BIT, CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         void* data = NULL;
         ctsMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, mVertices.data(), (size_t) bufferSize);
         ctsUnmapMemory(mDevice, stagingBufferMemory);
         
-        createBuffer(bufferSize, CTS_BUFFER_USAGE_TRANSFER_SRC_BIT | CTS_BUFFER_USAGE_VERTEX_BUFFER_BIT, CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
         copyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
 
         ctsDestroyBuffer(mDevice, stagingBuffer, mAllocator);
@@ -848,18 +850,18 @@ private:
     }
 
     void createIndexBuffer() {
-        CtsDeviceSize bufferSize = sizeof(mIndices[0]) * mIndices.size();
+        VkDeviceSize bufferSize = sizeof(mIndices[0]) * mIndices.size();
 
-        CtsBuffer stagingBuffer;
-        CtsDeviceMemory stagingBufferMemory;
-        createBuffer(bufferSize, CTS_BUFFER_USAGE_TRANSFER_SRC_BIT, CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         void* data = NULL;
         ctsMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, mIndices.data(), (size_t) bufferSize);
         ctsUnmapMemory(mDevice, stagingBufferMemory);
         
-        createBuffer(bufferSize, CTS_BUFFER_USAGE_TRANSFER_SRC_BIT | CTS_BUFFER_USAGE_INDEX_BUFFER_BIT, CTS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
         copyBuffer(stagingBuffer, mIndexBuffer, bufferSize);
 
         ctsDestroyBuffer(mDevice, stagingBuffer, mAllocator);
@@ -867,77 +869,77 @@ private:
     }
 
     void createUniformBuffers() {
-        CtsDeviceSize bufferSize = sizeof(UniformBufferObject);
+        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
         mUniformBuffers.resize(mSwapChainImages.size());
         mUniformBuffersMemory.resize(mSwapChainImages.size());
         mUniformBuffersData.resize(mSwapChainImages.size());
 
         for (size_t i = 0; i < mSwapChainImages.size(); ++i) {
-            createBuffer(bufferSize, CTS_BUFFER_USAGE_UNIFORM_BUFFER_BIT, CTS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | CTS_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
             ctsMapMemory(mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersData[i]);
         }
     }
 
     void createDescriptorPool() {
-        std::array<CtsDescriptorPoolSize, 2> poolSizes{};
-        poolSizes[0].type = CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        std::array<VkDescriptorPoolSize, 2> poolSizes{};
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(mSwapChainImages.size());
-        poolSizes[1].type = CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes[1].descriptorCount = static_cast<uint32_t>(mSwapChainImages.size());
 
-        CtsDescriptorPoolCreateInfo poolInfo{};
-        poolInfo.sType = CTS_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = static_cast<uint32_t>(mSwapChainImages.size());
 
-        if (ctsCreateDescriptorPool(mDevice, &poolInfo, mAllocator, &mDescriptorPool) != CTS_SUCCESS) {
+        if (ctsCreateDescriptorPool(mDevice, &poolInfo, mAllocator, &mDescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
 
     void createDescriptorSets() {
-        std::vector<CtsDescriptorSetLayout> layouts(mSwapChainImages.size(), mDescriptorSetLayout);
+        std::vector<VkDescriptorSetLayout> layouts(mSwapChainImages.size(), mDescriptorSetLayout);
         
-        CtsDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = CTS_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = mDescriptorPool;
         allocInfo.descriptorSetCount = static_cast<uint32_t>(mSwapChainImages.size());
         allocInfo.pSetLayouts = layouts.data();
 
         mDescriptorSets.resize(mSwapChainImages.size());
-        if (ctsAllocateDescriptorSets(mDevice, &allocInfo, mDescriptorSets.data()) != CTS_SUCCESS) {
+        if (ctsAllocateDescriptorSets(mDevice, &allocInfo, mDescriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
         for (size_t i = 0; i < mSwapChainImages.size(); i++) {
-            CtsDescriptorBufferInfo bufferInfo{};
+            VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = mUniformBuffers[i];
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
-            CtsDescriptorImageInfo imageInfo{};
-            imageInfo.imageLayout = CTS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = mTextureImageView;
             imageInfo.sampler = mTextureSampler;
 
-            std::array<CtsWriteDescriptorSet, 2> descriptorWrites{};
-            descriptorWrites[0].sType = CTS_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = mDescriptorSets[i];
             descriptorWrites[0].dstBinding = 0;
             descriptorWrites[0].dstArrayElement = 0;
-            descriptorWrites[0].descriptorType = CTS_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrites[0].descriptorCount = 1;
             descriptorWrites[0].pBufferInfo = &bufferInfo;
             descriptorWrites[0].pImageInfo = nullptr; // Optional
             descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
-            descriptorWrites[1].sType = CTS_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[1].dstSet = mDescriptorSets[i]; 
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
-            descriptorWrites[1].descriptorType = CTS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pBufferInfo = nullptr; // Optional
             descriptorWrites[1].pImageInfo = &imageInfo;
@@ -950,32 +952,32 @@ private:
     void createCommandBuffers() {
         mCommandBuffers.resize(mSwapChainFramebuffers.size());
 
-        CtsCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = CTS_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = mCommandPool;
-        allocInfo.level = CTS_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = (uint32_t) mCommandBuffers.size();
 
-        if (ctsAllocateCommandBuffers(mDevice, &allocInfo, mCommandBuffers.data()) != CTS_SUCCESS) {
+        if (ctsAllocateCommandBuffers(mDevice, &allocInfo, mCommandBuffers.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
 
         for (size_t i = 0; i < mCommandBuffers.size(); i++) {
-            CtsCommandBufferBeginInfo beginInfo{};
-            beginInfo.sType = CTS_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            VkCommandBufferBeginInfo beginInfo{};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.flags = 0; // Optional
             beginInfo.pInheritanceInfo = nullptr; // Optional
 
-            if (ctsBeginCommandBuffer(mCommandBuffers[i], &beginInfo) != CTS_SUCCESS) {
+            if (ctsBeginCommandBuffer(mCommandBuffers[i], &beginInfo) != VK_SUCCESS) {
                 throw std::runtime_error("failed to begin recording command buffer!");
             }
 
-            std::array<CtsClearValue, 2> clearValues{};
+            std::array<VkClearValue, 2> clearValues{};
             clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
             clearValues[1].depthStencil = {1.0f, 0};
 
-            CtsRenderPassBeginInfo renderPassInfo{};
-            renderPassInfo.sType = CTS_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            VkRenderPassBeginInfo renderPassInfo{};
+            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             renderPassInfo.renderPass = mRenderPass;
             renderPassInfo.framebuffer = mSwapChainFramebuffers[i];
             renderPassInfo.renderArea.offset = {0, 0};
@@ -983,20 +985,20 @@ private:
             renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
             renderPassInfo.pClearValues = clearValues.data();
 
-            ctsCmdBeginRenderPass(mCommandBuffers[i], &renderPassInfo, CTS_SUBPASS_CONTENTS_INLINE);
-            ctsCmdBindPipeline(mCommandBuffers[i], CTS_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+            ctsCmdBeginRenderPass(mCommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+            ctsCmdBindPipeline(mCommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 
-            CtsBuffer vertexBuffers[] = { mVertexBuffer };
-            CtsDeviceSize offsets[] = { 0 };
+            VkBuffer vertexBuffers[] = { mVertexBuffer };
+            VkDeviceSize offsets[] = { 0 };
             ctsCmdBindVertexBuffers(mCommandBuffers[i], 0, 1, vertexBuffers, offsets);
 
-            ctsCmdBindIndexBuffer(mCommandBuffers[i], mIndexBuffer, 0, CTS_INDEX_TYPE_UINT32);
-            ctsCmdBindDescriptorSets(mCommandBuffers[i], CTS_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[i], 0, nullptr);
+            ctsCmdBindIndexBuffer(mCommandBuffers[i], mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            ctsCmdBindDescriptorSets(mCommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[i], 0, nullptr);
 
             ctsCmdDrawIndexed(mCommandBuffers[i], static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
             ctsCmdEndRenderPass(mCommandBuffers[i]);
 
-            if (ctsEndCommandBuffer(mCommandBuffers[i]) != CTS_SUCCESS) {
+            if (ctsEndCommandBuffer(mCommandBuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to record command buffer!");
             }
         }
@@ -1006,19 +1008,19 @@ private:
         mImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         mRenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         mInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-        mImagesInFlight.resize(mSwapChainImages.size(), CTS_NULL_HANDLE);
+        mImagesInFlight.resize(mSwapChainImages.size(), VK_NULL_HANDLE);
 
-        CtsSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = CTS_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        CtsFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = CTS_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = CTS_FENCE_CREATE_SIGNALED_BIT;
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            if (ctsCreateSemaphore(mDevice, &semaphoreInfo, mAllocator, &mImageAvailableSemaphores[i]) != CTS_SUCCESS ||
-                ctsCreateSemaphore(mDevice, &semaphoreInfo, mAllocator, &mRenderFinishedSemaphores[i]) != CTS_SUCCESS ||
-                ctsCreateFence(mDevice, &fenceInfo, mAllocator, &mInFlightFences[i]) != CTS_SUCCESS
+            if (ctsCreateSemaphore(mDevice, &semaphoreInfo, mAllocator, &mImageAvailableSemaphores[i]) != VK_SUCCESS ||
+                ctsCreateSemaphore(mDevice, &semaphoreInfo, mAllocator, &mRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+                ctsCreateFence(mDevice, &fenceInfo, mAllocator, &mInFlightFences[i]) != VK_SUCCESS
             ) {
                 throw std::runtime_error("failed to create synchronization objects for a frame!");
             }
@@ -1033,33 +1035,33 @@ private:
     }
 
     void drawFrame() {
-        ctsWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], CTS_TRUE, UINT64_MAX);
+        ctsWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex = 0;
-        CtsResult result = ctsAcquireNextImage(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], CTS_NULL_HANDLE, &imageIndex);
+        VkResult result = ctsAcquireNextImage(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
-        if (result == CTS_ERROR_OUT_OF_DATE) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             recreateSwapChain();
             return;
-        } else if (result != CTS_SUCCESS && result != CTS_SUBOPTIMAL) {
+        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        if (mImagesInFlight[imageIndex] != CTS_NULL_HANDLE) {
-            ctsWaitForFences(mDevice, 1, &mImagesInFlight[imageIndex], CTS_TRUE, UINT64_MAX);
+        if (mImagesInFlight[imageIndex] != VK_NULL_HANDLE) {
+            ctsWaitForFences(mDevice, 1, &mImagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
         }
 
         mImagesInFlight[imageIndex] = mInFlightFences[mCurrentFrame];
 
         updateUniformBuffer(imageIndex);
 
-        CtsSubmitInfo submitInfo{};
-        submitInfo.sType = CTS_STRUCTURE_TYPE_SUBMIT_INFO;
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        CtsSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
-        CtsSemaphore signalSemaphores[] = { mRenderFinishedSemaphores[mCurrentFrame] };
+        VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
+        VkSemaphore signalSemaphores[] = { mRenderFinishedSemaphores[mCurrentFrame] };
 
-        CtsPipelineStageFlags waitStages[] = { CTS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
@@ -1070,25 +1072,25 @@ private:
 
         ctsResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
 
-        if (ctsQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != CTS_SUCCESS) {
+        if (ctsQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
 
-        CtsPresentInfo presentInfo{};
-        presentInfo.sType = CTS_STRUCTURE_TYPE_PRESENT_INFO;
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
 
-        CtsSwapchain swapChains[] = {mSwapChain};
+        VkSwapchainKHR swapChains[] = {mSwapChain};
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr; // Optional
 
         result = ctsQueuePresent(mPresentQueue, &presentInfo);
-        if (result == CTS_ERROR_OUT_OF_DATE || result == CTS_SUBOPTIMAL) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
             recreateSwapChain();
-        } else if (result != CTS_SUCCESS) {
+        } else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");
         }
 
@@ -1160,7 +1162,7 @@ private:
         DestroyWindow(mWindow);
     }
 
-    QueueFamilyIndices findQueueFamilies(CtsPhysicalDevice physicalDevice) {
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice) {
         QueueFamilyIndices indices {
             QueueFamilyIndices::INVALID_QUEUE_FAMILY,
             QueueFamilyIndices::INVALID_QUEUE_FAMILY
@@ -1169,16 +1171,16 @@ private:
         uint32_t queueFamilyCount = 0;
         ctsGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
-        std::vector<CtsQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         ctsGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
         uint32_t queueFamilyIndex = 0;
-        CtsBool32 presentSupport = false;
+        VkBool32 presentSupport = false;
 
         for (const auto& queueFamily : queueFamilies) {
             ctsGetPhysicalDeviceSurfaceSupport(physicalDevice, queueFamilyIndex, mSurface, &presentSupport);
 
-            if (queueFamily.queueFlags & CTS_QUEUE_GRAPHICS_BIT) {
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 indices.graphicsFamily = queueFamilyIndex;
             }
 
@@ -1196,7 +1198,7 @@ private:
         return indices;
     }
 
-    SwapChainSupportDetails querySwapChainSupport(CtsPhysicalDevice physicalDevice) {
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice) {
         SwapChainSupportDetails details;
         ctsGetPhysicalDeviceSurfaceCapabilities(physicalDevice, mSurface, &details.capabilities);
 
@@ -1219,9 +1221,9 @@ private:
         return details;
     }
 
-    CtsSurfaceFormat chooseSwapSurfaceFormat(const std::vector<CtsSurfaceFormat>& availableFormats) {
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         for (const auto& availableFormat : availableFormats) {
-            if (availableFormat.format == CTS_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == CTS_COLOR_SPACE_SRGB_NONLINEAR) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 return availableFormat;
             }
         }
@@ -1229,27 +1231,27 @@ private:
         return availableFormats[0];
     }
 
-    CtsPresentMode chooseSwapPresentMode(const std::vector<CtsPresentMode>& availablePresentModes) {
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
         for (const auto& availablePresentMode : availablePresentModes) {
-            if (availablePresentMode == CTS_PRESENT_MODE_MAILBOX) {
+            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
                 return availablePresentMode;
             }
         }
 
-        return CTS_PRESENT_MODE_FIFO;
+        return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    CtsExtent2D chooseSwapExtent(const CtsSurfaceCapabilities& capabilities) {
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
         if (capabilities.currentExtent.width != UINT32_MAX) {
             return capabilities.currentExtent;
         } 
         
         RECT rect;
         if (!GetWindowRect(mWindow, &rect)) {
-            return CtsExtent2D{0, 0};
+            return VkExtent2D{0, 0};
         }
 
-        CtsExtent2D actualExtent;
+        VkExtent2D actualExtent;
         actualExtent.width  = (uint32_t)(rect.right - rect.left);
         actualExtent.height = (uint32_t)(rect.bottom - rect.top);
 
@@ -1259,15 +1261,15 @@ private:
         return actualExtent;
     }
 
-    bool checkDeviceExtensionSupport(CtsPhysicalDevice physicalDevice) {
+    bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice) {
         static const std::vector<const char*> deviceExtensions = {
-            CTS_SWAPCHAIN_EXTENSION_NAME
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
 
         uint32_t extensionCount;
         ctsEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
 
-        std::vector<CtsExtensionProperties> availableExtensions(extensionCount);
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
         ctsEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
@@ -1279,7 +1281,7 @@ private:
         return requiredExtensions.empty();
     }
 
-    bool isDeviceSuitable(CtsPhysicalDevice device) {
+    bool isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices indices = findQueueFamilies(device);
         bool extensionsSupported = checkDeviceExtensionSupport(device);
 
@@ -1292,14 +1294,14 @@ private:
         return indices.isComplete() && extensionsSupported && swapChainAdequate;
     }
 
-    CtsShaderModule createShaderModule(const std::vector<char>& code) {
-        CtsShaderModuleCreateInfo createInfo{};
-        createInfo.sType = CTS_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    VkShaderModule createShaderModule(const std::vector<char>& code) {
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();
         createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-        CtsShaderModule shaderModule;
-        if (ctsCreateShaderModule(mDevice, &createInfo, mAllocator, &shaderModule) != CTS_SUCCESS) {
+        VkShaderModule shaderModule;
+        if (ctsCreateShaderModule(mDevice, &createInfo, mAllocator, &shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module!");
         }
 
@@ -1323,8 +1325,8 @@ private:
         return buffer;
     }
 
-    uint32_t findMemoryType(uint32_t typeFilter, CtsMemoryPropertyFlags properties) {
-        CtsPhysicalDeviceMemoryProperties memProperties;
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+        VkPhysicalDeviceMemoryProperties memProperties;
         ctsGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
@@ -1336,36 +1338,36 @@ private:
         throw std::runtime_error("failed to find suitable memory type!");
     }
 
-    void createBuffer(CtsDeviceSize size, CtsBufferUsageFlags usage, CtsMemoryPropertyFlags properties, CtsBuffer& buffer, CtsDeviceMemory& bufferMemory) {
-        CtsBufferCreateInfo bufferInfo{};
-        bufferInfo.sType = CTS_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
         bufferInfo.usage = usage;
-        bufferInfo.sharingMode = CTS_SHARING_MODE_EXCLUSIVE;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (ctsCreateBuffer(mDevice, &bufferInfo, mAllocator, &buffer) != CTS_SUCCESS) {
+        if (ctsCreateBuffer(mDevice, &bufferInfo, mAllocator, &buffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to create buffer!");
         }
 
-        CtsMemoryRequirements memRequirements;
+        VkMemoryRequirements memRequirements;
         ctsGetBufferMemoryRequirements(mDevice, buffer, &memRequirements);
 
-        CtsMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = CTS_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
         allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-        if (ctsAllocateMemory(mDevice, &allocInfo, mAllocator, &bufferMemory) != CTS_SUCCESS) {
+        if (ctsAllocateMemory(mDevice, &allocInfo, mAllocator, &bufferMemory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate buffer memory!");
         }
 
         ctsBindBufferMemory(mDevice, buffer, bufferMemory, 0);
     }
 
-    void copyBuffer(CtsBuffer srcBuffer, CtsBuffer dstBuffer, CtsDeviceSize size) {
-        CtsCommandBuffer commandBuffer = beginSingleTimeCommands();
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-        CtsBufferCopy copyRegion{};
+        VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0; // Optional
         copyRegion.dstOffset = 0; // Optional
         copyRegion.size = size;
@@ -1374,15 +1376,15 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    void copyBufferToImage(CtsBuffer buffer, CtsImage image, uint32_t width, uint32_t height) {
-        CtsCommandBuffer commandBuffer = beginSingleTimeCommands();
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-        CtsBufferImageCopy region{};
+        VkBufferImageCopy region{};
         region.bufferOffset = 0;
         region.bufferRowLength = 0;
         region.bufferImageHeight = 0;
 
-        region.imageSubresource.aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         region.imageSubresource.mipLevel = 0;
         region.imageSubresource.baseArrayLayer = 0;
         region.imageSubresource.layerCount = 1;
@@ -1398,7 +1400,7 @@ private:
             commandBuffer,
             buffer,
             image,
-            CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &region
         );
@@ -1406,53 +1408,53 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    void transitionImageLayout(CtsImage image, CtsFormat format, CtsImageLayout oldLayout, CtsImageLayout newLayout, uint32_t mipLevels) {
-        CtsCommandBuffer commandBuffer = beginSingleTimeCommands();
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-        CtsImageMemoryBarrier barrier{};
-        barrier.sType = CTS_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.oldLayout = oldLayout;
         barrier.newLayout = newLayout;
-        barrier.srcQueueFamilyIndex = CTS_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = CTS_QUEUE_FAMILY_IGNORED;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.image = image;
-        barrier.subresourceRange.aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseMipLevel = 0;
         barrier.subresourceRange.levelCount = mipLevels;
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
 
-        CtsPipelineStageFlags sourceStage;
-        CtsPipelineStageFlags destinationStage;
+        VkPipelineStageFlags sourceStage;
+        VkPipelineStageFlags destinationStage;
 
-        if (newLayout == CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-            barrier.subresourceRange.aspectMask = CTS_IMAGE_ASPECT_DEPTH_BIT;
+        if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
             if (hasStencilComponent(format)) {
-                barrier.subresourceRange.aspectMask |= CTS_IMAGE_ASPECT_STENCIL_BIT;
+                barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
             }
         } else {
-            barrier.subresourceRange.aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         }
 
-        if (oldLayout == CTS_IMAGE_LAYOUT_UNDEFINED && newLayout == CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
             barrier.srcAccessMask = 0;
-            barrier.dstAccessMask = CTS_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-            sourceStage = CTS_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destinationStage = CTS_PIPELINE_STAGE_TRANSFER_BIT;
-        } else if (oldLayout == CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == CTS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            barrier.srcAccessMask = CTS_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask = CTS_ACCESS_SHADER_READ_BIT;
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-            sourceStage = CTS_PIPELINE_STAGE_TRANSFER_BIT;
-            destinationStage = CTS_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } else if (oldLayout == CTS_IMAGE_LAYOUT_UNDEFINED && newLayout == CTS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
             barrier.srcAccessMask = 0;
-            barrier.dstAccessMask = CTS_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | CTS_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-            sourceStage = CTS_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destinationStage = CTS_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         } else {
             throw std::invalid_argument("unsupported layout transition!");
         }
@@ -1492,17 +1494,17 @@ private:
         uint32_t width, 
         uint32_t height, 
         uint32_t mipLevels,
-        CtsSampleCountFlagBits numSamples,
-        CtsFormat format, 
-        CtsImageTiling tiling, 
-        CtsImageUsageFlags usage, 
-        CtsMemoryPropertyFlags properties, 
-        CtsImage& image, 
-        CtsDeviceMemory& imageMemory
+        VkSampleCountFlagBits numSamples,
+        VkFormat format, 
+        VkImageTiling tiling, 
+        VkImageUsageFlags usage, 
+        VkMemoryPropertyFlags properties, 
+        VkImage& image, 
+        VkDeviceMemory& imageMemory
     ) {
-        CtsImageCreateInfo imageInfo{};
-        imageInfo.sType = CTS_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = CTS_IMAGE_TYPE_2D;
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
         imageInfo.extent.width = static_cast<uint32_t>(width);
         imageInfo.extent.height = static_cast<uint32_t>(height);
         imageInfo.extent.depth = 1;
@@ -1510,64 +1512,64 @@ private:
         imageInfo.arrayLayers = 1;
         imageInfo.format = format;
         imageInfo.tiling = tiling;
-        imageInfo.initialLayout = CTS_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
         imageInfo.samples = numSamples;
-        imageInfo.sharingMode = CTS_SHARING_MODE_EXCLUSIVE;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageInfo.flags = 0; // Optional
 
-        if (ctsCreateImage(mDevice, &imageInfo, mAllocator, &image) != CTS_SUCCESS) {
+        if (ctsCreateImage(mDevice, &imageInfo, mAllocator, &image) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image!");
         }
 
-        CtsMemoryRequirements memRequirements;
+        VkMemoryRequirements memRequirements;
         ctsGetImageMemoryRequirements(mDevice, image, &memRequirements);
 
-        CtsMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = CTS_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
         allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-        if (ctsAllocateMemory(mDevice, &allocInfo, mAllocator, &imageMemory) != CTS_SUCCESS) {
+        if (ctsAllocateMemory(mDevice, &allocInfo, mAllocator, &imageMemory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
         ctsBindImageMemory(mDevice, image, imageMemory, 0);
     }
 
-    CtsImageView createImageView(CtsImage image, CtsFormat format, CtsImageAspectFlags aspectFlags, uint32_t mipLevels) {
-        CtsImageViewCreateInfo viewInfo{};
-        viewInfo.sType = CTS_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = image;
-        viewInfo.viewType = CTS_IMAGE_VIEW_TYPE_2D;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         viewInfo.format = format;
-        viewInfo.components.r = CTS_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.g = CTS_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.b = CTS_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.a = CTS_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
         viewInfo.subresourceRange.aspectMask = aspectFlags;
         viewInfo.subresourceRange.baseMipLevel = 0;
         viewInfo.subresourceRange.levelCount = mipLevels;
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        CtsImageView imageView;
-        if (ctsCreateImageView(mDevice, &viewInfo, mAllocator, &imageView) != CTS_SUCCESS) {
+        VkImageView imageView;
+        if (ctsCreateImageView(mDevice, &viewInfo, mAllocator, &imageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");
         }
 
         return imageView;
     }
 
-    void generateMipmaps(CtsImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
-        CtsCommandBuffer commandBuffer = beginSingleTimeCommands();
+    void generateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
-        CtsImageMemoryBarrier barrier{};
-        barrier.sType = CTS_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.image = image;
-        barrier.srcQueueFamilyIndex = CTS_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = CTS_QUEUE_FAMILY_IGNORED;
-        barrier.subresourceRange.aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
         barrier.subresourceRange.levelCount = 1;
@@ -1577,15 +1579,15 @@ private:
 
         for (uint32_t i = 1; i < mipLevels; i++) {
             barrier.subresourceRange.baseMipLevel = i - 1;
-            barrier.oldLayout = CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            barrier.newLayout = CTS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            barrier.srcAccessMask = CTS_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask = CTS_ACCESS_TRANSFER_READ_BIT;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
             ctsCmdPipelineBarrier(
                 commandBuffer,
-                CTS_PIPELINE_STAGE_TRANSFER_BIT,
-                CTS_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
                 0,
                 0,
                 nullptr,
@@ -1595,16 +1597,16 @@ private:
                 &barrier
             );
 
-            CtsImageBlit blit{};
+            VkImageBlit blit{};
             blit.srcOffsets[0] = { 0, 0, 0 };
             blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
-            blit.srcSubresource.aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT;
+            blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             blit.srcSubresource.mipLevel = i - 1;
             blit.srcSubresource.baseArrayLayer = 0;
             blit.srcSubresource.layerCount = 1;
             blit.dstOffsets[0] = { 0, 0, 0 };
             blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
-            blit.dstSubresource.aspectMask = CTS_IMAGE_ASPECT_COLOR_BIT;
+            blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             blit.dstSubresource.mipLevel = i;
             blit.dstSubresource.baseArrayLayer = 0;
             blit.dstSubresource.layerCount = 1;
@@ -1612,23 +1614,23 @@ private:
             ctsCmdBlitImage(
                 commandBuffer,
                 image,
-                CTS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 image,
-                CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &blit,
-                CTS_FILTER_LINEAR
+                VK_FILTER_LINEAR
             );
 
-            barrier.oldLayout = CTS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            barrier.newLayout = CTS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            barrier.srcAccessMask = CTS_ACCESS_TRANSFER_READ_BIT;
-            barrier.dstAccessMask = CTS_ACCESS_SHADER_READ_BIT;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
             ctsCmdPipelineBarrier(
                 commandBuffer,
-                CTS_PIPELINE_STAGE_TRANSFER_BIT,
-                CTS_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 0,
                 0,
                 nullptr,
@@ -1643,15 +1645,15 @@ private:
         }
 
         barrier.subresourceRange.baseMipLevel = mipLevels - 1;
-        barrier.oldLayout = CTS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.newLayout = CTS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrier.srcAccessMask = CTS_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = CTS_ACCESS_SHADER_READ_BIT;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         ctsCmdPipelineBarrier(
             commandBuffer,
-            CTS_PIPELINE_STAGE_TRANSFER_BIT,
-            CTS_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
             0,
             0,
             nullptr,
@@ -1664,47 +1666,47 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    CtsCommandBuffer beginSingleTimeCommands() {
-        CtsCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = CTS_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = CTS_COMMAND_BUFFER_LEVEL_PRIMARY;
+    VkCommandBuffer beginSingleTimeCommands() {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandPool = mCommandPool;
         allocInfo.commandBufferCount = 1;
 
-        CtsCommandBuffer commandBuffer;
+        VkCommandBuffer commandBuffer;
         ctsAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer);
 
-        CtsCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = CTS_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = CTS_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
         ctsBeginCommandBuffer(commandBuffer, &beginInfo); 
 
         return commandBuffer;
     }
 
-    void endSingleTimeCommands(CtsCommandBuffer commandBuffer) {
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
         ctsEndCommandBuffer(commandBuffer);
 
-        CtsSubmitInfo submitInfo{};
-        submitInfo.sType = CTS_STRUCTURE_TYPE_SUBMIT_INFO;
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        ctsQueueSubmit(mGraphicsQueue, 1, &submitInfo, CTS_NULL_HANDLE);
+        ctsQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
         ctsQueueWaitIdle(mGraphicsQueue);
 
         ctsFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
     }
 
-    CtsFormat findSupportedFormat(const std::vector<CtsFormat>& candidates, CtsImageTiling tiling, CtsFormatFeatureFlags features) {
-        for (CtsFormat format : candidates) {
-            CtsFormatProperties props;
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+        for (VkFormat format : candidates) {
+            VkFormatProperties props;
             ctsGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &props);
 
-            if (tiling == CTS_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
                 return format;
-            } else if (tiling == CTS_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
                 return format;
             }
         }
@@ -1712,89 +1714,89 @@ private:
         throw std::runtime_error("failed to find supported format!");
     }
 
-    CtsFormat findDepthFormat() {
+    VkFormat findDepthFormat() {
         return findSupportedFormat(
-            {CTS_FORMAT_D32_SFLOAT, CTS_FORMAT_D32_SFLOAT_S8_UINT, CTS_FORMAT_D24_UNORM_S8_UINT},
-            CTS_IMAGE_TILING_OPTIMAL,
-            CTS_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
     }
 
-    bool hasStencilComponent(CtsFormat format) {
-        return format == CTS_FORMAT_D32_SFLOAT_S8_UINT || format == CTS_FORMAT_D24_UNORM_S8_UINT;
+    bool hasStencilComponent(VkFormat format) {
+        return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
-    CtsSampleCountFlagBits getMaxUsableSampleCount() {
-        CtsPhysicalDeviceProperties physicalDeviceProperties;
+    VkSampleCountFlagBits getMaxUsableSampleCount() {
+        VkPhysicalDeviceProperties physicalDeviceProperties;
         ctsGetPhysicalDeviceProperties(mPhysicalDevice, &physicalDeviceProperties);
 
-        CtsSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-        if (counts & CTS_SAMPLE_COUNT_64_BIT) { return CTS_SAMPLE_COUNT_64_BIT; }
-        if (counts & CTS_SAMPLE_COUNT_32_BIT) { return CTS_SAMPLE_COUNT_32_BIT; }
-        if (counts & CTS_SAMPLE_COUNT_16_BIT) { return CTS_SAMPLE_COUNT_16_BIT; }
-        if (counts & CTS_SAMPLE_COUNT_8_BIT) { return CTS_SAMPLE_COUNT_8_BIT; }
-        if (counts & CTS_SAMPLE_COUNT_4_BIT) { return CTS_SAMPLE_COUNT_4_BIT; }
-        if (counts & CTS_SAMPLE_COUNT_2_BIT) { return CTS_SAMPLE_COUNT_2_BIT; }
+        VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+        if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+        if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+        if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+        if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+        if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+        if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
 
-        return CTS_SAMPLE_COUNT_1_BIT;
+        return VK_SAMPLE_COUNT_1_BIT;
     }
 
-    const CtsAllocationCallbacks* mAllocator;
+    const VkAllocationCallbacks* mAllocator;
     HWND mWindow;
-    CtsInstance mInstance;
-    CtsPhysicalDevice mPhysicalDevice;
-    CtsSampleCountFlagBits mMsaaSamples;
+    VkInstance mInstance;
+    VkPhysicalDevice mPhysicalDevice;
+    VkSampleCountFlagBits mMsaaSamples;
     uint32_t mQueueFamilyIndex;
-    CtsDevice mDevice;
-    CtsQueue mGraphicsQueue;
-    CtsQueue mPresentQueue;
-    CtsSurface mSurface;
-    CtsSwapchain mSwapChain;
-    std::vector<CtsImage> mSwapChainImages;
-    std::vector<CtsImageView> mSwapChainImageViews;
-    CtsFormat mSwapChainImageFormat;
-    CtsExtent2D mSwapChainExtent;
-    CtsRenderPass mRenderPass;
-    CtsDescriptorSetLayout mDescriptorSetLayout;
-    CtsPipelineLayout mPipelineLayout;
-    CtsPipeline mGraphicsPipeline;
-    std::vector<CtsFramebuffer> mSwapChainFramebuffers;
-    CtsCommandPool mCommandPool;
+    VkDevice mDevice;
+    VkQueue mGraphicsQueue;
+    VkQueue mPresentQueue;
+    VkSurfaceKHR mSurface;
+    VkSwapchainKHR mSwapChain;
+    std::vector<VkImage> mSwapChainImages;
+    std::vector<VkImageView> mSwapChainImageViews;
+    VkFormat mSwapChainImageFormat;
+    VkExtent2D mSwapChainExtent;
+    VkRenderPass mRenderPass;
+    VkDescriptorSetLayout mDescriptorSetLayout;
+    VkPipelineLayout mPipelineLayout;
+    VkPipeline mGraphicsPipeline;
+    std::vector<VkFramebuffer> mSwapChainFramebuffers;
+    VkCommandPool mCommandPool;
     
     std::vector<Vertex> mVertices;
     std::vector<uint32_t> mIndices;
     
-    CtsBuffer mVertexBuffer;
-    CtsDeviceMemory mVertexBufferMemory;
-    CtsBuffer mIndexBuffer;
-    CtsDeviceMemory mIndexBufferMemory;
+    VkBuffer mVertexBuffer;
+    VkDeviceMemory mVertexBufferMemory;
+    VkBuffer mIndexBuffer;
+    VkDeviceMemory mIndexBufferMemory;
 
-    CtsImage mColorImage;
-    CtsDeviceMemory mColorImageMemory;
-    CtsImageView mColorImageView;
+    VkImage mColorImage;
+    VkDeviceMemory mColorImageMemory;
+    VkImageView mColorImageView;
 
-    CtsImage mDepthImage;
-    CtsDeviceMemory mDepthImageMemory;
-    CtsImageView mDepthImageView;
+    VkImage mDepthImage;
+    VkDeviceMemory mDepthImageMemory;
+    VkImageView mDepthImageView;
 
-    CtsImage mTextureImage;
-    CtsDeviceMemory mTextureImageMemory;
-    CtsImageView mTextureImageView;
-    CtsSampler mTextureSampler;
+    VkImage mTextureImage;
+    VkDeviceMemory mTextureImageMemory;
+    VkImageView mTextureImageView;
+    VkSampler mTextureSampler;
     uint32_t mMipLevels;
 
-    std::vector<CtsBuffer> mUniformBuffers;
-    std::vector<CtsDeviceMemory> mUniformBuffersMemory;
+    std::vector<VkBuffer> mUniformBuffers;
+    std::vector<VkDeviceMemory> mUniformBuffersMemory;
     std::vector<void*> mUniformBuffersData;
 
-    CtsDescriptorPool mDescriptorPool;
-    std::vector<CtsDescriptorSet> mDescriptorSets;
+    VkDescriptorPool mDescriptorPool;
+    std::vector<VkDescriptorSet> mDescriptorSets;
 
-    std::vector<CtsCommandBuffer> mCommandBuffers;
-    std::vector<CtsSemaphore> mImageAvailableSemaphores;
-    std::vector<CtsSemaphore> mRenderFinishedSemaphores;
-    std::vector<CtsFence> mInFlightFences;
-    std::vector<CtsFence> mImagesInFlight;
+    std::vector<VkCommandBuffer> mCommandBuffers;
+    std::vector<VkSemaphore> mImageAvailableSemaphores;
+    std::vector<VkSemaphore> mRenderFinishedSemaphores;
+    std::vector<VkFence> mInFlightFences;
+    std::vector<VkFence> mImagesInFlight;
     size_t mCurrentFrame;
 };
 

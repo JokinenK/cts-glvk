@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/command_types.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/command_types.h"
 
 #ifdef __cplusplus
 extern "C" {

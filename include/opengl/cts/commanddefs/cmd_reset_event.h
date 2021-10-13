@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct CtsCmdResetEvent {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsEvent event;
-    CtsPipelineStageFlags stageMask;
+    VkCommandBuffer commandBuffer;
+    VkEvent event;
+    VkPipelineStageFlags stageMask;
 } CtsCmdResetEvent;
 
 #ifdef __cplusplus

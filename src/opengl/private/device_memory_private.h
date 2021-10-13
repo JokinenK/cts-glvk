@@ -1,56 +1,54 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <cts/typedefs/device_memory.h>
-#include <cts/typedefs/device_size.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsDeviceMemoryImpl {
-    
+struct CtsDeviceMemory {
     GLenum handle;
-    CtsDeviceSize size;
+    VkDeviceSize size;
     uint32_t heapIndex;
-    CtsMemoryPropertyFlags propertyFlags;
-    const CtsAllocationCallbacks* pAllocator;
+    VkMemoryPropertyFlags propertyFlags;
+    const VkAllocationCallbacks* pAllocator;
 
-    CtsImage images;
+    struct CtsImage* images;
     void* pMappedMemory;
 };
 
-CtsResult ctsAllocateMemoryImpl(
-    CtsDevice device,
-    const CtsMemoryAllocateInfo* pAllocateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDeviceMemory* pMemory
+VkResult ctsAllocateMemoryImpl(
+    VkDevice device,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDeviceMemory* pMemory
 );
 
-CtsResult ctsMapMemoryImpl(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset,
-    CtsDeviceSize size,
-    CtsMemoryMapFlags flags,
-    void** pData
+VkResult ctsMapMemoryImpl(
+    VkDevice device,
+    VkDeviceMemory memory,
+    VkDeviceSize offset,
+    VkDeviceSize size,
+    VkMemoryMapFlags flags,
+    void** ppData
 );
 
 void ctsUnmapMemoryImpl(
-    CtsDevice device,
-    CtsDeviceMemory memory
+    VkDevice device,
+    VkDeviceMemory memory
 );
 
-CtsResult ctsFlushMappedMemoryRangesImpl(
-    CtsDevice device,
+VkResult ctsFlushMappedMemoryRangesImpl(
+    VkDevice device,
     uint32_t memoryRangeCount,
-    const CtsMappedMemoryRange* pMemoryRanges
+    const VkMappedMemoryRange* pMemoryRanges
 );
 
 void ctsFreeMemoryImpl(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkDeviceMemory memory,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

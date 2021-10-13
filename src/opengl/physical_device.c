@@ -1,11 +1,14 @@
 #include <stddef.h>
 #include <string.h>
 #include <float.h>
-#include <glad/glad.h>
+#include "glad/glad.h"
+#include <cts/macros.h>
 #include <cts/constants.h>
 #include <cts/instance.h>
-#include <cts/platform_mutex.h>
-#include <cts/platform_condition_variable.h>
+#include <cts/type_mapper.h>
+#include <cts/platform/platform_mutex.h>
+#include <cts/platform/platform_condition_variable.h>
+#include <private/private.h>
 #include <private/instance_private.h>
 #include <private/physical_device_private.h>
 #include <private/swapchain_private.h>
@@ -16,21 +19,21 @@
 extern "C" {
 #endif
 
-static void parseDeviceFeatures(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceFeatures* pFeatures);
-static void parseDeviceProperties(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceProperties* pProperties);
-static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceLimits* pLimits);
+static void parseDeviceFeatures(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceFeatures* pFeatures);
+static void parseDeviceProperties(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceProperties* pProperties);
+static void parseDeviceLimits(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceLimits* pLimits);
 
-static bool isValidFormat(CtsFormat format);
-static bool isPackedFormat(CtsFormat format);
-static bool isSignedIntegerFormat(CtsFormat format);
-static bool isUnsignedIntegerFormat(CtsFormat format);
-static bool isSignedFloatFormat(CtsFormat format);
-static bool isBufferCompatible(CtsFormat format);
-static bool hasColorComponent(CtsFormat format);
-static bool hasDepthComponent(CtsFormat format);
-static bool hasStencilComponent(CtsFormat format);
+static bool isValidFormat(VkFormat format);
+static bool isPackedFormat(VkFormat format);
+static bool isSignedIntegerFormat(VkFormat format);
+static bool isUnsignedIntegerFormat(VkFormat format);
+static bool isSignedFloatFormat(VkFormat format);
+static bool isBufferCompatible(VkFormat format);
+static bool hasColorComponent(VkFormat format);
+static bool hasDepthComponent(VkFormat format);
+static bool hasStencilComponent(VkFormat format);
 
-void ctsPhysicalDeviceInit(CtsPhysicalDevice physicalDevice, CtsInstance instance, const CtsAllocationCallbacks* pAllocator) {
+void ctsPhysicalDeviceInit(struct CtsPhysicalDevice* physicalDevice, struct CtsInstance* instance, const VkAllocationCallbacks* pAllocator) {
     ctsInitPlatformMutex(&physicalDevice->mutex);
     ctsInitPlatformConditionVariable(&physicalDevice->conditionVariable);
 
@@ -44,7 +47,7 @@ void ctsPhysicalDeviceInit(CtsPhysicalDevice physicalDevice, CtsInstance instanc
     physicalDevice->isInitialized = false;
 }
 
-void ctsPhysicalDeviceDestroy(CtsPhysicalDevice physicalDevice, const CtsAllocationCallbacks* pAllocator) {
+void ctsPhysicalDeviceDestroy(struct CtsPhysicalDevice* physicalDevice, const VkAllocationCallbacks* pAllocator) {
     physicalDevice->isRunning = false;
     
     ctsWakeAllPlatformConditionVariable(&physicalDevice->conditionVariable);
@@ -53,14 +56,15 @@ void ctsPhysicalDeviceDestroy(CtsPhysicalDevice physicalDevice, const CtsAllocat
     ctsDestroyQueue(physicalDevice->queue, pAllocator);
 }
 
-void ctsPhysicalDeviceSetSurface(CtsPhysicalDevice physicalDevice, CtsSurface surface) {
+void ctsPhysicalDeviceSetSurface(struct CtsPhysicalDevice* physicalDevice, struct CtsSurface* surface) {
     physicalDevice->surface = surface;
     ctsWakeAllPlatformConditionVariable(&physicalDevice->conditionVariable);
 
     while (physicalDevice->isRunning && !physicalDevice->isInitialized);
 }
 
-bool ctsPhysicalDeviceWaitSurface(CtsPhysicalDevice physicalDevice) {
+bool ctsPhysicalDeviceWaitSurface(struct CtsPhysicalDevice* physicalDevice) {
+
     ctsLockPlatformMutex(&physicalDevice->mutex);
 
     while (physicalDevice->isRunning && !physicalDevice->isInitialized) {
@@ -77,11 +81,13 @@ bool ctsPhysicalDeviceWaitSurface(CtsPhysicalDevice physicalDevice) {
     return (physicalDevice->isRunning && physicalDevice->isInitialized);
 }
 
-CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
-    CtsPhysicalDevice physicalDevice,
+VkResult ctsGetPhysicalDeviceQueueFamilyProperties(
+    VkPhysicalDevice physicalDeviceHandle,
     uint32_t* pQueueFamilyPropertyCount,
-    CtsQueueFamilyProperties* pQueueFamilyProperties
+    VkQueueFamilyProperties* pQueueFamilyProperties
 ) {
+    (void) physicalDeviceHandle;
+
     if (pQueueFamilyPropertyCount != NULL) {
         *pQueueFamilyPropertyCount = 1;
     }
@@ -90,16 +96,18 @@ CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
         *pQueueFamilyProperties = gQueueFamilyProperties;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsEnumerateDeviceExtensionProperties(
-    CtsPhysicalDevice physicalDevice,
+VkResult ctsEnumerateDeviceExtensionProperties(
+    VkPhysicalDevice physicalDeviceHandle,
     const char* pLayerName,
     uint32_t* pPropertyCount,
-    CtsExtensionProperties* pProperties
+    VkExtensionProperties* pProperties
 ) {
-    static const CtsExtensionProperties* properties[] = {
+    (void) physicalDeviceHandle;
+
+    static const VkExtensionProperties* properties[] = {
         &swapchainExtensionProperties,
     };
 
@@ -115,12 +123,12 @@ CtsResult ctsEnumerateDeviceExtensionProperties(
         }
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsGetPhysicalDeviceProperties(
-    CtsPhysicalDevice physicalDevice,
-    CtsPhysicalDeviceProperties* pProperties
+    VkPhysicalDevice physicalDeviceHandle,
+    VkPhysicalDeviceProperties* pProperties
 ) {
     if (pProperties != NULL) {
         *pProperties = gPhysicalDeviceProperties;
@@ -128,8 +136,8 @@ void ctsGetPhysicalDeviceProperties(
 }
 
 void ctsGetPhysicalDeviceMemoryProperties(
-    CtsPhysicalDevice physicalDevice,
-    CtsPhysicalDeviceMemoryProperties* pMemoryProperties
+    VkPhysicalDevice physicalDeviceHandle,
+    VkPhysicalDeviceMemoryProperties* pMemoryProperties
 ) {
     if (pMemoryProperties != NULL) {
         *pMemoryProperties = gPhysicalMemoryProperties;
@@ -137,9 +145,9 @@ void ctsGetPhysicalDeviceMemoryProperties(
 }
 
 void ctsGetPhysicalDeviceFormatProperties(
-    CtsPhysicalDevice physicalDevice,
-    CtsFormat format,
-    CtsFormatProperties* pFormatProperties
+    VkPhysicalDevice physicalDeviceHandle,
+    VkFormat format,
+    VkFormatProperties* pFormatProperties
 ) {
     /*
     CTS_FORMAT_FEATURE_SAMPLED_IMAGE_BIT                = 0x00000001,
@@ -163,115 +171,115 @@ void ctsGetPhysicalDeviceFormatProperties(
 
     if (hasColorComponent(format)) {
         pFormatProperties->linearTilingFeatures |= 
-            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | 
-            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | 
-            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | 
-            CTS_FORMAT_FEATURE_BLIT_SRC_BIT | 
-            CTS_FORMAT_FEATURE_BLIT_DST_BIT | 
-            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+            VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | 
+            VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | 
+            VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | 
+            VK_FORMAT_FEATURE_BLIT_SRC_BIT | 
+            VK_FORMAT_FEATURE_BLIT_DST_BIT | 
+            VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
 
         pFormatProperties->optimalTilingFeatures |= 
-            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | 
-            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | 
-            CTS_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | 
-            CTS_FORMAT_FEATURE_BLIT_SRC_BIT | 
-            CTS_FORMAT_FEATURE_BLIT_DST_BIT | 
-            CTS_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+            VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | 
+            VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | 
+            VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | 
+            VK_FORMAT_FEATURE_BLIT_SRC_BIT | 
+            VK_FORMAT_FEATURE_BLIT_DST_BIT | 
+            VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
     }
 
     if (hasDepthComponent(format) || hasStencilComponent(format)) {
-        pFormatProperties->linearTilingFeatures |= CTS_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        pFormatProperties->optimalTilingFeatures |= CTS_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        pFormatProperties->linearTilingFeatures |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        pFormatProperties->optimalTilingFeatures |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
     }
 
     if (isSignedIntegerFormat(format) || isUnsignedIntegerFormat(format) || isSignedFloatFormat(format)) {
         pFormatProperties->bufferFeatures |= 
-            CTS_FORMAT_FEATURE_STORAGE_IMAGE_BIT | 
-            CTS_FORMAT_FEATURE_VERTEX_BUFFER_BIT | 
-            CTS_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
+            VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT | 
+            VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT | 
+            VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
     }
 }
 
-void ctsPhysicalDeviceParseFeatures(CtsPhysicalDevice physicalDevice) {
+void ctsPhysicalDeviceParseFeatures(struct CtsPhysicalDevice* physicalDevice) {
     parseDeviceProperties(physicalDevice, &gPhysicalDeviceProperties);
     parseDeviceFeatures(physicalDevice, &gPhysicalDeviceFeatures);
 }
 
-const CtsMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex)
+const VkMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex)
 {
     return &gPhysicalMemoryProperties.memoryTypes[memoryTypeIndex];
 }
 
-static void parseDeviceFeatures(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceFeatures* pFeatures) {
-    pFeatures->robustBufferAccess                       = CTS_FALSE;
-    pFeatures->fullDrawIndexUint32                      = CTS_TRUE;
+static void parseDeviceFeatures(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceFeatures* pFeatures) {
+    pFeatures->robustBufferAccess                       = VK_FALSE;
+    pFeatures->fullDrawIndexUint32                      = VK_TRUE;
     pFeatures->imageCubeArray                           = GLAD_GL_ARB_texture_cube_map_array;
     pFeatures->independentBlend                         = GLAD_GL_ARB_draw_buffers_blend;
-    pFeatures->geometryShader                           = CTS_TRUE;
+    pFeatures->geometryShader                           = VK_TRUE;
     pFeatures->tessellationShader                       = GLAD_GL_ARB_tessellation_shader;
     pFeatures->sampleRateShading                        = GLAD_GL_ARB_sample_shading;
-    pFeatures->dualSrcBlend                             = CTS_TRUE;
-    pFeatures->logicOp                                  = CTS_TRUE;
+    pFeatures->dualSrcBlend                             = VK_TRUE;
+    pFeatures->logicOp                                  = VK_TRUE;
     pFeatures->multiDrawIndirect                        = GLAD_GL_ARB_multi_draw_indirect;
     pFeatures->drawIndirectFirstInstance                = GLAD_GL_ARB_base_instance;
-    pFeatures->depthClamp                               = CTS_TRUE;
-    pFeatures->depthBiasClamp                           = CTS_FALSE;
-    pFeatures->fillModeNonSolid                         = CTS_TRUE;
+    pFeatures->depthClamp                               = VK_TRUE;
+    pFeatures->depthBiasClamp                           = VK_FALSE;
+    pFeatures->fillModeNonSolid                         = VK_TRUE;
     pFeatures->depthBounds                              = GLAD_GL_EXT_depth_bounds_test;
     pFeatures->wideLines                                = gPhysicalDeviceProperties.limits.lineWidthRange[1] > 1.0f;
-    pFeatures->largePoints                              = CTS_FALSE;
-    pFeatures->alphaToOne                               = CTS_FALSE;
+    pFeatures->largePoints                              = VK_FALSE;
+    pFeatures->alphaToOne                               = VK_FALSE;
     pFeatures->multiViewport                            = GLAD_GL_ARB_viewport_array;
     pFeatures->samplerAnisotropy                        = GLAD_GL_ARB_texture_filter_anisotropic;
-    pFeatures->textureCompressionETC2                   = CTS_FALSE;
-    pFeatures->textureCompressionASTC_LDR               = CTS_FALSE;
-    pFeatures->textureCompressionBC                     = CTS_FALSE;
-    pFeatures->occlusionQueryPrecise                    = CTS_FALSE;
-    pFeatures->pipelineStatisticsQuery                  = CTS_FALSE;
-    pFeatures->vertexPipelineStoresAndAtomics           = CTS_FALSE;
-    pFeatures->fragmentStoresAndAtomics                 = CTS_FALSE;
-    pFeatures->shaderTessellationAndGeometryPointSize   = CTS_TRUE;
-    pFeatures->shaderImageGatherExtended                = CTS_FALSE;
-    pFeatures->shaderStorageImageExtendedFormats        = CTS_FALSE;
-    pFeatures->shaderStorageImageMultisample            = CTS_FALSE;
-    pFeatures->shaderStorageImageReadWithoutFormat      = CTS_FALSE;
-    pFeatures->shaderStorageImageWriteWithoutFormat     = CTS_FALSE;
-    pFeatures->shaderUniformBufferArrayDynamicIndexing  = CTS_TRUE;
-    pFeatures->shaderSampledImageArrayDynamicIndexing   = CTS_TRUE;
-    pFeatures->shaderStorageBufferArrayDynamicIndexing  = CTS_FALSE;
-    pFeatures->shaderStorageImageArrayDynamicIndexing   = CTS_FALSE;
-    pFeatures->shaderClipDistance                       = CTS_TRUE;
+    pFeatures->textureCompressionETC2                   = VK_FALSE;
+    pFeatures->textureCompressionASTC_LDR               = VK_FALSE;
+    pFeatures->textureCompressionBC                     = VK_FALSE;
+    pFeatures->occlusionQueryPrecise                    = VK_FALSE;
+    pFeatures->pipelineStatisticsQuery                  = VK_FALSE;
+    pFeatures->vertexPipelineStoresAndAtomics           = VK_FALSE;
+    pFeatures->fragmentStoresAndAtomics                 = VK_FALSE;
+    pFeatures->shaderTessellationAndGeometryPointSize   = VK_TRUE;
+    pFeatures->shaderImageGatherExtended                = VK_FALSE;
+    pFeatures->shaderStorageImageExtendedFormats        = VK_FALSE;
+    pFeatures->shaderStorageImageMultisample            = VK_FALSE;
+    pFeatures->shaderStorageImageReadWithoutFormat      = VK_FALSE;
+    pFeatures->shaderStorageImageWriteWithoutFormat     = VK_FALSE;
+    pFeatures->shaderUniformBufferArrayDynamicIndexing  = VK_TRUE;
+    pFeatures->shaderSampledImageArrayDynamicIndexing   = VK_TRUE;
+    pFeatures->shaderStorageBufferArrayDynamicIndexing  = VK_FALSE;
+    pFeatures->shaderStorageImageArrayDynamicIndexing   = VK_FALSE;
+    pFeatures->shaderClipDistance                       = VK_TRUE;
     pFeatures->shaderCullDistance                       = GLAD_GL_ARB_cull_distance;
-    pFeatures->shaderFloat64                            = CTS_FALSE;
-    pFeatures->shaderInt64                              = CTS_FALSE;
-    pFeatures->shaderInt16                              = CTS_TRUE;
-    pFeatures->shaderResourceResidency                  = CTS_FALSE;
-    pFeatures->shaderResourceMinLod                     = CTS_TRUE;
-    pFeatures->sparseBinding                            = CTS_FALSE;
-    pFeatures->sparseResidencyBuffer                    = CTS_FALSE;
-    pFeatures->sparseResidencyImage2D                   = CTS_FALSE;
-    pFeatures->sparseResidencyImage3D                   = CTS_FALSE;
-    pFeatures->sparseResidency2Samples                  = CTS_FALSE;
-    pFeatures->sparseResidency4Samples                  = CTS_FALSE;
-    pFeatures->sparseResidency8Samples                  = CTS_FALSE;
-    pFeatures->sparseResidency16Samples                 = CTS_FALSE;
-    pFeatures->sparseResidencyAliased                   = CTS_FALSE;
-    pFeatures->variableMultisampleRate                  = CTS_FALSE;
-    pFeatures->inheritedQueries                         = CTS_FALSE;
+    pFeatures->shaderFloat64                            = VK_FALSE;
+    pFeatures->shaderInt64                              = VK_FALSE;
+    pFeatures->shaderInt16                              = VK_TRUE;
+    pFeatures->shaderResourceResidency                  = VK_FALSE;
+    pFeatures->shaderResourceMinLod                     = VK_TRUE;
+    pFeatures->sparseBinding                            = VK_FALSE;
+    pFeatures->sparseResidencyBuffer                    = VK_FALSE;
+    pFeatures->sparseResidencyImage2D                   = VK_FALSE;
+    pFeatures->sparseResidencyImage3D                   = VK_FALSE;
+    pFeatures->sparseResidency2Samples                  = VK_FALSE;
+    pFeatures->sparseResidency4Samples                  = VK_FALSE;
+    pFeatures->sparseResidency8Samples                  = VK_FALSE;
+    pFeatures->sparseResidency16Samples                 = VK_FALSE;
+    pFeatures->sparseResidencyAliased                   = VK_FALSE;
+    pFeatures->variableMultisampleRate                  = VK_FALSE;
+    pFeatures->inheritedQueries                         = VK_FALSE;
 }
 
-static void parseDeviceProperties(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceProperties* pProperties) {
-    pProperties->apiVersion = CTS_API_VERSION_1_0;
+static void parseDeviceProperties(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceProperties* pProperties) {
+    pProperties->apiVersion = VK_API_VERSION_1_0;
     pProperties->driverVersion = getOpenGLVersion();
     pProperties->vendorID = getVendorID();
-    pProperties->deviceType = CTS_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+    pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
     strncpy(pProperties->deviceName, getRenderer(), sizeof(pProperties->deviceName));
 
     ctsSurfaceQueryDeviceDetails(physicalDevice->surface, pProperties->vendorID, &pProperties->deviceID, pProperties->pipelineCacheUUID);
     parseDeviceLimits(physicalDevice, &pProperties->limits);
 }
 
-static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDeviceLimits* pLimits) {
+static void parseDeviceLimits(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceLimits* pLimits) {
     GLint i32 = 0;
     GLint i32Array[2];
 
@@ -468,14 +476,14 @@ static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDevic
     pLimits->maxFramebufferLayers = 1; // TODO: Should this be handled?
 
     glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &i32);
-    pLimits->framebufferColorSampleCounts = (CtsSampleCountFlagBits)i32;
+    pLimits->framebufferColorSampleCounts = (VkSampleCountFlagBits)i32;
 
     glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &i32);
-    pLimits->framebufferDepthSampleCounts = (CtsSampleCountFlagBits)i32;
-    pLimits->framebufferStencilSampleCounts = (CtsSampleCountFlagBits)i32;
+    pLimits->framebufferDepthSampleCounts = (VkSampleCountFlagBits)i32;
+    pLimits->framebufferStencilSampleCounts = (VkSampleCountFlagBits)i32;
 
     // Not implemented, mark as 1 sample
-    pLimits->framebufferNoAttachmentsSampleCounts = CTS_SAMPLE_COUNT_1_BIT;
+    pLimits->framebufferNoAttachmentsSampleCounts = VK_SAMPLE_COUNT_1_BIT;
 
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &i32);
     pLimits->maxColorAttachments = i32;
@@ -487,7 +495,7 @@ static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDevic
     
     pLimits->storageImageSampleCounts = pLimits->sampledImageColorSampleCounts;
     pLimits->maxSampleMaskWords = 0; // Unsupported
-    pLimits->timestampComputeAndGraphics = CTS_FALSE; // Unsupported
+    pLimits->timestampComputeAndGraphics = VK_FALSE; // Unsupported
     pLimits->timestampPeriod = 0; // Unsupported
 
     glGetIntegerv(GL_MAX_CLIP_DISTANCES, &i32);
@@ -516,51 +524,42 @@ static void parseDeviceLimits(CtsPhysicalDevice physicalDevice, CtsPhysicalDevic
     glGetFloatv(GL_SMOOTH_LINE_WIDTH_GRANULARITY, &f32);
     pLimits->lineWidthGranularity = f32;
 
-    pLimits->strictLines = CTS_FALSE;
-    pLimits->standardSampleLocations = CTS_FALSE; // Can this be queried from GL?
+    pLimits->strictLines = VK_FALSE;
+    pLimits->standardSampleLocations = VK_FALSE; // Can this be queried from GL?
     pLimits->optimalBufferCopyOffsetAlignment = 0; // Can this be queried from GL?
     pLimits->optimalBufferCopyRowPitchAlignment = 0; // Can this be queried from GL?
     pLimits->nonCoherentAtomSize = 0; // Can this be queried from GL?
 }
 
-static bool isValidFormat(CtsFormat format) {
-    switch (format) {
-        case CTS_FORMAT_UNDEFINED:
-        case NUM_CTS_FORMATS: {
-            return false;
-        } break;
-
-        default: {
-            return true;
-        } break;
-    }
+static bool isValidFormat(VkFormat format) {
+    return (format != VK_FORMAT_UNDEFINED && parseFormat(format) != NULL);
 }
 
-static bool isPackedFormat(CtsFormat format) {
+static bool isPackedFormat(VkFormat format) {
     switch (format) {
-        case CTS_FORMAT_R4G4B4A4_UNORM_PACK16:
-        case CTS_FORMAT_B4G4R4A4_UNORM_PACK16:
-        case CTS_FORMAT_R5G6B5_UNORM_PACK16:
-        case CTS_FORMAT_B5G6R5_UNORM_PACK16:
-        case CTS_FORMAT_R5G5B5A1_UNORM_PACK16:
-        case CTS_FORMAT_B5G5R5A1_UNORM_PACK16:
-        case CTS_FORMAT_A1R5G5B5_UNORM_PACK16:
-        case CTS_FORMAT_A8B8G8R8_UNORM_PACK32:
-        case CTS_FORMAT_A8B8G8R8_SNORM_PACK32:
-        case CTS_FORMAT_A8B8G8R8_USCALED_PACK32:
-        case CTS_FORMAT_A8B8G8R8_SSCALED_PACK32:
-        case CTS_FORMAT_A8B8G8R8_UINT_PACK32:
-        case CTS_FORMAT_A8B8G8R8_SINT_PACK32:
-        case CTS_FORMAT_A8B8G8R8_SRGB_PACK32:
-        case CTS_FORMAT_A2B10G10R10_UNORM_PACK32:
-        case CTS_FORMAT_A2B10G10R10_SNORM_PACK32:
-        case CTS_FORMAT_A2B10G10R10_USCALED_PACK32:
-        case CTS_FORMAT_A2B10G10R10_SSCALED_PACK32:
-        case CTS_FORMAT_A2B10G10R10_UINT_PACK32:
-        case CTS_FORMAT_A2B10G10R10_SINT_PACK32:
-        case CTS_FORMAT_B10G11R11_UFLOAT_PACK32:
-        case CTS_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-        case CTS_FORMAT_X8_D24_UNORM_PACK32: {
+        case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
+        case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+        case VK_FORMAT_B5G6R5_UNORM_PACK16:
+        case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+        case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+        case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+        case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+        case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+        case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
+        case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
+        case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+        case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+        case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+        case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+        case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+        case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
+        case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+        case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+        case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+        case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+        case VK_FORMAT_X8_D24_UNORM_PACK32: {
             return true;
         } break;
 
@@ -570,22 +569,22 @@ static bool isPackedFormat(CtsFormat format) {
     }
 }
 
-static bool isSignedIntegerFormat(CtsFormat format) {
+static bool isSignedIntegerFormat(VkFormat format) {
     switch (format) {
-        case CTS_FORMAT_R8_SINT: 
-        case CTS_FORMAT_R8G8_SINT: 
-        case CTS_FORMAT_R8G8B8_SINT: 
-        case CTS_FORMAT_B8G8R8_SINT: 
-        case CTS_FORMAT_R8G8B8A8_SINT: 
-        case CTS_FORMAT_B8G8R8A8_SINT: 
-        case CTS_FORMAT_R16_SINT: 
-        case CTS_FORMAT_R16G16_SINT: 
-        case CTS_FORMAT_R16G16B16_SINT: 
-        case CTS_FORMAT_R16G16B16A16_SINT: 
-        case CTS_FORMAT_R32_SINT: 
-        case CTS_FORMAT_R32G32_SINT: 
-        case CTS_FORMAT_R32G32B32_SINT: 
-        case CTS_FORMAT_R32G32B32A32_SINT: {
+        case VK_FORMAT_R8_SINT: 
+        case VK_FORMAT_R8G8_SINT: 
+        case VK_FORMAT_R8G8B8_SINT: 
+        case VK_FORMAT_B8G8R8_SINT: 
+        case VK_FORMAT_R8G8B8A8_SINT: 
+        case VK_FORMAT_B8G8R8A8_SINT: 
+        case VK_FORMAT_R16_SINT: 
+        case VK_FORMAT_R16G16_SINT: 
+        case VK_FORMAT_R16G16B16_SINT: 
+        case VK_FORMAT_R16G16B16A16_SINT: 
+        case VK_FORMAT_R32_SINT: 
+        case VK_FORMAT_R32G32_SINT: 
+        case VK_FORMAT_R32G32B32_SINT: 
+        case VK_FORMAT_R32G32B32A32_SINT: {
             return true;
         } break;
 
@@ -595,22 +594,22 @@ static bool isSignedIntegerFormat(CtsFormat format) {
     }
 }
 
-static bool isUnsignedIntegerFormat(CtsFormat format) {
+static bool isUnsignedIntegerFormat(VkFormat format) {
     switch (format) {
-        case CTS_FORMAT_R8_UINT: 
-        case CTS_FORMAT_R8G8_UINT: 
-        case CTS_FORMAT_R8G8B8_UINT: 
-        case CTS_FORMAT_B8G8R8_UINT: 
-        case CTS_FORMAT_R8G8B8A8_UINT: 
-        case CTS_FORMAT_B8G8R8A8_UINT: 
-        case CTS_FORMAT_R16_UINT: 
-        case CTS_FORMAT_R16G16_UINT: 
-        case CTS_FORMAT_R16G16B16_UINT: 
-        case CTS_FORMAT_R16G16B16A16_UINT: 
-        case CTS_FORMAT_R32_UINT: 
-        case CTS_FORMAT_R32G32_UINT: 
-        case CTS_FORMAT_R32G32B32_UINT: 
-        case CTS_FORMAT_R32G32B32A32_UINT: {
+        case VK_FORMAT_R8_UINT: 
+        case VK_FORMAT_R8G8_UINT: 
+        case VK_FORMAT_R8G8B8_UINT: 
+        case VK_FORMAT_B8G8R8_UINT: 
+        case VK_FORMAT_R8G8B8A8_UINT: 
+        case VK_FORMAT_B8G8R8A8_UINT: 
+        case VK_FORMAT_R16_UINT: 
+        case VK_FORMAT_R16G16_UINT: 
+        case VK_FORMAT_R16G16B16_UINT: 
+        case VK_FORMAT_R16G16B16A16_UINT: 
+        case VK_FORMAT_R32_UINT: 
+        case VK_FORMAT_R32G32_UINT: 
+        case VK_FORMAT_R32G32B32_UINT: 
+        case VK_FORMAT_R32G32B32A32_UINT: {
             return true;
         } break;
 
@@ -620,16 +619,16 @@ static bool isUnsignedIntegerFormat(CtsFormat format) {
     }
 }
 
-static bool isSignedFloatFormat(CtsFormat format) {
+static bool isSignedFloatFormat(VkFormat format) {
     switch (format) {
-        case CTS_FORMAT_R16_SFLOAT: 
-        case CTS_FORMAT_R16G16_SFLOAT: 
-        case CTS_FORMAT_R16G16B16_SFLOAT: 
-        case CTS_FORMAT_R16G16B16A16_SFLOAT: 
-        case CTS_FORMAT_R32_SFLOAT: 
-        case CTS_FORMAT_R32G32_SFLOAT: 
-        case CTS_FORMAT_R32G32B32_SFLOAT: 
-        case CTS_FORMAT_R32G32B32A32_SFLOAT: {
+        case VK_FORMAT_R16_SFLOAT: 
+        case VK_FORMAT_R16G16_SFLOAT: 
+        case VK_FORMAT_R16G16B16_SFLOAT: 
+        case VK_FORMAT_R16G16B16A16_SFLOAT: 
+        case VK_FORMAT_R32_SFLOAT: 
+        case VK_FORMAT_R32G32_SFLOAT: 
+        case VK_FORMAT_R32G32B32_SFLOAT: 
+        case VK_FORMAT_R32G32B32A32_SFLOAT: {
             return true;
         } break;
 
@@ -639,21 +638,21 @@ static bool isSignedFloatFormat(CtsFormat format) {
     }
 }
 
-static bool isBufferCompatible(CtsFormat format) {
+static bool isBufferCompatible(VkFormat format) {
     return isSignedIntegerFormat(format) || isUnsignedIntegerFormat(format) || isSignedFloatFormat(format);
 }
 
-static bool hasColorComponent(CtsFormat format) {
+static bool hasColorComponent(VkFormat format) {
     return (isValidFormat(format) && !hasDepthComponent(format) && !hasStencilComponent(format));
 }
 
-static bool hasDepthComponent(CtsFormat format) {
+static bool hasDepthComponent(VkFormat format) {
     switch (format) {
-        case CTS_FORMAT_D16_UNORM:
-        case CTS_FORMAT_X8_D24_UNORM_PACK32:
-        case CTS_FORMAT_D32_SFLOAT:
-        case CTS_FORMAT_D24_UNORM_S8_UINT:
-        case CTS_FORMAT_D32_SFLOAT_S8_UINT: {
+        case VK_FORMAT_D16_UNORM:
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
+        case VK_FORMAT_D32_SFLOAT:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_D32_SFLOAT_S8_UINT: {
             return true;
         } break;
         
@@ -663,11 +662,11 @@ static bool hasDepthComponent(CtsFormat format) {
     }
 }
 
-static bool hasStencilComponent(CtsFormat format) {
+static bool hasStencilComponent(VkFormat format) {
     switch (format) {
-        case CTS_FORMAT_S8_UINT:
-        case CTS_FORMAT_D24_UNORM_S8_UINT:
-        case CTS_FORMAT_D32_SFLOAT_S8_UINT: {
+        case VK_FORMAT_S8_UINT:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_D32_SFLOAT_S8_UINT: {
             return true;
         } break;
         

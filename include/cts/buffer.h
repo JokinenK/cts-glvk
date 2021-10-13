@@ -1,21 +1,22 @@
-#include <cts/allocator.h>
-#include <cts/types.h>
+#pragma once
+
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateBuffer(
-    CtsDevice device,
-    const CtsBufferCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsBuffer* pBuffer
+VkResult ctsCreateBuffer(
+    VkDevice device,
+    const VkBufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBuffer* pBuffer
 );
 
 void ctsDestroyBuffer(
-    CtsDevice device,
-    CtsBuffer buffer,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkBuffer buffer,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

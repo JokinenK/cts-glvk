@@ -1,23 +1,22 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateFramebuffer(
-    CtsDevice device,
-    const CtsFramebufferCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFramebuffer* pFramebuffer
+VkResult ctsCreateFramebuffer(
+    VkDevice device,
+    const VkFramebufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFramebuffer* pFramebuffer
 );
 
 void ctsDestroyFramebuffer(
-    CtsDevice device,
-    CtsFramebuffer framebuffer,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkFramebuffer framebuffer,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

@@ -1,42 +1,41 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateFence(
-    CtsDevice device,
-    const CtsFenceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFence* pFence
+VkResult ctsCreateFence(
+    VkDevice device,
+    const VkFenceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFence* pFence
 );
 
-CtsResult ctsResetFences(
-    CtsDevice device,
+VkResult ctsResetFences(
+    VkDevice device,
     uint32_t fenceCount,
-    const CtsFence* pFences
+    const VkFence* pFences
 );
 
-CtsResult ctsGetFenceStatus(
-    CtsDevice device,
-    CtsFence fence
+VkResult ctsGetFenceStatus(
+    VkDevice device,
+    VkFence fence
 );
 
-CtsResult ctsWaitForFences(
-    CtsDevice device,
+VkResult ctsWaitForFences(
+    VkDevice device,
     uint32_t fenceCount,
-    const CtsFence* pFences,
-    CtsBool32 waitAll,
+    const VkFence* pFences,
+    VkBool32 waitAll,
     uint64_t timeout
 );
 
 void ctsDestroyFence(
-    CtsDevice device,
-    CtsFence fence,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkFence fence,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

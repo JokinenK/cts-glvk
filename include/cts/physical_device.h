@@ -1,39 +1,39 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsGetPhysicalDeviceQueueFamilyProperties(
-    CtsPhysicalDevice physicalDevice,
+VkResult ctsGetPhysicalDeviceQueueFamilyProperties(
+    VkPhysicalDevice physicalDevice,
     uint32_t* pQueueFamilyPropertyCount,
-    CtsQueueFamilyProperties* pQueueFamilyProperties
+    VkQueueFamilyProperties* pQueueFamilyProperties
 );
 
-CtsResult ctsEnumerateDeviceExtensionProperties(
-    CtsPhysicalDevice physicalDevice,
+VkResult ctsEnumerateDeviceExtensionProperties(
+    VkPhysicalDevice physicalDevice,
     const char* pLayerName,
     uint32_t* pPropertyCount,
-    CtsExtensionProperties* pProperties
+    VkExtensionProperties* pProperties
 );
 
 void ctsGetPhysicalDeviceProperties(
-    CtsPhysicalDevice physicalDevice,
-    CtsPhysicalDeviceProperties* pProperties
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties* pProperties
 );
 
 void ctsGetPhysicalDeviceMemoryProperties(
-    CtsPhysicalDevice physicalDevice,
-    CtsPhysicalDeviceMemoryProperties* pMemoryProperties
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties* pMemoryProperties
 );
 
 void ctsGetPhysicalDeviceFormatProperties(
-    CtsPhysicalDevice physicalDevice,
-    CtsFormat format,
-    CtsFormatProperties* pFormatProperties
+    VkPhysicalDevice physicalDevice,
+    VkFormat format,
+    VkFormatProperties* pFormatProperties
 );
 
 #ifdef __cplusplus

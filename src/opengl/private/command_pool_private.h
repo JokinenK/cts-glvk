@@ -1,17 +1,17 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/linear_allocator.h>
-#include <cts/pool_allocator.h>
-#include <cts/typedefs/command_pool.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/util/linear_allocator.h"
+#include "cts/util/pool_allocator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsCommandPoolImpl {
+struct CtsCommandPool {
     CtsPoolAllocator poolAllocator;
-    CtsAllocationCallbacks allocator;
+    VkAllocationCallbacks allocator;
 };
 
 #ifdef __cplusplus

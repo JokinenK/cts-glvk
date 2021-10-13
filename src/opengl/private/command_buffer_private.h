@@ -1,175 +1,181 @@
 #pragma once
 
-#include <cts/typedefs/bool.h>
-#include <cts/typedefs/command_buffer.h>
-#include <cts/typedefs/command_pool.h>
-#include <cts/typedefs/device.h>
-#include <cts/typedefs/enums.h>
-#include <cts/commanddefs/cmd_base.h>
-#include <cts/linear_allocator.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
+#include "cts/util/linear_allocator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsCommandBufferImpl {
-    CtsDevice device;
-    CtsCommandPool pool;
+typedef enum CtsCommandBufferState {
+    CTS_COMMAND_BUFFER_STATE_INITIAL = 0,
+    CTS_COMMAND_BUFFER_STATE_RECORDING = 1,
+    CTS_COMMAND_BUFFER_STATE_EXECUTABLE = 2,
+    CTS_COMMAND_BUFFER_STATE_PENDING = 3,
+    CTS_COMMAND_BUFFER_STATE_INVALID = 4,
+
+    NUM_CTS_COMMAND_BUFFER_STATES,
+} CtsCommandBufferState;
+
+struct CtsCommandBuffer {
+    struct CtsDevice* device;
+    struct CtsCommandPool* pool;
 
     CtsLinearAllocator linearAllocator;
-    CtsAllocationCallbacks allocator;
+    VkAllocationCallbacks allocator;
 
     CtsCmdBase* root;
     CtsCmdBase* current;
-    CtsCommandBufferLevel level;
-    CtsCommandBufferUsageFlags flags;
+    VkCommandBufferLevel level;
+    VkCommandBufferUsageFlags flags;
     CtsCommandBufferState state;
 };
 
 void ctsCmdBeginQueryImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBuffer,
+    VkQueryPool queryPool,
     uint32_t query,
-    CtsQueryControlFlags flags
+    VkQueryControlFlags flags
 );
 
 void ctsCmdBeginRenderPassImpl(
-    CtsCommandBuffer commandBuffer,
-    const CtsRenderPassBeginInfo* pRenderPassBegin,
-    CtsSubpassContents contents
+    VkCommandBuffer commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin,
+    VkSubpassContents contents
 );
 
 void ctsCmdBindDescriptorSetsImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineBindPoint pipelineBindPoint,
-    CtsPipelineLayout pipelineLayout,
+    VkCommandBuffer commandBuffer,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipelineLayout pipelineLayout,
     uint32_t firstSet,
     uint32_t descriptorSetCount,
-    const CtsDescriptorSet* pDescriptorSets,
+    const VkDescriptorSet* pDescriptorSets,
     uint32_t dynamicOffsetCount,
     const uint32_t* pDynamicOffsets
 );
 
 void ctsCmdBindIndexBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
-    CtsIndexType indexType
+    VkCommandBuffer commandBuffer,
+    VkBuffer buffer,
+    VkDeviceSize offset,
+    VkIndexType indexType
 );
 
 void ctsCmdBindPipelineImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineBindPoint pipelineBindPoint,
-    CtsPipeline pipeline
+    VkCommandBuffer commandBuffer,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipeline pipeline
 );
 
 void ctsCmdBindVertexBuffersImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t firstBinding,
     uint32_t bindingCount,
-    const CtsBuffer* pBuffers,
-    const CtsDeviceSize* pOffsets
+    const VkBuffer* pBuffers,
+    const VkDeviceSize* pOffsets
 );
 
 void ctsCmdBlitImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBuffer,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageBlit* pRegions,
-    CtsFilter filter
+    const VkImageBlit* pRegions,
+    VkFilter filter
 );
 
 void ctsCmdClearAttachmentsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t attachmentCount,
-    const CtsClearAttachment* pAttachments,
+    const VkClearAttachment* pAttachments,
     uint32_t rectCount,
-    const CtsClearRect* pRects
+    const VkClearRect* pRects
 );
 
 void ctsCmdClearColorImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage image,
-    CtsImageLayout imageLayout,
-    const CtsClearColorValue* pColor,
+    VkCommandBuffer commandBuffer,
+    VkImage image,
+    VkImageLayout imageLayout,
+    const VkClearColorValue* pColor,
     uint32_t rangeCount,
-    const CtsImageSubresourceRange* pRanges
+    const VkImageSubresourceRange* pRanges
 );
 
 void ctsCmdClearDepthStencilImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage image,
-    CtsImageLayout imageLayout,
-    const CtsClearDepthStencilValue* pDepthStencil,
+    VkCommandBuffer commandBuffer,
+    VkImage image,
+    VkImageLayout imageLayout,
+    const VkClearDepthStencilValue* pDepthStencil,
     uint32_t rangeCount,
-    const CtsImageSubresourceRange* pRanges
+    const VkImageSubresourceRange* pRanges
 );
 
 void ctsCmdCopyBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer srcBuffer,
-    CtsBuffer dstBuffer,
+    VkCommandBuffer commandBuffer,
+    VkBuffer srcBuffer,
+    VkBuffer dstBuffer,
     uint32_t regionCount,
-    const CtsBufferCopy* pRegions
+    const VkBufferCopy* pRegions
 );
 
 void ctsCmdCopyBufferToImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer srcBuffer,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBuffer,
+    VkBuffer srcBuffer,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsBufferImageCopy* pRegions
+    const VkBufferImageCopy* pRegions
 );
 
 void ctsCmdCopyImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBuffer,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageCopy* pRegions
+    const VkImageCopy* pRegions
 );
 
 void ctsCmdCopyImageToBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsBuffer dstBuffer,
+    VkCommandBuffer commandBuffer,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkBuffer dstBuffer,
     uint32_t regionCount,
-    const CtsBufferImageCopy* pRegions
+    const VkBufferImageCopy* pRegions
 );
 
 void ctsCmdCopyQueryPoolResultsImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBuffer,
+    VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize stride,
-    CtsQueryResultFlags flags
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize stride,
+    VkQueryResultFlags flags
 );
 
 void ctsCmdDispatchImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t groupCountX,
     uint32_t groupCountY,
     uint32_t groupCountZ
 );
 
 void ctsCmdDispatchIndirectImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset
+    VkCommandBuffer commandBuffer,
+    VkBuffer buffer,
+    VkDeviceSize offset
 );
 
 void ctsCmdDrawImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t vertexCount,
     uint32_t instanceCount,
     uint32_t firstVertex,
@@ -177,7 +183,7 @@ void ctsCmdDrawImpl(
 );
 
 void ctsCmdDrawIndexedImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t indexCount,
     uint32_t instanceCount,
     uint32_t firstIndex,
@@ -186,187 +192,187 @@ void ctsCmdDrawIndexedImpl(
 );
 
 void ctsCmdDrawIndexedIndirectImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
+    VkCommandBuffer commandBuffer,
+    VkBuffer buffer,
+    VkDeviceSize offset,
     uint32_t drawCount,
     uint32_t stride
 );
 
 void ctsCmdDrawIndirectImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer buffer,
-    CtsDeviceSize offset,
+    VkCommandBuffer commandBuffer,
+    VkBuffer buffer,
+    VkDeviceSize offset,
     uint32_t drawCount,
     uint32_t stride
 );
 
 void ctsCmdEndQueryImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBuffer,
+    VkQueryPool queryPool,
     uint32_t query
 );
 
 void ctsCmdEndRenderPassImpl(
-    CtsCommandBuffer commandBuffer
+    VkCommandBuffer commandBuffer
 );
 
 void ctsCmdExecuteCommandsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
+    const VkCommandBuffer* pCommandBuffers
 );
 
 void ctsCmdFillBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize size,
+    VkCommandBuffer commandBuffer,
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize size,
     uint32_t data
 );
 
 void ctsCmdNextSubpassImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsSubpassContents contents
+    VkCommandBuffer commandBuffer,
+    VkSubpassContents contents
 );
 
 void ctsCmdPipelineBarrierImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineStageFlags srcStageMask,
-    CtsPipelineStageFlags dstStageMask,
-    CtsDependencyFlags dependencyFlags,
+    VkCommandBuffer commandBuffer,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
+    VkDependencyFlags dependencyFlags,
     uint32_t memoryBarrierCount,
-    const CtsMemoryBarrier* pMemoryBarriers,
+    const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount,
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount,
-    const CtsImageMemoryBarrier* pImageMemoryBarriers
+    const VkImageMemoryBarrier* pImageMemoryBarriers
 );
 
 void ctsCmdPushConstantsImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineLayout layout,
-    CtsShaderStageFlags stageFlags,
+    VkCommandBuffer commandBuffer,
+    VkPipelineLayout layout,
+    VkShaderStageFlags stageFlags,
     uint32_t offset,
     uint32_t size,
     const void* values
 );
 
 void ctsCmdResetEventImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsEvent event,
-    CtsPipelineStageFlags stageMask
+    VkCommandBuffer commandBuffer,
+    VkEvent event,
+    VkPipelineStageFlags stageMask
 );
 
 void ctsCmdResetQueryPoolImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBuffer,
+    VkQueryPool queryPool,
     uint32_t firstQuery,
     uint32_t queryCount
 );
 
 void ctsCmdResolveImageImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsImage srcImage,
-    CtsImageLayout srcImageLayout,
-    CtsImage dstImage,
-    CtsImageLayout dstImageLayout,
+    VkCommandBuffer commandBuffer,
+    VkImage srcImage,
+    VkImageLayout srcImageLayout,
+    VkImage dstImage,
+    VkImageLayout dstImageLayout,
     uint32_t regionCount,
-    const CtsImageResolve* pRegions
+    const VkImageResolve* pRegions
 );
 
 void ctsCmdSetBlendConstantsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     const float blendConstants[4]
 );
 
 void ctsCmdSetDepthBiasImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     float depthBiasConstantFactor,
     float depthBiasClamp,
     float depthBiasSlopeFactor
 );
 
 void ctsCmdSetDepthBoundsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     float minDepthBounds,
     float maxDepthBounds
 );
 
 void ctsCmdSetDeviceMaskImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t deviceMask
 );
 
 void ctsCmdSetEventImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsEvent event,
-    CtsPipelineStageFlags stageMask
+    VkCommandBuffer commandBuffer,
+    VkEvent event,
+    VkPipelineStageFlags stageMask
 );
 
 void ctsCmdSetLineWidthImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     float lineWidth
 );
 
 void ctsCmdSetScissorImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t firstScissor,
     uint32_t scissorCount,
-    const CtsRect2D* pScissors
+    const VkRect2D* pScissors
 );
 
 void ctsCmdSetStencilCompareMaskImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBuffer,
+    VkStencilFaceFlags faceMask,
     uint32_t compareMask
 );
 
 void ctsCmdSetStencilReferenceImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBuffer,
+    VkStencilFaceFlags faceMask,
     uint32_t reference
 );
 
 void ctsCmdSetStencilWriteMaskImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsStencilFaceFlags faceMask,
+    VkCommandBuffer commandBuffer,
+    VkStencilFaceFlags faceMask,
     uint32_t writeMask
 );
 
 void ctsCmdSetViewportImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t firstViewport,
     uint32_t viewportCount,
-    const CtsViewport* pViewports
+    const VkViewport* pViewports
 );
 
 void ctsCmdUpdateBufferImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsBuffer dstBuffer,
-    CtsDeviceSize dstOffset,
-    CtsDeviceSize dataSize,
+    VkCommandBuffer commandBuffer,
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    VkDeviceSize dataSize,
     const void* pData
 );
 
 void ctsCmdWaitEventsImpl(
-    CtsCommandBuffer commandBuffer,
+    VkCommandBuffer commandBuffer,
     uint32_t eventCount,
-    const CtsEvent* events,
-    CtsPipelineStageFlags srcStageMask,
-    CtsPipelineStageFlags dstStageMask,
+    const VkEvent* events,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
     uint32_t memoryBarrierCount,
-    const CtsMemoryBarrier* pMemoryBarriers,
+    const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount,
-    const CtsBufferMemoryBarrier* pBufferMemoryBarriers,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount,
-    const CtsImageMemoryBarrier* pImageMemoryBarriers
+    const VkImageMemoryBarrier* pImageMemoryBarriers
 );
 
 void ctsCmdWriteTimestampImpl(
-    CtsCommandBuffer commandBuffer,
-    CtsPipelineStageFlagBits pipelineStage,
-    CtsQueryPool queryPool,
+    VkCommandBuffer commandBuffer,
+    VkPipelineStageFlagBits pipelineStage,
+    VkQueryPool queryPool,
     uint32_t query
 );
 

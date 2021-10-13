@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct CtsGetFenceStatus {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsFence fence;
-    CtsResult* pResult;
+    VkDevice device;
+    VkFence fence;
+    VkResult* pResult;
 } CtsGetFenceStatus;
 
 #ifdef __cplusplus

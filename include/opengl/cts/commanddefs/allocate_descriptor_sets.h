@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,10 +9,10 @@ extern "C" {
 
 typedef struct CtsAllocateDescriptorSets {
     CtsCmdBase base;
-    CtsDevice device;
-    const CtsDescriptorSetAllocateInfo* pAllocateInfo;
-    CtsDescriptorSet* pDescriptorSets;
-    CtsResult* pResult;
+    VkDevice device;
+    const VkDescriptorSetAllocateInfo* pAllocateInfo;
+    VkDescriptorSet* pDescriptorSets;
+    VkResult* pResult;
 } CtsAllocateDescriptorSets;
 
 #ifdef __cplusplus

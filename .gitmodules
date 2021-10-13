@@ -1,0 +1,4 @@
+[submodule "contrib/vulkan"]
+	path = contrib/vulkan
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+	branch = main

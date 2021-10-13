@@ -1,16 +1,16 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/linear_allocator.h>
-#include <cts/typedefs/descriptor_pool.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/util/linear_allocator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsDescriptorPoolImpl {
+struct CtsDescriptorPool {
     CtsLinearAllocator linearAllocator;
-    CtsAllocationCallbacks allocator; 
+    VkAllocationCallbacks allocator; 
 };
 
 #ifdef __cplusplus

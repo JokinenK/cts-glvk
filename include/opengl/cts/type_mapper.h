@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <cts/types.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
 #include <cts/typedefs/gl_rasterization_state_changes.h>
 #include <cts/typedefs/gl_depth_stencil_state_changes.h>
 #include <cts/typedefs/gl_color_blend_state_changes.h>
@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 typedef struct CtsFormatData {
+    VkFormat vkFormat;
     GLenum format;
     GLenum type;
     GLenum internalFormat;
@@ -20,28 +21,28 @@ typedef struct CtsFormatData {
     GLboolean normalized;
 } CtsFormatData;
 
-const GLenum parseCompareOp(CtsCompareOp value);
-const GLenum parseStencilOp(CtsStencilOp value);
-const GLuint parseCullMode(CtsCullModeFlags value);
-const GLenum parseFrontFace(CtsFrontFace value);
-const GLenum parsePrimitiveTopology(CtsPrimitiveTopology value);
-const GLenum parsePolygonMode(CtsPolygonMode value);
-const GLenum parseSamplerAddressMode(CtsSamplerAddressMode value);
-const GLenum parseMinFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode);
-const GLenum parseMagFilter(CtsFilter filter, CtsSamplerMipmapMode mipmapMode);
-const GLenum parseShaderType(CtsShaderStageFlagBits value);
-const GLenum parseImageType(CtsImageType value, bool isMultisample, bool isArray);
-const GLenum parseImageViewType(CtsImageViewType value, bool isMultisample);
-const GLenum parseBufferUsage(CtsBufferUsageFlags value);
-const GLenum parseBlendFactor(CtsBlendFactor value);
-const GLenum parseBlendOperation(CtsBlendOp value);
-const GLenum parseLogicOp(CtsLogicOp value);
-const bool isFloatBorderColor(CtsBorderColor borderColor);
-const float* parseBorderColorFloat(CtsBorderColor borderColor);
-const int* parseBorderColorInt(CtsBorderColor borderColor);
+const GLenum parseCompareOp(VkCompareOp value);
+const GLenum parseStencilOp(VkStencilOp value);
+const GLuint parseCullMode(VkCullModeFlags value);
+const GLenum parseFrontFace(VkFrontFace value);
+const GLenum parsePrimitiveTopology(VkPrimitiveTopology value);
+const GLenum parsePolygonMode(VkPolygonMode value);
+const GLenum parseSamplerAddressMode(VkSamplerAddressMode value);
+const GLenum parseMinFilter(VkFilter filter, VkSamplerMipmapMode mipmapMode);
+const GLenum parseMagFilter(VkFilter filter, VkSamplerMipmapMode mipmapMode);
+const GLenum parseShaderType(VkShaderStageFlagBits value);
+const GLenum parseImageType(VkImageType value, bool isMultisample, bool isArray);
+const GLenum parseImageViewType(VkImageViewType value, bool isMultisample);
+const GLenum parseBufferUsage(VkBufferUsageFlags value);
+const GLenum parseBlendFactor(VkBlendFactor value);
+const GLenum parseBlendOperation(VkBlendOp value);
+const GLenum parseLogicOp(VkLogicOp value);
+const bool isFloatBorderColor(VkBorderColor borderColor);
+const float* parseBorderColorFloat(VkBorderColor borderColor);
+const int* parseBorderColorInt(VkBorderColor borderColor);
 
-const CtsFlags parseDynamicStateFlag(CtsDynamicState value);
-const CtsFormatData parseFormat(CtsFormat value);
+const VkFlags parseDynamicStateFlag(VkDynamicState value);
+const CtsFormatData* parseFormat(VkFormat value);
 
 bool blendStateBlendConstantChanged(
     const CtsGlPipelineColorBlendState* pLhs,
@@ -66,8 +67,8 @@ void parseColorBlendStateChanges(
     CtsGlColorBlendStateChanges* pChanges
 );
 
-CtsFlagBit parseDynamicStateFlagBits(
-    const CtsPipelineDynamicStateCreateInfo* pCreateInfo
+uint32_t parseDynamicStateFlagBits(
+    const VkPipelineDynamicStateCreateInfo* pCreateInfo
 );
 
 #ifdef __cplusplus

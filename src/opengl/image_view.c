@@ -2,6 +2,7 @@
 #include <cts/commands.h>
 #include <cts/image_view.h>
 #include <cts/type_mapper.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/image_view_private.h>
 #include <private/image_private.h>
@@ -11,18 +12,20 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateImageView(
-    CtsDevice device,
-    const CtsImageViewCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImageView* pImageView
+VkResult ctsCreateImageView(
+    VkDevice deviceHandle,
+    const VkImageViewCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImageView* pImageView
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsCreateImageView cmd;
     cmd.base.type = CTS_COMMAND_CREATE_IMAGE_VIEW;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
     cmd.pAllocator = pAllocator;
     cmd.pImageView = pImageView;
@@ -34,45 +37,49 @@ CtsResult ctsCreateImageView(
 }
 
 void ctsDestroyImageView(
-    CtsDevice device,
-    CtsImageView imageView,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkImageView imageView,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsDestroyImageView cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_IMAGE_VIEW;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.imageView = imageView;
     cmd.pAllocator = pAllocator;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsCreateImageViewImpl(
-    CtsDevice device,
-    const CtsImageViewCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImageView* pImageView
+VkResult ctsCreateImageViewImpl(
+    VkDevice deviceHandle,
+    const VkImageViewCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImageView* pImageView
 ) {
-    (void) device;
+    (void) deviceHandle;
 
-    CtsImageView imageView = ctsAllocation(
+    struct CtsImageView* imageView = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsImageViewImpl),
-        alignof(struct CtsImageViewImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsImageView),
+        alignof(struct CtsImageView),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (imageView == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    bool isMultisampled = (pCreateInfo->image->samples > 1);
-    CtsFormatData formatData = parseFormat(pCreateInfo->format);
+    struct CtsImage* image = CtsImageFromHandle(pCreateInfo->image);
+    bool isMultisampled = (image->samples > 1);
+
+    const CtsFormatData* formatData = parseFormat(pCreateInfo->format);
     (void) pCreateInfo->components;
 
-    imageView->image = pCreateInfo->image;
+    imageView->image = CtsImageFromHandle(pCreateInfo->image);
     imageView->target = parseImageViewType(pCreateInfo->viewType, isMultisampled);
     imageView->viewType = pCreateInfo->viewType;
     imageView->aspectMask = pCreateInfo->subresourceRange.aspectMask;
@@ -81,23 +88,27 @@ CtsResult ctsCreateImageViewImpl(
     glTextureView(
         imageView->handle,
         imageView->target,
-        pCreateInfo->image->handle,
-        formatData.internalFormat,
+        image->handle,
+        formatData->internalFormat,
         pCreateInfo->subresourceRange.baseMipLevel,
         pCreateInfo->subresourceRange.levelCount,
         pCreateInfo->subresourceRange.baseArrayLayer,
         pCreateInfo->subresourceRange.layerCount
     );
 
-    *pImageView = imageView;
-    return CTS_SUCCESS;
+    *pImageView = CtsImageViewToHandle(imageView);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyImageViewImpl(
-    CtsDevice device,
-    CtsImageView imageView,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkImageView imageViewHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    (void) deviceHandle;
+
+    struct CtsImageView* imageView = CtsImageViewFromHandle(imageViewHandle);
+
     if (imageView != NULL) {
         glDeleteTextures(1, &imageView->handle);
         ctsFree(pAllocator, imageView);

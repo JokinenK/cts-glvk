@@ -1,69 +1,68 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsAllocateMemory(
-    CtsDevice device,
-    const CtsMemoryAllocateInfo* pAllocateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDeviceMemory* pMemory
+VkResult ctsAllocateMemory(
+    VkDevice device,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDeviceMemory* pMemory
 );
 
-CtsResult ctsMapMemory(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset,
-    CtsDeviceSize size,
-    CtsMemoryMapFlags flags,
+VkResult ctsMapMemory(
+    VkDevice device,
+    VkDeviceMemory memory,
+    VkDeviceSize offset,
+    VkDeviceSize size,
+    VkMemoryMapFlags flags,
     void** pData
 );
 
 void ctsUnmapMemory(
-    CtsDevice device,
-    CtsDeviceMemory memory
+    VkDevice device,
+    VkDeviceMemory memory
 );
 
-CtsResult ctsFlushMappedMemoryRanges(
-    CtsDevice device,
+VkResult ctsFlushMappedMemoryRanges(
+    VkDevice device,
     uint32_t memoryRangeCount,
-    const CtsMappedMemoryRange* pMemoryRanges
+    const VkMappedMemoryRange* pMemoryRanges
 );
 
 void ctsFreeMemory(
-    CtsDevice device,
-    CtsDeviceMemory memory,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkDeviceMemory memory,
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsBindBufferMemory(
-    CtsDevice device,
-    CtsBuffer buffer, 
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset
+VkResult ctsBindBufferMemory(
+    VkDevice device,
+    VkBuffer buffer, 
+    VkDeviceMemory memory,
+    VkDeviceSize offset
 );
 
-CtsResult ctsBindImageMemory(
-    CtsDevice device,
-    CtsImage image, 
-    CtsDeviceMemory memory,
-    CtsDeviceSize offset
+VkResult ctsBindImageMemory(
+    VkDevice device,
+    VkImage image, 
+    VkDeviceMemory memory,
+    VkDeviceSize offset
 );
 
 void ctsGetBufferMemoryRequirements(
-    CtsDevice device,
-    CtsBuffer buffer,
-    CtsMemoryRequirements* pMemoryRequirements
+    VkDevice device,
+    VkBuffer buffer,
+    VkMemoryRequirements* pMemoryRequirements
 );
 
 void ctsGetImageMemoryRequirements(
-    CtsDevice device,
-    CtsImage image,
-    CtsMemoryRequirements* pMemoryRequirements
+    VkDevice device,
+    VkImage image,
+    VkMemoryRequirements* pMemoryRequirements
 );
 
 #ifdef __cplusplus

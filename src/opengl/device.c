@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <cts/device.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/queue_private.h>
 #include <private/physical_device_private.h>
@@ -8,21 +9,22 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateDevice(
-    CtsPhysicalDevice physicalDevice,
-    const CtsDeviceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDevice* pDevice
+VkResult ctsCreateDevice(
+    VkPhysicalDevice physicalDeviceHandle,
+    const VkDeviceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDevice* pDevice
 ) {
-    CtsDevice device = ctsAllocation(
+    struct CtsPhysicalDevice* physicalDevice = CtsPhysicalDeviceFromHandle(physicalDeviceHandle);
+    struct CtsDevice* device = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsDeviceImpl),
-        alignof(struct CtsDeviceImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_DEVICE
+        sizeof(struct CtsDevice),
+        alignof(struct CtsDevice),
+        VK_SYSTEM_ALLOCATION_SCOPE_DEVICE
     );
 
     if (device == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     device->dynamicStateFlags = 0;
@@ -30,28 +32,32 @@ CtsResult ctsCreateDevice(
     device->activeGraphicsPipeline = NULL;
     device->queue = physicalDevice->queue;
     
-    *pDevice = device;
-    return CTS_SUCCESS;
+    *pDevice = CtsDeviceToHandle(device);
+    return VK_SUCCESS;
 }
 
 void ctsGetDeviceQueue(
-    CtsDevice device,
+    VkDevice deviceHandle,
     uint32_t queueFamilyIndex,
     uint32_t queueIndex,
-    CtsQueue* pQueue
+    VkQueue* pQueue
 ) {
     (void) queueFamilyIndex;
     (void) queueIndex;
 
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     if (device != NULL) {
-        *pQueue = device->queue;
+        *pQueue = CtsQueueToHandle(device->queue);
     }
 }
 
 void ctsDestroyDevice(
-    CtsDevice device,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     if (device != NULL) {
         ctsFree(pAllocator, device);
     }

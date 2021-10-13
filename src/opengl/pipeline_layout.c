@@ -1,5 +1,8 @@
 #include <stddef.h>
 #include <cts/pipeline_layout.h>
+#include <cts/allocator.h>
+#include <cts/util/align.h>
+#include <private/private.h>
 #include <private/pipeline_layout_private.h>
 #include <private/descriptor_set_layout_private.h>
 
@@ -7,62 +10,64 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreatePipelineLayout(
-    CtsDevice device,
-    const CtsPipelineLayoutCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipelineLayout* pPipelineLayout
+VkResult ctsCreatePipelineLayout(
+    VkDevice deviceHandle,
+    const VkPipelineLayoutCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkPipelineLayout* pPipelineLayout
 ) {
-    (void) device;
+    (void) deviceHandle;
 
-    CtsPipelineLayout pipelineLayout = ctsAllocation(
+    struct CtsPipelineLayout* pipelineLayout = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsPipelineLayoutImpl),
-        alignof(struct CtsPipelineLayoutImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsPipelineLayout),
+        alignof(struct CtsPipelineLayout),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (pipelineLayout == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     pipelineLayout->setLayoutCount = pCreateInfo->setLayoutCount;
-    pipelineLayout->setLayouts = ctsAllocation(
+    pipelineLayout->ppSetLayouts = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsDescriptorSetLayoutImpl) * pipelineLayout->setLayoutCount,
-        alignof(struct CtsDescriptorSetLayoutImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsDescriptorSetLayout*) * pipelineLayout->setLayoutCount,
+        alignof(struct CtsDescriptorSetLayout*),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     for (uint32_t i = 0; i < pipelineLayout->setLayoutCount; ++i) {
-        pipelineLayout->setLayouts[i] = pCreateInfo->pSetLayouts[i];
+        pipelineLayout->ppSetLayouts[i] = CtsDescriptorSetLayoutFromHandle(pCreateInfo->pSetLayouts[i]);
     }
 
     pipelineLayout->pushConstantRangeCount = pCreateInfo->pushConstantRangeCount;
     pipelineLayout->pushConstantRanges = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsPushConstantRange) * pipelineLayout->pushConstantRangeCount,
-        alignof(struct CtsPushConstantRange),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(VkPushConstantRange) * pipelineLayout->pushConstantRangeCount,
+        alignof(VkPushConstantRange),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     for (uint32_t i = 0; i < pipelineLayout->pushConstantRangeCount; ++i) {
         pipelineLayout->pushConstantRanges[i] = pCreateInfo->pPushConstantRanges[i];
     }
 
-    *pPipelineLayout = pipelineLayout;
-    return CTS_SUCCESS;
+    *pPipelineLayout = CtsPipelineLayoutToHandle(pipelineLayout);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyPipelineLayout(
-    CtsDevice device,
-    CtsPipelineLayout pipelineLayout,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkPipelineLayout pipelineLayoutHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    (void) deviceHandle;
+
+    struct CtsPipelineLayout* pipelineLayout = CtsPipelineLayoutFromHandle(pipelineLayoutHandle);
 
     if (pipelineLayout != NULL) {
-        ctsFree(pAllocator, pipelineLayout->setLayouts);
+        ctsFree(pAllocator, pipelineLayout->ppSetLayouts);
         ctsFree(pAllocator, pipelineLayout->pushConstantRanges);
         ctsFree(pAllocator, pipelineLayout);
     }

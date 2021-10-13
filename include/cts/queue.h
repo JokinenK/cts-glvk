@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsQueueWaitIdle(
-    CtsQueue queue
+VkResult ctsQueueWaitIdle(
+    VkQueue queue
 );
 
 #ifdef __cplusplus

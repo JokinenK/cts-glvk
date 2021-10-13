@@ -19,6 +19,7 @@ if(CTS_BUILD_SAMPLES)
 endif(CTS_BUILD_SAMPLES)
 
 add_subdirectory(contrib/glad)
+add_subdirectory(contrib/vulkan)
 
 list(APPEND HEADERS
 )
@@ -64,6 +65,7 @@ list(APPEND INCLUDE_PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl
     ${CMAKE_SOURCE_DIR}/contrib/glad/include
+    ${CMAKE_SOURCE_DIR}/contrib/vulkan/include
 )
 
 list(APPEND LIBRARIES

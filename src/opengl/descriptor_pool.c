@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <cts/descriptor_pool.h>
+#include <private/private.h>
 #include <private/descriptor_pool_private.h>
 #include <private/descriptor_set_private.h>
 
@@ -8,23 +9,23 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateDescriptorPool(
-    CtsDevice device,
-    const CtsDescriptorPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDescriptorPool* pDescriptorPool
+VkResult ctsCreateDescriptorPool(
+    VkDevice device,
+    const VkDescriptorPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorPool* pDescriptorPool
 ) {
     (void) device;
 
-    CtsDescriptorPool descriptorPool = ctsAllocation(
+    struct CtsDescriptorPool* descriptorPool = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsDescriptorPoolImpl),
-        alignof(struct CtsDescriptorPoolImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsDescriptorPool),
+        alignof(struct CtsDescriptorPool),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (descriptorPool == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     CtsLinearAllocatorCreateInfo linearAllocatorCreateInfo;
@@ -33,14 +34,14 @@ CtsResult ctsCreateDescriptorPool(
     ctsCreateLinearAllocator(&descriptorPool->linearAllocator, &linearAllocatorCreateInfo);
     ctsGetLinearAllocatorCallbacks(descriptorPool->linearAllocator, &descriptorPool->allocator);
 
-    *pDescriptorPool = descriptorPool;
-    return CTS_SUCCESS;
+    *pDescriptorPool = CtsDescriptorPoolToHandle(descriptorPool);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyDescriptorPool(
-    CtsDevice device,
-    CtsDescriptorPool descriptorPool,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    const VkAllocationCallbacks* pAllocator
 ) {
     if (descriptorPool != NULL) {
         ctsFree(pAllocator, descriptorPool);

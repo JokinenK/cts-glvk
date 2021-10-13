@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include <cts/uuid.h>
-#include <cts/snprintf.h>
+#include "cts/util/uuid.h"
+#include "cts/util/snprintf.h"
 
 #ifdef __cplusplus
 extern "C" {

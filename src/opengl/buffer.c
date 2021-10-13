@@ -1,7 +1,11 @@
 #include <assert.h>
 #include <stddef.h>
-#include <cts/buffer.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/buffer.h"
+#include "cts/util/align.h"
 #include <cts/type_mapper.h>
+#include <private/private.h>
 #include <private/buffer_private.h>
 #include <private/device_memory_private.h>
 
@@ -9,23 +13,23 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateBuffer(
-    CtsDevice device,
-    const CtsBufferCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsBuffer* pBuffer
+VkResult ctsCreateBuffer(
+    VkDevice deviceHandle,
+    const VkBufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBuffer* pBuffer
 ) {
-    (void) device;
+    (void) deviceHandle;
     
-    CtsBuffer buffer = ctsAllocation(
+    struct CtsBuffer* buffer = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsBufferImpl),
-        alignof(struct CtsBufferImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsBuffer),
+        alignof(struct CtsBuffer),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     ); 
 
     if (buffer == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
         
     buffer->memory = NULL;
@@ -34,16 +38,17 @@ CtsResult ctsCreateBuffer(
     buffer->offset = 0;
     buffer->usage = pCreateInfo->usage;
 
-    *pBuffer = buffer;
-    return CTS_SUCCESS;
+    *pBuffer = CtsBufferToHandle(buffer);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyBuffer(
-    CtsDevice device,
-    CtsBuffer buffer,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkBuffer bufferHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    (void) deviceHandle;
+    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
 
     if (buffer != NULL) {
         ctsFree(pAllocator, buffer);

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
+#include "private/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,7 +10,7 @@ extern "C" {
 
 typedef struct CtsCmdEndRenderPass {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
+    VkCommandBuffer commandBuffer;
 } CtsCmdEndRenderPass;
 
 #ifdef __cplusplus

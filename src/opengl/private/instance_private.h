@@ -1,16 +1,14 @@
 #pragma once
 
-#include <cts/typedefs/instance.h>
-#include <cts/typedefs/surface.h>
-#include <cts/typedefs/queue_family_properties.h>
+#include "vulkan/vulkan_core.h"
 #include <private/physical_device_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsInstanceImpl {
-    struct CtsPhysicalDeviceImpl physicalDevice;
+struct CtsInstance {
+    struct CtsPhysicalDevice physicalDevice;
 };
 
 #ifdef __cplusplus

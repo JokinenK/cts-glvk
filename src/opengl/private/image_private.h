@@ -1,21 +1,20 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <cts/typedefs/enums.h>
-#include <cts/typedefs/image.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsImageImpl {
+struct CtsImage {
     GLenum handle;
     GLenum format;
     GLenum internalFormat;
     GLenum type;
     GLenum target;
-    CtsImageType imageType;
-    CtsImageUsageFlags imageUsage;
+    VkImageType imageType;
+    VkImageUsageFlags imageUsage;
 
     GLint width;
     GLint height;
@@ -25,27 +24,27 @@ struct CtsImageImpl {
     GLint numComponents;
     GLint samples;
 
-    CtsDeviceSize size;
-    CtsDeviceSize offset;
-    CtsImage nextSibling;
-    CtsDeviceMemory memory;
+    VkDeviceSize size;
+    VkDeviceSize offset;
+    struct CtsImage* nextSibling;
+    struct CtsDeviceMemory* memory;
 };
 
-CtsResult ctsCreateImageImpl(
-    CtsDevice device,
-    const CtsImageCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImage* pImage
+VkResult ctsCreateImageImpl(
+    VkDevice device,
+    const VkImageCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImage* pImage
 );
 
 void ctsDestroyImageImpl(
-    CtsDevice device,
-    CtsImage image,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkImage image,
+    const VkAllocationCallbacks* pAllocator
 );
 
-uintptr_t ctsImageToBuffer(CtsImage image, uintptr_t offset);
-uintptr_t ctsBufferToImage(CtsImage image, uintptr_t offset);
+uintptr_t ctsImageToBuffer(struct CtsImage* image, uintptr_t offset);
+uintptr_t ctsBufferToImage(struct CtsImage* image, uintptr_t offset);
 
 #ifdef __cplusplus
 }

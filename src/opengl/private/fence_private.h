@@ -1,58 +1,58 @@
 #pragma once
 
 #include <stdbool.h>
-#include <glad/glad.h>
-#include <cts/fence.h>
+#include "glad/glad.h"
+#include "cts/fence.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsFenceImpl {
+struct CtsFence {
     GLsync sync;
     GLint status;
 };
 
 void ctsSignalFence(
-    CtsDevice device,
-    CtsFence fence
+    VkDevice device,
+    VkFence fence
 );
 
-CtsResult ctsCreateFenceImpl(
-    CtsDevice device,
-    const CtsFenceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFence* pFence
+VkResult ctsCreateFenceImpl(
+    VkDevice device,
+    const VkFenceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFence* pFence
 );
 
-CtsResult ctsResetFencesImpl(
-    CtsDevice device,
+VkResult ctsResetFencesImpl(
+    VkDevice device,
     uint32_t fenceCount,
-    const CtsFence* pFences
+    const VkFence* pFences
 );
 
-CtsResult ctsGetFenceStatusImpl(
-    CtsDevice device,
-    CtsFence fence
+VkResult ctsGetFenceStatusImpl(
+    VkDevice device,
+    VkFence fence
 );
 
 void ctsSignalFenceFenceImpl(
-    CtsDevice device,
-    CtsFence fence
+    VkDevice device,
+    VkFence fence
 );
 
-CtsResult ctsWaitForFencesImpl(
-    CtsDevice device,
+VkResult ctsWaitForFencesImpl(
+    VkDevice device,
     uint32_t fenceCount,
-    const CtsFence* pFences,
-    CtsBool32 waitAll,
+    const VkFence* pFences,
+    VkBool32 waitAll,
     uint64_t timeout
 );
 
 void ctsDestroyFenceImpl(
-    CtsDevice device,
-    CtsFence fence,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkFence fence,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

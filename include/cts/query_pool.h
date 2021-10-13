@@ -1,23 +1,22 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateQueryPool(
-    CtsDevice device,
-    const CtsQueryPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsQueryPool* pQueryPool
+VkResult ctsCreateQueryPool(
+    VkDevice device,
+    const VkQueryPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkQueryPool* pQueryPool
 );
 
 void ctsDestroyQueryPool(
-    CtsDevice device,
-    CtsQueryPool queryPool,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkQueryPool queryPool,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

@@ -1,19 +1,18 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <cts/typedefs/buffer.h>
-#include <cts/typedefs/enums.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsBufferViewImpl {
+struct CtsBufferView {
     GLuint handle;
     GLenum format;
-    CtsBuffer buffer;
-    CtsDeviceSize offset;
-    CtsDeviceSize range;
+    struct CtsBuffer* buffer;
+    VkDeviceSize offset;
+    VkDeviceSize range;
 };
 
 #ifdef __cplusplus

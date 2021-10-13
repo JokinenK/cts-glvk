@@ -9,10 +9,10 @@
             "name": "(Windows) Example",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/sample/cts-sample.exe",
+            "program": "${workspaceFolder}/build/sample/Debug/cts-sample.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/sample",
+            "cwd": "${workspaceFolder}/build/sample/Debug",
             "environment": [],
             "externalConsole": true
         }

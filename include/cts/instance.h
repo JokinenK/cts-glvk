@@ -1,28 +1,27 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateInstance(
-    const CtsInstanceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsInstance* pInstance
+VkResult ctsCreateInstance(
+    const VkInstanceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkInstance* pInstance
 );
 
-CtsResult ctsDestroyInstance(
-    CtsInstance instance,
-    const CtsAllocationCallbacks* pAllocator
+VkResult ctsDestroyInstance(
+    VkInstance instance,
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsEnumeratePhysicalDevices(
-    CtsInstance instance,
+VkResult ctsEnumeratePhysicalDevices(
+    VkInstance instance,
     uint32_t* pPhysicalDeviceCount,
-    CtsPhysicalDevice* pPhysicalDevices
+    VkPhysicalDevice* pPhysicalDevices
 );
 
 #ifdef __cplusplus

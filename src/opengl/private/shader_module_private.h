@@ -1,13 +1,12 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/typedefs/shader_module.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsShaderModuleImpl {
+struct CtsShaderModule {
     size_t codeSize;
     char* code;
 };

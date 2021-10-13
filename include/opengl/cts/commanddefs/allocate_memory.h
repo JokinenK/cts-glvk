@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/allocator.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,11 +10,11 @@ extern "C" {
 
 typedef struct CtsAllocateMemory {
     CtsCmdBase base;
-    CtsDevice device;
-    const CtsMemoryAllocateInfo* pAllocateInfo;
-    const CtsAllocationCallbacks* pAllocator;
-    CtsDeviceMemory* pMemory;
-    CtsResult* pResult;
+    VkDevice device;
+    const VkMemoryAllocateInfo* pAllocateInfo;
+    const VkAllocationCallbacks* pAllocator;
+    VkDeviceMemory* pMemory;
+    VkResult* pResult;
 } CtsAllocateMemory;
 
 #ifdef __cplusplus

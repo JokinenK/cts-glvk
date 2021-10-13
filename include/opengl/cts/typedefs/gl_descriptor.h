@@ -1,33 +1,28 @@
 #pragma once
 
-#include <cts/typedefs/descriptor.h>
-#include <cts/typedefs/buffer.h>
-#include <cts/typedefs/buffer_view.h>
-#include <cts/typedefs/enums.h>
-#include <cts/typedefs/image_view.h>
-#include <cts/typedefs/sampler.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct CtsGlDescriptorImageView {
-    CtsSampler sampler;
-    CtsImageView imageView;
+    VkSampler sampler;
+    VkImageView imageView;
 } CtsGlDescriptorImageView;
 
 typedef struct CtsGlDescriptorBufferView {
-    CtsBufferView bufferView;
+    VkBufferView bufferView;
 } CtsGlDescriptorBufferView;
 
 typedef struct CtsGlDescriptorBuffer {
-    CtsBuffer buffer;
+    VkBuffer buffer;
     size_t offset;
     size_t range; 
 } CtsGlDescriptorBuffer;
 
 typedef struct CtsGlDescriptor {
-    CtsDescriptorType type;
+    VkDescriptorType type;
 
     union {
         CtsGlDescriptorImageView imageViewContainer;

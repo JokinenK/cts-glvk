@@ -1,23 +1,22 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateImage(
-    CtsDevice device,
-    const CtsImageCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsImage* pImage
+VkResult ctsCreateImage(
+    VkDevice device,
+    const VkImageCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImage* pImage
 );
 
 void ctsDestroyImage(
-    CtsDevice device,
-    CtsImage image,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkImage image,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

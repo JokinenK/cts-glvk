@@ -1,4 +1,4 @@
-#include <cts/platform_thread.h>
+#include "cts/platform/platform_thread.h"
 
 #ifdef __cplusplus
 extern "C" {

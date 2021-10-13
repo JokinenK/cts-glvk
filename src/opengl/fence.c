@@ -1,7 +1,8 @@
 #include <stddef.h>
 #include <cts/fence.h>
 #include <cts/commands.h>
-#include <cts/platform_time.h>
+#include <cts/platform/platform_time.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/fence_private.h>
 #include <private/queue_private.h>
@@ -10,18 +11,20 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateFence(
-    CtsDevice device,
-    const CtsFenceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFence* pFence
+VkResult ctsCreateFence(
+    VkDevice deviceHandle,
+    const VkFenceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFence* pFence
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsCreateFence cmd;
     cmd.base.type = CTS_COMMAND_CREATE_FENCE;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
     cmd.pAllocator = pAllocator;
     cmd.pFence = pFence;
@@ -32,17 +35,19 @@ CtsResult ctsCreateFence(
     return result;
 }
 
-CtsResult ctsResetFences(
-    CtsDevice device,
+VkResult ctsResetFences(
+    VkDevice deviceHandle,
     uint32_t fenceCount,
-    const CtsFence* pFences
+    const VkFence* pFences
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsResetFences cmd;
     cmd.base.type = CTS_COMMAND_RESET_FENCES;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.fenceCount = fenceCount;
     cmd.pFences = pFences;
     cmd.pResult = &result;
@@ -52,16 +57,18 @@ CtsResult ctsResetFences(
     return result;
 }
 
-CtsResult ctsGetFenceStatus(
-    CtsDevice device,
-    CtsFence fence
+VkResult ctsGetFenceStatus(
+    VkDevice deviceHandle,
+    VkFence fence
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsGetFenceStatus cmd;
     cmd.base.type = CTS_COMMAND_GET_FENCE_STATUS;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.fence = fence;
     cmd.pResult = &result;
 
@@ -71,32 +78,36 @@ CtsResult ctsGetFenceStatus(
 }
 
 void ctsSignalFence(
-    CtsDevice device,
-    CtsFence fence
+    VkDevice deviceHandle,
+    VkFence fence
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsSignalFence cmd;
     cmd.base.type = CTS_COMMAND_SIGNAL_FENCE;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.fence = fence;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsWaitForFences(
-    CtsDevice device,
+VkResult ctsWaitForFences(
+    VkDevice deviceHandle,
     uint32_t fenceCount,
-    const CtsFence* pFences,
-    CtsBool32 waitAll,
+    const VkFence* pFences,
+    VkBool32 waitAll,
     uint64_t timeout
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsWaitForFences cmd;
     cmd.base.type = CTS_COMMAND_WAIT_FOR_FENCES;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.fenceCount = fenceCount;
     cmd.pFences = pFences;
     cmd.waitAll = waitAll;
@@ -109,56 +120,60 @@ CtsResult ctsWaitForFences(
 }
 
 void ctsDestroyFence(
-    CtsDevice device,
-    CtsFence fence,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkFence fence,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsDestroyFence cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_FENCE;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.fence = fence;
     cmd.pAllocator = pAllocator;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsCreateFenceImpl(
-    CtsDevice device,
-    const CtsFenceCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsFence* pFence
+VkResult ctsCreateFenceImpl(
+    VkDevice deviceHandle,
+    const VkFenceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFence* pFence
 ) {
-    (void) device;
+    (void) deviceHandle;
 
-    CtsFence fence = ctsAllocation(
+    struct CtsFence* fence = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsFenceImpl),
-        alignof(struct CtsFenceImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsFence),
+        alignof(struct CtsFence),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (fence == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     fence->sync = NULL;
-    fence->status = (pCreateInfo->flags == CTS_FENCE_CREATE_SIGNALED_BIT)
+    fence->status = (pCreateInfo->flags == VK_FENCE_CREATE_SIGNALED_BIT)
         ? GL_SIGNALED
         : GL_UNSIGNALED;
 
-    *pFence = fence;
-    return CTS_SUCCESS;
+    *pFence = CtsFenceToHandle(fence);
+    return VK_SUCCESS;
 }
 
-CtsResult ctsResetFencesImpl(
-    CtsDevice device,
+VkResult ctsResetFencesImpl(
+    VkDevice deviceHandle,
     uint32_t fenceCount,
-    const CtsFence* pFences
+    const VkFence* pFences
 ) {
+    (void) deviceHandle;
+
     for (uint32_t i = 0; i < fenceCount; ++i) {
-        CtsFence fence = pFences[i];
+        struct CtsFence* fence = CtsFenceFromHandle(pFences[i]);
 
         if (fence->sync != NULL) {
             glDeleteSync(fence->sync);
@@ -168,41 +183,49 @@ CtsResult ctsResetFencesImpl(
         fence->status = GL_UNSIGNALED;
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsGetFenceStatusImpl(
-    CtsDevice device,
-    CtsFence fence
+VkResult ctsGetFenceStatusImpl(
+    VkDevice deviceHandle,
+    VkFence fenceHandle
 ) {
-    (void) device;
+    (void) deviceHandle;
+
+    struct CtsFence* fence = CtsFenceFromHandle(fenceHandle);
 
     if (fence->status == GL_SIGNALED) {
-        return CTS_SUCCESS;
+        return VK_SUCCESS;
     }
 
     glGetSynciv(fence->sync, GL_SYNC_STATUS, sizeof(GLint), NULL, &fence->status);
     return (fence->status == GL_SIGNALED)
-        ? CTS_SUCCESS
-        : CTS_NOT_READY;
+        ? VK_SUCCESS
+        : VK_NOT_READY;
 }
 
 void ctsSignalFenceFenceImpl(
-    CtsDevice device,
-    CtsFence fence
+    VkDevice deviceHandle,
+    VkFence fenceHandle
 ) {
+    (void) deviceHandle;
+
+    struct CtsFence* fence = CtsFenceFromHandle(fenceHandle);
+
     if (fence->sync == NULL) {
         fence->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 }
 
-CtsResult ctsWaitForFencesImpl(
-    CtsDevice device,
+VkResult ctsWaitForFencesImpl(
+    VkDevice deviceHandle,
     uint32_t fenceCount,
-    const CtsFence* pFences,
-    CtsBool32 waitAll,
+    const VkFence* pFences,
+    VkBool32 waitAll,
     uint64_t timeout
 ) {
+    (void) deviceHandle;
+
     uint64_t begin = ctsGetCurrentTimeNs();
     uint64_t timeRemaining = timeout;
     uint32_t signaledCount;
@@ -214,35 +237,39 @@ CtsResult ctsWaitForFencesImpl(
         timeoutPerFence = (uint64_t)timeRemaining / fenceCount;
 
         for (uint32_t i = 0; i < fenceCount; ++i) {
-            if (pFences[i]->status == GL_SIGNALED) {
+            struct CtsFence* fence = CtsFenceFromHandle(pFences[i]);
+
+            if (fence->status == GL_SIGNALED) {
                 ++signaledCount;
                 continue;
             }
             
-            if (pFences[i]->sync != NULL) {
-                GLenum result = glClientWaitSync(pFences[i]->sync, 0, timeoutPerFence);
+            if (fence->sync != NULL) {
+                GLenum result = glClientWaitSync(fence->sync, 0, timeoutPerFence);
 
                 if (result == GL_CONDITION_SATISFIED || result == GL_ALREADY_SIGNALED) {
-                    pFences[i]->status = GL_SIGNALED;
+                    fence->status = GL_SIGNALED;
                     ++signaledCount;
                 }
             }
         }
 
         if (signaledCount == fenceCount || (!waitAll && signaledCount > 0)) {
-            return CTS_SUCCESS;
+            return VK_SUCCESS;
         }
     } while (timeRemaining > 0);
 
-    return CTS_TIMEOUT;
+    return VK_TIMEOUT;
 }
 
 void ctsDestroyFenceImpl(
-    CtsDevice device,
-    CtsFence fence,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkFence fenceHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    (void) deviceHandle;
+
+    struct CtsFence* fence = CtsFenceFromHandle(fenceHandle);
 
     if (fence != NULL) {
         glDeleteSync(fence->sync);

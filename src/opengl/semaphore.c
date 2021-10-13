@@ -1,72 +1,83 @@
-#include <cts/align.h>
-#include <cts/allocator.h>
+#include "cts/util/align.h"
+#include "cts/allocator.h"
 #include <cts/semaphore.h>
+#include <private/private.h>
 #include <private/semaphore_private.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateSemaphore(
-    CtsDevice device,
-    const CtsSemaphoreCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSemaphore* pSemaphore
+VkResult ctsCreateSemaphore(
+    VkDevice deviceHandle,
+    const VkSemaphoreCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSemaphore* pSemaphore
 ) {
-    CtsSemaphore semaphore = ctsAllocation(
+    (void) deviceHandle;
+
+    struct CtsSemaphore* semaphore = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSemaphoreImpl),
-        alignof(struct CtsSemaphoreImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsSemaphore),
+        alignof(struct CtsSemaphore),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (semaphore == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     ctsInitPlatformSemaphore(&semaphore->semaphore, 0, 1);
 
-    *pSemaphore = semaphore;
-    return CTS_SUCCESS;
+    *pSemaphore = CtsSemaphoreToHandle(semaphore);
+    return VK_SUCCESS;
 }
 
 void ctsDestroySemaphore(
-    CtsDevice device,
-    CtsSemaphore semaphore,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkSemaphore semaphoreHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    (void) deviceHandle;
+
+    struct CtsSemaphore* semaphore = CtsSemaphoreFromHandle(semaphoreHandle);
+
     if (semaphore != NULL) {
         ctsDestroyPlatformSemaphore(&semaphore->semaphore);
         ctsFree(pAllocator, semaphore);
     }
 }
 
-CtsResult ctsWaitSemaphore(
-    CtsSemaphore semaphore,
+VkResult ctsWaitSemaphore(
+    VkSemaphore semaphoreHandle,
     uint64_t timeout
 ) {
+    struct CtsSemaphore* semaphore = CtsSemaphoreFromHandle(semaphoreHandle);
+
     if (ctsWaitPlatformSemaphore(&semaphore->semaphore, timeout)) {
-        return CTS_SUCCESS;
+        return VK_SUCCESS;
     }
 
-    return CTS_TIMEOUT;
+    return VK_TIMEOUT;
 }
 
 void ctsWaitSemaphores(
     uint32_t semaphoreCount,
-    const CtsSemaphore* pSemaphores
+    const VkSemaphore* pSemaphores
 ) {
     for (uint32_t i = 0; i < semaphoreCount; ++i) {
-        ctsWaitPlatformSemaphore(&pSemaphores[i]->semaphore, UINT64_MAX);
+        struct CtsSemaphore* semaphore = CtsSemaphoreFromHandle(pSemaphores[i]);
+        ctsWaitPlatformSemaphore(&semaphore->semaphore, UINT64_MAX);
     }
 }
 
 void ctsSignalSemaphores(
     uint32_t semaphoreCount,
-    const CtsSemaphore* pSemaphores
+    const VkSemaphore* pSemaphores
 ) {
     for (uint32_t i = 0; i < semaphoreCount; ++i) {
-        ReleaseSemaphore(pSemaphores[i]->semaphore, 1, NULL);
+        struct CtsSemaphore* semaphore = CtsSemaphoreFromHandle(pSemaphores[i]);
+        ReleaseSemaphore(semaphore->semaphore, 1, NULL);
     }
 }
 

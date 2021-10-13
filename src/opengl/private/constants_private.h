@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <cts/macros.h>
+#include "cts/macros.h"
 
 #ifdef __cplusplus
 extern "C" {

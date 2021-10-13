@@ -1,24 +1,23 @@
 #pragma once
 
-#include <cts/typedefs/enums.h>
-#include <cts/typedefs/descriptor_set_layout.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct CtsGlDescriptorSetLayoutBinding {
+struct CtsGlDescriptorSetLayoutBinding {
     uint32_t binding;
-    CtsDescriptorType descriptorType;
+    VkDescriptorType descriptorType;
     uint32_t descriptorCount;
     uint32_t descriptorOffset;
-    CtsShaderStageFlags stageFlags;
-    const CtsSampler* immutableSamplers;
-} CtsGlDescriptorSetLayoutBinding;
+    VkShaderStageFlags stageFlags;
+    const VkSampler* immutableSamplers;
+};
 
-struct CtsDescriptorSetLayoutImpl {
+struct CtsDescriptorSetLayout {
     uint32_t bindingCount;
-    CtsGlDescriptorSetLayoutBinding* bindings;
+    struct CtsGlDescriptorSetLayoutBinding* bindings;
 };
 
 #ifdef __cplusplus

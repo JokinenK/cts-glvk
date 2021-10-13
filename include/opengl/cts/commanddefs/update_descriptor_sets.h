@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,11 +10,11 @@ extern "C" {
 
 typedef struct CtsUpdateDescriptorSets {
     CtsCmdBase base;
-    CtsDevice device;
+    VkDevice device;
     uint32_t descriptorWriteCount;
-    const CtsWriteDescriptorSet* pDescriptorWrites;
+    const VkWriteDescriptorSet* pDescriptorWrites;
     uint32_t descriptorCopyCount;
-    const CtsCopyDescriptorSet* pDescriptorCopies;
+    const VkCopyDescriptorSet* pDescriptorCopies;
 } CtsUpdateDescriptorSets;
 
 #ifdef __cplusplus

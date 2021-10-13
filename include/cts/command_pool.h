@@ -1,36 +1,36 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateCommandPool(
-    CtsDevice device,
-    const CtsCommandPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsCommandPool* pCommandPool
+VkResult ctsCreateCommandPool(
+    VkDevice device,
+    const VkCommandPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkCommandPool* pCommandPool
 );
 
 void ctsDestroyCommandPool(
-    CtsDevice device,
-    CtsCommandPool commandPool,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkCommandPool commandPool,
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsAllocateCommandBuffers(
-    CtsDevice device,
-    const CtsCommandBufferAllocateInfo* pAllocateInfo,
-    CtsCommandBuffer* pCommandBuffers
+VkResult ctsAllocateCommandBuffers(
+    VkDevice device,
+    const VkCommandBufferAllocateInfo* pAllocateInfo,
+    VkCommandBuffer* pCommandBuffers
 );
 
 void ctsFreeCommandBuffers(
-    CtsDevice device,
-    CtsCommandPool commandPool,
+    VkDevice device,
+    VkCommandPool commandPool,
     uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
+    const VkCommandBuffer* pCommandBuffers
 );
 
 #ifdef __cplusplus

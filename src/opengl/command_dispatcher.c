@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <cts/command_dispatcher.h>
 #include <cts/commands.h>
+#include <private/private.h>
 #include <private/command_buffer_private.h>
 #include <private/descriptor_set_private.h>
 #include <private/device_memory_private.h>

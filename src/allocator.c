@@ -1,17 +1,17 @@
 #include <stdlib.h>
 #include <string.h>
-#include <cts/allocator.h>
+#include "cts/allocator.h"
 
 void* ctsAllocation(
-    const CtsAllocationCallbacks* pAllocator,
+    const VkAllocationCallbacks* pAllocator,
     size_t size,
     size_t align,
-    CtsSystemAllocationScope scope
+    VkSystemAllocationScope allocationScope
 ) {
     void* ptr = NULL;
 
     if (pAllocator) {
-        ptr = pAllocator->allocation(pAllocator->userData, size, align, scope);
+        ptr = pAllocator->pfnAllocation(pAllocator->pUserData, size, align, allocationScope);
     } else {
         ptr = malloc(size);
     }
@@ -21,46 +21,48 @@ void* ctsAllocation(
 }
 
 void* ctsReallocation(
-    const CtsAllocationCallbacks* pAllocator,
+    const VkAllocationCallbacks* pAllocator,
     void* pOriginal,
     size_t size,
     size_t align,
-    CtsSystemAllocationScope scope
+    VkSystemAllocationScope allocationScope
 ) {
     if (pAllocator) {
-        return pAllocator->reallocation(pAllocator->userData, pOriginal, size, align, scope);
+        return pAllocator->pfnReallocation(pAllocator->pUserData, pOriginal, size, align, allocationScope);
     } else {
         return realloc(pOriginal, size);
     }
 }
 
 void ctsFree(
-    const CtsAllocationCallbacks* pAllocator,
+    const VkAllocationCallbacks* pAllocator,
     void* pMemory
 ) {
     if (pAllocator) {
-        pAllocator->free(pAllocator->userData, pMemory);
+        pAllocator->pfnFree(pAllocator->pUserData, pMemory);
     } else {
         free(pMemory);
     }
 }
 
 void ctsInternalAllocation(
-    const CtsAllocationCallbacks* pAllocator,
+    const VkAllocationCallbacks* pAllocator,
     size_t size,
-    CtsSystemAllocationScope scope
+    VkInternalAllocationType allocationType,
+    VkSystemAllocationScope allocationScope
 ) {
     if (pAllocator) {
-        pAllocator->internalAllocation(pAllocator->userData, size, scope);
+        pAllocator->pfnInternalAllocation(pAllocator->pUserData, size, allocationType, allocationScope);
     }
 }
 
 void ctsInternalFree(
-    const CtsAllocationCallbacks* pAllocator,
-    size_t size, 
-    CtsSystemAllocationScope scope
+    const VkAllocationCallbacks* pAllocator,
+    size_t size,
+    VkInternalAllocationType allocationType,
+    VkSystemAllocationScope allocationScope
 ) {
     if (pAllocator) {
-        pAllocator->internalFree(pAllocator->userData, size, scope);
+        pAllocator->pfnInternalFree(pAllocator->pUserData, size, allocationType, allocationScope);
     }
 }

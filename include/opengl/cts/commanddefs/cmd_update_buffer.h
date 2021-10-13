@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,10 +9,10 @@ extern "C" {
 
 typedef struct CtsCmdUpdateBuffer {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsBuffer dstBuffer;
-    CtsDeviceSize dstOffset;
-    CtsDeviceSize dataSize;
+    VkCommandBuffer commandBuffer;
+    VkBuffer dstBuffer;
+    VkDeviceSize dstOffset;
+    VkDeviceSize dataSize;
     const void* pData;
 } CtsCmdUpdateBuffer;
 

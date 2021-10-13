@@ -4,6 +4,7 @@
 #include <cts/pipeline.h>
 #include <cts/type_mapper.h>
 #include <cts/commands.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/pipeline_private.h>
 #include <private/shader_module_private.h>
@@ -14,134 +15,136 @@ extern "C" {
 #endif
 
 static bool hasFlag(
-    CtsFlags flags,
-    CtsFlags flag
+    VkFlags flags,
+    VkFlags flag
 );
 
 static CtsGlGraphicsPipeline* createGraphicsPipeline(
-    const CtsGraphicsPipelineCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator
+    const VkGraphicsPipelineCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void destroyGraphicsPipeline(
     CtsGlGraphicsPipeline* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createShader(
     uint32_t stageCount,
-    const CtsPipelineShaderStageCreateInfo* stages,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineShaderStageCreateInfo* stages,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlShader* pShader
 );
 
 static void destroyShader(
     CtsGlShader* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createVertexInputState(
-    const CtsPipelineVertexInputStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineVertexInputStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineVertexInputState* pVertexInputState
 );
 
 static void destroyVertexInputState(
     CtsGlPipelineVertexInputState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createInputAssemblyState(
-    const CtsPipelineInputAssemblyStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineInputAssemblyStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineInputAssemblyState* pInputAssemblyState
 );
 
 static void destroyInputAssemblyState(
     CtsGlPipelineInputAssemblyState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createTessellationState(
-    const CtsPipelineTessellationStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineTessellationStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineTessellationState* pTesselationState
 );
 
 static void destroyTessellationState(
     CtsGlPipelineTessellationState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createViewportState(
-    const CtsPipelineViewportStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineViewportStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineViewportState* pViewportState
 );
 
 static void destroyViewportState(
     CtsGlPipelineViewportState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createRasterizationState(
-    const CtsPipelineRasterizationStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineRasterizationStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineRasterizationState* pRasterizationState
 );
 
 static void destroyRasterizationState(
     CtsGlPipelineRasterizationState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createMultisampleState(
-    const CtsPipelineMultisampleStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineMultisampleStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineMultisampleState* pMultisampleState
 );
 
 static void destroyMultisampleState(
     CtsGlPipelineMultisampleState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createDepthStencilState(
-    const CtsPipelineDepthStencilStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineDepthStencilStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineDepthStencilState* pDepthStencilState
 );
 
 static void destroyDepthStencilState(
     CtsGlPipelineDepthStencilState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
 static void createColorBlendState(
-    const CtsPipelineColorBlendStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineColorBlendStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineColorBlendState* pColorBlendState
 );
 
 static void destroyColorBlendState(
     CtsGlPipelineColorBlendState* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsCreateGraphicsPipelines(
-    CtsDevice device,
-    CtsPipelineCache pipelineCache,
+VkResult ctsCreateGraphicsPipelines(
+    VkDevice deviceHandle,
+    VkPipelineCache pipelineCache,
     uint32_t createInfoCount,
-    const CtsGraphicsPipelineCreateInfo* pCreateInfos,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipeline* pPipelines
+    const VkGraphicsPipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsCreateGraphicsPipelines cmd;
     cmd.base.type = CTS_COMMAND_CREATE_GRAPHICS_PIPELINES;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pipelineCache = pipelineCache;
     cmd.createInfoCount = createInfoCount;
     cmd.pCreateInfos = pCreateInfos;
@@ -155,51 +158,53 @@ CtsResult ctsCreateGraphicsPipelines(
 }
 
 void ctsDestroyPipeline(
-    CtsDevice device,
-    CtsPipeline pipeline,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkPipeline pipeline,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsDestroyPipeline cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_PIPELINE;
     cmd.base.pNext = NULL;
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pipeline = pipeline;
     cmd.pAllocator = pAllocator;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsCreateGraphicsPipelinesImpl(
-    CtsDevice device,
-    CtsPipelineCache pipelineCache,
+VkResult ctsCreateGraphicsPipelinesImpl(
+    VkDevice deviceHandle,
+    VkPipelineCache pipelineCache,
     uint32_t createInfoCount,
-    const CtsGraphicsPipelineCreateInfo* pCreateInfos,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipeline* pPipelines
+    const VkGraphicsPipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines
 ) {
-    (void) device;
+    (void) deviceHandle;
     (void) pipelineCache;
 
-    CtsResult result = CTS_SUCCESS;
+    VkResult result = VK_SUCCESS;
     uint32_t i = 0;
 
     for (; i < createInfoCount; ++i) {
-        CtsPipeline pipeline = ctsAllocation(
+        struct CtsPipeline* pipeline = ctsAllocation(
             pAllocator,
-            sizeof(struct CtsPipelineImpl),
-            alignof(struct CtsPipelineImpl),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+            sizeof(struct CtsPipeline),
+            alignof(struct CtsPipeline),
+            VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
         if (pipeline == NULL) {
-            result = CTS_ERROR_OUT_OF_HOST_MEMORY;
+            result = VK_ERROR_OUT_OF_HOST_MEMORY;
 			break;
         }
 
-        pipeline->bindPoint = CTS_PIPELINE_BIND_POINT_GRAPHICS;
+        pipeline->bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         pipeline->graphics = createGraphicsPipeline(&pCreateInfos[i], pAllocator);
 
-        pPipelines[i] = pipeline;
+        pPipelines[i] = CtsPipelineToHandle(pipeline);
     }
 
     for (; i < createInfoCount; ++i) {
@@ -210,15 +215,16 @@ CtsResult ctsCreateGraphicsPipelinesImpl(
 }
 
 void ctsDestroyPipelineImpl(
-    CtsDevice device,
-    CtsPipeline pipeline,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkPipeline pipelineHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsPipeline* pipeline = CtsPipelineFromHandle(pipelineHandle);
 
     if (pipeline != NULL) {
         switch (pipeline->bindPoint) {
-            case CTS_PIPELINE_BIND_POINT_GRAPHICS: {
+            case VK_PIPELINE_BIND_POINT_GRAPHICS: {
                 if (device->activeGraphicsPipeline == pipeline->graphics) {
                     device->activeGraphicsPipeline = NULL;
                 }
@@ -235,15 +241,15 @@ void ctsDestroyPipelineImpl(
 #pragma region HelperMethodBodies
 
 static bool hasFlag(
-    CtsFlags flags,
-    CtsFlagBit flag
+    VkFlags flags,
+    VkFlags flag
 ) {
     return ((flags & flag) == flag);
 }
 
 static CtsGlGraphicsPipeline* createGraphicsPipeline(
-    const CtsGraphicsPipelineCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator
+    const VkGraphicsPipelineCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator
 ) {
     if (pCreateInfo == NULL) {
         return NULL;
@@ -253,7 +259,7 @@ static CtsGlGraphicsPipeline* createGraphicsPipeline(
         pAllocator,
         sizeof(CtsGlGraphicsPipeline),
         alignof(CtsGlGraphicsPipeline),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     ); 
     
     createShader(pCreateInfo->stageCount, pCreateInfo->pStages, pAllocator, &graphicsPipeline->shader);
@@ -277,7 +283,7 @@ static CtsGlGraphicsPipeline* createGraphicsPipeline(
 
 static void destroyGraphicsPipeline(
     CtsGlGraphicsPipeline* pGraphicsPipeline,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     if (pGraphicsPipeline != NULL) {
         destroyShader(&pGraphicsPipeline->shader, pAllocator);
@@ -295,8 +301,8 @@ static void destroyGraphicsPipeline(
 
 static void createShader(
     uint32_t stageCount,
-    const CtsPipelineShaderStageCreateInfo* pCreateInfos,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineShaderStageCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlShader* pShader
 ) {
     if (stageCount == 0 || pCreateInfos == NULL) {
@@ -309,7 +315,7 @@ static void createShader(
         pAllocator,
         sizeof(CtsGlShaderStage) * stageCount,
         alignof(CtsGlShaderStage),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     GLint success;
@@ -317,14 +323,17 @@ static void createShader(
     GLuint shaderType;
 
     for (uint32_t i = 0; i < stageCount; ++i) {
-        const CtsPipelineShaderStageCreateInfo* pCreateInfo = &pCreateInfos[i];
+        const VkPipelineShaderStageCreateInfo* pCreateInfo = &pCreateInfos[i];
         CtsGlShaderStage* stage = &pShader->pStages[i];
 
         shaderType = parseShaderType(pCreateInfo->stage);
         stage->pName = pCreateInfo->pName;
         stage->handle = glCreateShader(shaderType);
-        const char* source = pCreateInfo->module->code;
-        const int sourceLen = (const int)pCreateInfo->module->codeSize;
+
+        struct CtsShaderModule* shaderModule = CtsShaderModuleFromHandle(pCreateInfo->module);
+
+        const char* source = shaderModule->code;
+        const int sourceLen = (const int)shaderModule->codeSize;
 
         glShaderSource(stage->handle, 1, &source, &sourceLen);
         glCompileShader(stage->handle);
@@ -351,7 +360,7 @@ static void createShader(
 
 static void destroyShader(
     CtsGlShader* pInstance,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     for (uint32_t i = 0; i < pInstance->stageCount; ++i) {
         glDeleteShader(pInstance->pStages[i].handle);
@@ -362,8 +371,8 @@ static void destroyShader(
 }
 
 static void createVertexInputState(
-    const CtsPipelineVertexInputStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineVertexInputStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineVertexInputState* pVertexInputState
 ) {
     if (pCreateInfo == NULL) {
@@ -378,26 +387,26 @@ static void createVertexInputState(
     pVertexInputState->vertexBindingDescriptionCount = pCreateInfo->vertexBindingDescriptionCount;
     pVertexInputState->pVertexBindingDescriptions = ctsAllocation(
         pAllocator,
-        sizeof(CtsVertexInputBindingDescription) * pCreateInfo->vertexBindingDescriptionCount,
-        alignof(CtsVertexInputBindingDescription),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(VkVertexInputBindingDescription) * pCreateInfo->vertexBindingDescriptionCount,
+        alignof(VkVertexInputBindingDescription),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     memcpy(
         pVertexInputState->pVertexBindingDescriptions,
         pCreateInfo->pVertexBindingDescriptions,
-        sizeof(CtsVertexInputBindingDescription) * pCreateInfo->vertexBindingDescriptionCount
+        sizeof(VkVertexInputBindingDescription) * pCreateInfo->vertexBindingDescriptionCount
     );
 
     for (uint32_t i = 0; i < pCreateInfo->vertexAttributeDescriptionCount; ++i) {
-        const CtsVertexInputAttributeDescription* pVertexAttributeDescription = &pCreateInfo->pVertexAttributeDescriptions[i];
-        CtsFormatData formatData = parseFormat(pVertexAttributeDescription->format);
+        const VkVertexInputAttributeDescription* pVertexAttributeDescription = &pCreateInfo->pVertexAttributeDescriptions[i];
+        const CtsFormatData* formatData = parseFormat(pVertexAttributeDescription->format);
 
         glVertexAttribFormat(
             pVertexAttributeDescription->location,
-            formatData.numComponents,
-            formatData.type,
-            formatData.normalized,
+            formatData->numComponents,
+            formatData->type,
+            formatData->normalized,
             pVertexAttributeDescription->offset
         );
 
@@ -410,7 +419,7 @@ static void createVertexInputState(
 
 static void destroyVertexInputState(
     CtsGlPipelineVertexInputState* pVertexInputState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pVertexInputState->initialized = false;
     
@@ -426,8 +435,8 @@ static void destroyVertexInputState(
 }
 
 static void createInputAssemblyState(
-    const CtsPipelineInputAssemblyStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineInputAssemblyStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineInputAssemblyState* pInputAssemblyState
 ) {
     if (pCreateInfo == NULL) {
@@ -442,14 +451,14 @@ static void createInputAssemblyState(
 
 static void destroyInputAssemblyState(
     CtsGlPipelineInputAssemblyState* pInputAssemblyState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pInputAssemblyState->initialized = false;
 }
 
 static void createTessellationState(
-    const CtsPipelineTessellationStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineTessellationStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineTessellationState* pTesselationState
 ) {
     if (pCreateInfo == NULL) {
@@ -462,14 +471,14 @@ static void createTessellationState(
 
 static void destroyTessellationState(
     CtsGlPipelineTessellationState* pTesselationState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pTesselationState->initialized = false;
 }
 
 static void createViewportState(
-    const CtsPipelineViewportStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineViewportStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineViewportState* pViewportState
 ) {
     if (pCreateInfo == NULL) {
@@ -481,9 +490,9 @@ static void createViewportState(
     pViewportState->viewportCount = pCreateInfo->viewportCount;
     pViewportState->pViewports = ctsAllocation(
         pAllocator,
-        sizeof(CtsViewport) * pCreateInfo->viewportCount,
-        alignof(CtsViewport),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(VkViewport) * pCreateInfo->viewportCount,
+        alignof(VkViewport),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     for (uint32_t i = 0; i < pCreateInfo->viewportCount; ++i) {
@@ -498,9 +507,9 @@ static void createViewportState(
     pViewportState->scissorCount = pCreateInfo->scissorCount;
     pViewportState->pScissors = ctsAllocation(
         pAllocator,
-        sizeof(CtsRect2D) * pCreateInfo->scissorCount,
-        alignof(CtsRect2D),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(VkRect2D) * pCreateInfo->scissorCount,
+        alignof(VkRect2D),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     for (uint32_t i = 0; i < pCreateInfo->scissorCount; ++i) {
@@ -513,7 +522,7 @@ static void createViewportState(
 
 static void destroyViewportState(
     CtsGlPipelineViewportState* pViewportState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pViewportState->initialized = false;
     
@@ -529,8 +538,8 @@ static void destroyViewportState(
 }
 
 static void createRasterizationState(
-    const CtsPipelineRasterizationStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineRasterizationStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineRasterizationState* pRasterizationState
 ) {
     if (pCreateInfo == NULL) {
@@ -553,14 +562,14 @@ static void createRasterizationState(
 
 static void destroyRasterizationState(
     CtsGlPipelineRasterizationState* pRasterizationState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pRasterizationState->initialized = false;
 }
 
 static void createMultisampleState(
-    const CtsPipelineMultisampleStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineMultisampleStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineMultisampleState* pMultisampleState
 ) {
     if (pCreateInfo == NULL) {
@@ -576,14 +585,14 @@ static void createMultisampleState(
 
 static void destroyMultisampleState(
     CtsGlPipelineMultisampleState* pMultisampleState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pMultisampleState->initialized = false;
 }
 
 static void createDepthStencilState(
-    const CtsPipelineDepthStencilStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineDepthStencilStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineDepthStencilState* pDepthStencilState
 ) {
     if (pCreateInfo == NULL) {
@@ -619,14 +628,14 @@ static void createDepthStencilState(
 
 static void destroyDepthStencilState(
     CtsGlPipelineDepthStencilState* pDepthStencilState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pDepthStencilState->initialized = false;
 }
 
 static void createColorBlendState(
-    const CtsPipelineColorBlendStateCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
+    const VkPipelineColorBlendStateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineColorBlendState* pColorBlendState
 ) {
     if (pCreateInfo == NULL) {
@@ -640,7 +649,7 @@ static void createColorBlendState(
         pAllocator,
         sizeof(CtsGlPipelineColorBlendStateAttachment) * pCreateInfo->attachmentCount,
         alignof(CtsGlPipelineColorBlendState),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     pColorBlendState->logicOpEnable = pCreateInfo->logicOpEnable;
@@ -649,7 +658,7 @@ static void createColorBlendState(
 
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
         CtsGlPipelineColorBlendStateAttachment* target = &pColorBlendState->pAttachments[i];
-        const CtsPipelineColorBlendAttachmentState* source = &pCreateInfo->pAttachments[i];
+        const VkPipelineColorBlendAttachmentState* source = &pCreateInfo->pAttachments[i];
         target->blendEnable         = source->blendEnable;
         target->srcColorBlendFactor = parseBlendFactor(source->srcColorBlendFactor);
         target->dstColorBlendFactor = parseBlendFactor(source->dstColorBlendFactor);
@@ -663,7 +672,7 @@ static void createColorBlendState(
 
 static void destroyColorBlendState(
     CtsGlPipelineColorBlendState* pColorBlendState,
-    const CtsAllocationCallbacks* pAllocator
+    const VkAllocationCallbacks* pAllocator
 ) {
     pColorBlendState->initialized = false;
 

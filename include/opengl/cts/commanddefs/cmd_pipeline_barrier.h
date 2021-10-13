@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,16 +9,16 @@ extern "C" {
 
 typedef struct CtsCmdPipelineBarrier {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsPipelineStageFlags srcStageMask;
-    CtsPipelineStageFlags dstStageMask;
-    CtsDependencyFlags dependencyFlags;
+    VkCommandBuffer commandBuffer;
+    VkPipelineStageFlags srcStageMask;
+    VkPipelineStageFlags dstStageMask;
+    VkDependencyFlags dependencyFlags;
     uint32_t memoryBarrierCount;
-    CtsMemoryBarrier* pMemoryBarriers;
+    VkMemoryBarrier* pMemoryBarriers;
     uint32_t bufferMemoryBarrierCount;
-    CtsBufferMemoryBarrier* pBufferMemoryBarriers;
+    VkBufferMemoryBarrier* pBufferMemoryBarriers;
     uint32_t imageMemoryBarrierCount;
-    CtsImageMemoryBarrier* pImageMemoryBarriers;
+    VkImageMemoryBarrier* pImageMemoryBarriers;
 } CtsCmdPipelineBarrier;
 
 #ifdef __cplusplus

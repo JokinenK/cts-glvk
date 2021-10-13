@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <glad/glad.h>
+#include "glad/glad.h"
 
 #ifdef __cplusplus
 extern "C" {

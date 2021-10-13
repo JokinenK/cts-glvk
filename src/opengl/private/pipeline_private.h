@@ -1,35 +1,35 @@
 #pragma once
 
 #include <stdbool.h>
-#include <glad/glad.h>
-#include <cts/typedefs/pipeline.h>
-#include <cts/typedefs/gl_pipeline.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
+#include "cts/typedefs/gl_pipeline.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsPipelineImpl {
-    CtsPipelineBindPoint bindPoint;
+struct CtsPipeline {
+    VkPipelineBindPoint bindPoint;
 
     union {
         CtsGlGraphicsPipeline* graphics;
     };
 };
 
-CtsResult ctsCreateGraphicsPipelinesImpl(
-    CtsDevice device,
-    CtsPipelineCache pipelineCache,
+VkResult ctsCreateGraphicsPipelinesImpl(
+    VkDevice device,
+    VkPipelineCache pipelineCache,
     uint32_t createInfoCount,
-    const CtsGraphicsPipelineCreateInfo* pCreateInfos,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsPipeline* pPipelines
+    const VkGraphicsPipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines
 );
 
 void ctsDestroyPipelineImpl(
-    CtsDevice device,
-    CtsPipeline pipeline,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkPipeline pipeline,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
-#include <cts/platform_condition_variable.h>
-#include <cts/platform_mutex.h>
+#include "cts/platform/platform_condition_variable.h"
+#include "cts/platform/platform_mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,6 +10,7 @@ bool ctsInitPlatformConditionVariable(
     CtsPlatformConditionVariable* pConditionVariable
 ) {
     InitializeConditionVariable(pConditionVariable);
+    return true;
 }
 
 void ctsDestroyPlatformConditionVariable(

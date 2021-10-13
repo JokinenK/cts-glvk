@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stddef.h>
-#include <cts/align.h>
-#include <cts/allocator.h>
-#include <cts/linear_allocator.h>
+#include "cts/allocator.h"
+#include "cts/util/align.h"
+#include "cts/util/linear_allocator.h"
 
 typedef struct CtsLinearAllocatorPool {
 	void* begin;
@@ -12,8 +12,8 @@ typedef struct CtsLinearAllocatorPool {
 } CtsLinearAllocatorPool;
 
 struct CtsLinearAllocatorImpl {
-	const CtsAllocationCallbacks* pAllocator;
-	CtsDeviceSize growSize;
+	const VkAllocationCallbacks* pAllocator;
+	VkDeviceSize growSize;
     CtsLinearAllocatorPool* begin;
 	CtsLinearAllocatorPool* current;
 };
@@ -26,7 +26,7 @@ static void* proxyAllocation(
 	void* pUserData,
 	size_t size,
 	size_t align,
-	CtsSystemAllocationScope scope
+	VkSystemAllocationScope scope
 ) {
 	(void) scope;
 
@@ -38,7 +38,7 @@ static void* proxyReallocation(
 	void* pOriginal,
 	size_t size,
 	size_t align,
-	CtsSystemAllocationScope scope
+	VkSystemAllocationScope scope
 ) {
 	(void) scope;
 
@@ -55,21 +55,25 @@ static void proxyFree(
 static void proxyInternalAllocation(
 	void* pUserData,
 	size_t size,
-	CtsSystemAllocationScope scope
+	VkInternalAllocationType allocationType,
+	VkSystemAllocationScope allocationScope
 ) {
 	(void) pUserData;
 	(void) size;
-	(void) scope;
+	(void) allocationType;
+	(void) allocationScope;
 }
 
 static void proxyInternalFree(
 	void* pUserData,
 	size_t size, 
-	CtsSystemAllocationScope scope
+	VkInternalAllocationType allocationType,
+	VkSystemAllocationScope allocationScope
 ) {
 	(void) pUserData;
 	(void) size;
-	(void) scope;
+	(void) allocationType;
+	(void) allocationScope;
 }
 
 static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator instance)
@@ -78,7 +82,7 @@ static CtsLinearAllocatorPool* allocatePool(CtsLinearAllocator instance)
 		instance->pAllocator,
 		instance->growSize,
 		alignof(CtsLinearAllocatorPool),
-		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+		VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
 
 	if (pool != NULL) {
@@ -99,7 +103,7 @@ bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllo
 		pCreateInfo->pAllocator,
 		sizeof(struct CtsLinearAllocatorImpl),
 		alignof(struct CtsLinearAllocatorImpl),
-		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+		VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
 
 	if (instance == NULL) {
@@ -120,13 +124,13 @@ bool ctsCreateLinearAllocator(CtsLinearAllocator* pInstance, const CtsLinearAllo
 	return true;
 }
 
-void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator instance, CtsAllocationCallbacks* pAllocator) {
-	pAllocator->userData           = instance;
-	pAllocator->allocation         = proxyAllocation;
-	pAllocator->reallocation       = proxyReallocation;
-	pAllocator->free               = proxyFree;
-	pAllocator->internalAllocation = proxyInternalAllocation;
-	pAllocator->internalFree       = proxyInternalFree;
+void ctsGetLinearAllocatorCallbacks(CtsLinearAllocator instance, VkAllocationCallbacks* pAllocator) {
+	pAllocator->pUserData             = instance;
+	pAllocator->pfnAllocation         = proxyAllocation;
+	pAllocator->pfnReallocation       = proxyReallocation;
+	pAllocator->pfnFree               = proxyFree;
+	pAllocator->pfnInternalAllocation = proxyInternalAllocation;
+	pAllocator->pfnInternalFree       = proxyInternalFree;
 }
 
 bool ctsDestroyLinearAllocator(CtsLinearAllocator instance)

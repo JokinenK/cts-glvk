@@ -11,8 +11,8 @@
 #include <devguid.h>
 #include <devpkey.h>
 #include <stdio.h>
-#include <cts/device_info.h>
-#include <cts/uuid.h>
+#include "cts/device_info.h"
+#include "cts/util/uuid.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,26 +1,26 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsInitFSTextureHelper();
+VkResult ctsInitFSTextureHelper();
 
 void ctsBlitTexture(
-    CtsDevice device,
-    CtsImage src,
-    CtsImage dst,
+    struct CtsDevice* device,
+    struct CtsImage* src,
+    struct CtsImage* dst,
     uint32_t regionCount,
-    const CtsImageBlit* pRegions,
-    CtsFilter filter
+    const VkImageBlit* pRegions,
+    VkFilter filter
 );
 
 void ctsDrawFSTexture(
-    CtsDevice device,
-    CtsImage image
+    struct CtsDevice* device,
+    struct CtsImage* image
 );
 
 void ctsCleanupFSTextureHelper();

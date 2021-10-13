@@ -2,6 +2,7 @@
 #include <cts/sampler.h>
 #include <cts/type_mapper.h>
 #include <cts/commands.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/sampler_private.h>
 #include <private/queue_private.h>
@@ -10,18 +11,20 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateSampler(
-    CtsDevice device,
-    const CtsSamplerCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSampler* pSampler
+VkResult ctsCreateSampler(
+    VkDevice deviceHandle,
+    const VkSamplerCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSampler* pSampler
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsCreateSampler cmd;
     cmd.base.type = CTS_COMMAND_CREATE_SAMPLER;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
     cmd.pAllocator = pAllocator;
     cmd.pSampler = pSampler;
@@ -33,38 +36,39 @@ CtsResult ctsCreateSampler(
 }
 
 void ctsDestroySampler(
-    CtsDevice device,
-    CtsSampler sampler,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkSampler sampler,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsDestroySampler cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_SAMPLER;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.sampler = sampler;
     cmd.pAllocator = pAllocator;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsCreateSamplerImpl(
-    CtsDevice device,
-    const CtsSamplerCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSampler* pSampler
+VkResult ctsCreateSamplerImpl(
+    VkDevice deviceHandle,
+    const VkSamplerCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSampler* pSampler
 ) {
-    (void) device;
-
-    CtsSampler sampler = ctsAllocation(
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsSampler* sampler = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSamplerImpl),
-        alignof(struct CtsSamplerImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsSampler),
+        alignof(struct CtsSampler),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (sampler == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     (void) pCreateInfo->unnormalizedCoordinates;
@@ -88,15 +92,18 @@ CtsResult ctsCreateSamplerImpl(
         glSamplerParameteriv(sampler->handle, GL_TEXTURE_BORDER_COLOR, parseBorderColorInt(pCreateInfo->borderColor));
     }
 
-    *pSampler = sampler;
-    return CTS_SUCCESS;
+    *pSampler = CtsSamplerToHandle(sampler);
+    return VK_SUCCESS;
 }
 
 void ctsDestroySamplerImpl(
-    CtsDevice device,
-    CtsSampler sampler,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkSampler samplerHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsSampler* sampler = CtsSamplerFromHandle(samplerHandle);
+
     if (sampler != NULL) {
         glDeleteSamplers(1, &sampler->handle);
         ctsFree(pAllocator, sampler);

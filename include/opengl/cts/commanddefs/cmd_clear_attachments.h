@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,11 +9,11 @@ extern "C" {
 
 typedef struct CtsCmdClearAttachments {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
+    VkCommandBuffer commandBuffer;
     uint32_t attachmentCount;
-    const CtsClearAttachment* pAttachments;
+    const VkClearAttachment* pAttachments;
     uint32_t rectCount;
-    const CtsClearRect* pRects;
+    const VkClearRect* pRects;
 } CtsCmdClearAttachments;
 
 #ifdef __cplusplus

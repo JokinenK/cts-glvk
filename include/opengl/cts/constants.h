@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/typedefs/device_size.h>
 
 #ifdef __cplusplus
 extern "C" {

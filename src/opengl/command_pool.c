@@ -1,8 +1,9 @@
 #include <stddef.h>
-#include <cts/align.h>
-#include <cts/allocator.h>
+#include "cts/util/align.h"
+#include "cts/allocator.h"
 #include <cts/command_pool.h>
 #include <cts/command_dispatcher.h>
+#include <private/private.h>
 #include <private/command_pool_private.h>
 #include <private/command_buffer_private.h>
 
@@ -10,21 +11,21 @@
 extern "C" {
 #endif
 
-CtsResult ctsCreateCommandPool(
-    CtsDevice device,
-    const CtsCommandPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsCommandPool* pCommandPool
+VkResult ctsCreateCommandPool(
+    VkDevice device,
+    const VkCommandPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkCommandPool* pCommandPool
 ) {
-    CtsCommandPool commandPool = ctsAllocation(
+    struct CtsCommandPool* commandPool = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsCommandPoolImpl),
-        alignof(struct CtsCommandPoolImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsCommandPool),
+        alignof(struct CtsCommandPool),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (commandPool == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     CtsPoolAllocatorCreateInfo allocatorCreateInfo;
@@ -35,15 +36,17 @@ CtsResult ctsCreateCommandPool(
     ctsCreatePoolAllocator(&commandPool->poolAllocator, &allocatorCreateInfo);
     ctsGetPoolAllocatorCallbacks(commandPool->poolAllocator, &commandPool->allocator);
 
-    *pCommandPool = commandPool;
-    return CTS_SUCCESS;
+    *pCommandPool = CtsCommandPoolToHandle(commandPool);
+    return VK_SUCCESS;
 }
 
 void ctsDestroyCommandPool(
-    CtsDevice device,
-    CtsCommandPool commandPool,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkCommandPool commandPoolHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsCommandPool* commandPool = CtsCommandPoolFromHandle(commandPoolHandle);
+
     if (commandPool != NULL) {
         ctsDestroyPoolAllocator(commandPool->poolAllocator);
         ctsFree(pAllocator, commandPool);
@@ -51,32 +54,33 @@ void ctsDestroyCommandPool(
 }
 
 
-CtsResult ctsAllocateCommandBuffers(
-    CtsDevice device,
-    const CtsCommandBufferAllocateInfo* pAllocateInfo,
-    CtsCommandBuffer* pCommandBuffers
+VkResult ctsAllocateCommandBuffers(
+    VkDevice deviceHandle,
+    const VkCommandBufferAllocateInfo* pAllocateInfo,
+    VkCommandBuffer* pCommandBuffers
 ) {
-    CtsResult result = CTS_SUCCESS;
+    VkResult result = VK_SUCCESS;
     uint32_t i = 0;
 
-    CtsCommandPool commandPool = pAllocateInfo->commandPool;
-    const CtsAllocationCallbacks* pAllocator = &commandPool->allocator;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsCommandPool* commandPool = CtsCommandPoolFromHandle(pAllocateInfo->commandPool);
+    const VkAllocationCallbacks* pAllocator = &commandPool->allocator;
 
     for (; i < pAllocateInfo->commandBufferCount; ++i) {
-        CtsCommandBuffer commandBuffer = ctsAllocation(
+        struct CtsCommandBuffer* commandBuffer = ctsAllocation(
             pAllocator,
-            sizeof(struct CtsCommandBufferImpl),
-            alignof(struct CtsCommandBufferImpl),
-            CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+            sizeof(struct CtsCommandBuffer),
+            alignof(struct CtsCommandBuffer),
+            VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
         );
 
         if (commandBuffer == NULL) {
-            result = CTS_ERROR_OUT_OF_HOST_MEMORY;
+            result = VK_ERROR_OUT_OF_HOST_MEMORY;
             break;
         }
 
         commandBuffer->device = device;
-        commandBuffer->pool = pAllocateInfo->commandPool;
+        commandBuffer->pool = commandPool;
         commandBuffer->root = NULL;
         commandBuffer->current = NULL;
         commandBuffer->level = pAllocateInfo->level;
@@ -89,7 +93,7 @@ CtsResult ctsAllocateCommandBuffers(
         ctsCreateLinearAllocator(&commandBuffer->linearAllocator, &allocatorCreateInfo);
         ctsGetLinearAllocatorCallbacks(commandBuffer->linearAllocator, &commandBuffer->allocator);
 
-        pCommandBuffers[i] = commandBuffer;
+        pCommandBuffers[i] = CtsCommandBufferToHandle(commandBuffer);
     }
 
     for (; i < pAllocateInfo->commandBufferCount; ++i) {
@@ -100,15 +104,18 @@ CtsResult ctsAllocateCommandBuffers(
 }
 
 void ctsFreeCommandBuffers(
-    CtsDevice device,
-    CtsCommandPool commandPool,
+    VkDevice deviceHandle,
+    VkCommandPool commandPoolHandle,
     uint32_t commandBufferCount,
-    const CtsCommandBuffer* pCommandBuffers
+    const VkCommandBuffer* pCommandBuffers
 ) {
-    const CtsAllocationCallbacks* pAllocator = &commandPool->allocator;
+    (void) deviceHandle;
+
+    struct CtsCommandPool* commandPool = CtsCommandPoolFromHandle(commandPoolHandle);
+    const VkAllocationCallbacks* pAllocator = &commandPool->allocator;
 
     for (uint32_t i = 0; i < commandBufferCount; ++i) {
-        CtsCommandBuffer commandBuffer = pCommandBuffers[i];
+        struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(pCommandBuffers[i]);
         commandBuffer->root = NULL;
         commandBuffer->current = NULL;
         commandBuffer->state = CTS_COMMAND_BUFFER_STATE_INVALID;

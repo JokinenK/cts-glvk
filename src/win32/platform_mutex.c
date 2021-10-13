@@ -1,4 +1,4 @@
-#include <cts/platform_mutex.h>
+#include "cts/platform/platform_mutex.h"
 
 #ifdef __cplusplus
 extern "C" {

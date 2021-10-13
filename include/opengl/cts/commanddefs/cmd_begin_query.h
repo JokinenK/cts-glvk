@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,10 +9,10 @@ extern "C" {
 
 typedef struct CtsCmdBeginQuery {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsQueryPool queryPool;
+    VkCommandBuffer commandBuffer;
+    VkQueryPool queryPool;
     uint32_t query;
-    CtsQueryControlFlags flags;
+    VkQueryControlFlags flags;
 } CtsCmdBeginQuery;
 
 #ifdef __cplusplus

@@ -4,6 +4,7 @@
 #include <cts/semaphore.h>
 #include <cts/fullscreen_texture.h>
 #include <cts/commands.h>
+#include <private/private.h>
 #include <private/device_private.h>
 #include <private/fence_private.h>
 #include <private/image_private.h>
@@ -16,20 +17,22 @@
 extern "C" {
 #endif
 
-static CtsResult validateSwapchainSurface(CtsSwapchain swapchain);
+static VkResult validateSwapchainSurface(struct CtsSwapchain* swapchain);
 
-CtsResult ctsCreateSwapchain(
-    CtsDevice device,
-    const CtsSwapchainCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSwapchain* pSwapchain
+VkResult ctsCreateSwapchain(
+    VkDevice deviceHandle,
+    const VkSwapchainCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSwapchainKHR* pSwapchain
 ) {
-    CtsResult result;
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
+    VkResult result;
     CtsCreateSwapchain cmd;
     cmd.base.type = CTS_COMMAND_CREATE_SWAPCHAIN;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
     cmd.pAllocator = pAllocator;
     cmd.pSwapchain = pSwapchain;
@@ -41,31 +44,35 @@ CtsResult ctsCreateSwapchain(
 }
 
 void ctsDestroySwapchain(
-    CtsDevice device,
-    CtsSwapchain swapchain,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkSwapchainKHR swapchain,
+    const VkAllocationCallbacks* pAllocator
 ) {
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+
     CtsDestroySwapchain cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_SWAPCHAIN;
     cmd.base.pNext = NULL;
 
-    cmd.device = device;
+    cmd.device = deviceHandle;
     cmd.swapchain = swapchain;
     cmd.pAllocator = pAllocator;
 
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
-CtsResult ctsQueuePresent(
-    CtsQueue queue,
-    const CtsPresentInfo* pPresentInfo
+VkResult ctsQueuePresent(
+    VkQueue queueHandle,
+    const VkPresentInfoKHR* pPresentInfo
 ) {
-    CtsResult result;
+    struct CtsQueue* queue = CtsQueueFromHandle(queueHandle);
+
+    VkResult result;
     CtsQueuePresent cmd;
     cmd.base.type = CTS_COMMAND_QUEUE_PRESENT;
     cmd.base.pNext = NULL;
 
-    cmd.queue = queue;
+    cmd.queue = queueHandle;
     cmd.pPresentInfo = pPresentInfo;
     cmd.pResult = &result;
 
@@ -73,12 +80,16 @@ CtsResult ctsQueuePresent(
     return result;
 }
 
-CtsResult ctsGetSwapchainImages(
-    CtsDevice device,
-    CtsSwapchain swapchain,
+VkResult ctsGetSwapchainImages(
+    VkDevice deviceHandle,
+    VkSwapchainKHR swapchainHandle,
     uint32_t* pSwapchainImageCount,
-    CtsImage* pSwapchainImages
+    VkImage* pSwapchainImages
 ) {
+    (void) deviceHandle;
+
+    struct CtsSwapchain* swapchain = CtsSwapchainFromHandle(swapchainHandle);
+
     if (pSwapchainImageCount != NULL) {
         *pSwapchainImageCount = swapchain->entryCount;
     }
@@ -89,54 +100,57 @@ CtsResult ctsGetSwapchainImages(
         }
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult ctsAcquireNextImage(
-    CtsDevice device,
-    CtsSwapchain swapchain,
+VkResult ctsAcquireNextImage(
+    VkDevice deviceHandle,
+    VkSwapchainKHR swapchainHandle,
     uint64_t timeout,
-    CtsSemaphore semaphore,
-    CtsFence fence,
+    VkSemaphore semaphore,
+    VkFence fence,
     uint32_t* pImageIndex
 ) {
+    struct CtsSwapchain* swapchain = CtsSwapchainFromHandle(swapchainHandle);
+
     uint32_t imageIndex = swapchain->nextEntry;
     swapchain->nextEntry = (swapchain->nextEntry + 1) % swapchain->entryCount;
 
-    CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
+    struct CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
 
     if (semaphore != NULL) {
         ctsSignalSemaphores(1, &semaphore);
     }
 
     if (fence != NULL) {
-        ctsSignalFence(device, fence);
+        ctsSignalFence(deviceHandle, fence);
     }
 
     *pImageIndex = imageIndex;
 
-    if (ctsWaitSemaphore(entry->semaphore, timeout) == CTS_TIMEOUT) {
-        return CTS_TIMEOUT;
+    if (ctsWaitSemaphore(entry->semaphore, timeout) == VK_TIMEOUT) {
+        return VK_TIMEOUT;
     }
     
     return validateSwapchainSurface(swapchain);
 }
 
-CtsResult ctsCreateSwapchainImpl(
-    CtsDevice device,
-    const CtsSwapchainCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSwapchain* pSwapchain
+VkResult ctsCreateSwapchainImpl(
+    VkDevice deviceHandle,
+    const VkSwapchainCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSwapchainKHR* pSwapchain
 ) {
-    CtsSwapchain swapchain = ctsAllocation(
+    struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsSwapchain* swapchain = ctsAllocation(
         pAllocator,
-        sizeof(struct CtsSwapchainImpl),
-        alignof(struct CtsSwapchainImpl),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsSwapchain),
+        alignof(struct CtsSwapchain),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (swapchain == NULL) {
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     (void) pCreateInfo->flags;
@@ -152,71 +166,73 @@ CtsResult ctsCreateSwapchainImpl(
     swapchain->extent = pCreateInfo->imageExtent;
     swapchain->pEntries = ctsAllocation(
         pAllocator,
-        sizeof(CtsSwapchainEntry) * swapchain->entryCount,
-        alignof(CtsSwapchainEntry),
-        CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+        sizeof(struct CtsSwapchainEntry) * swapchain->entryCount,
+        alignof(struct CtsSwapchainEntry),
+        VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
     if (swapchain->pEntries == NULL) {
-        ctsDestroySwapchain(device, swapchain, pAllocator);
-        return CTS_ERROR_OUT_OF_HOST_MEMORY;
+        ctsDestroySwapchain(deviceHandle, CtsSwapchainToHandle(swapchain), pAllocator);
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    CtsSemaphoreCreateInfo semaphoreCreateInfo;
-    CtsImageCreateInfo imageCreateInfo;
-    imageCreateInfo.sType = CTS_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    VkSemaphoreCreateInfo semaphoreCreateInfo;
+    VkImageCreateInfo imageCreateInfo;
+    imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.pNext = NULL;
     imageCreateInfo.arrayLayers = pCreateInfo->imageArrayLayers;
     imageCreateInfo.extent.width = pCreateInfo->imageExtent.width;
     imageCreateInfo.extent.height = pCreateInfo->imageExtent.height;
     imageCreateInfo.extent.depth = 1;
     imageCreateInfo.format = pCreateInfo->imageFormat;
-    imageCreateInfo.imageType = CTS_IMAGE_TYPE_2D;
+    imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
     imageCreateInfo.mipLevels = 1;
     imageCreateInfo.queueFamilyIndexCount = pCreateInfo->queueFamilyIndexCount;
     imageCreateInfo.pQueueFamilyIndices = pCreateInfo->pQueueFamilyIndices;
-    imageCreateInfo.samples = CTS_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.usage = pCreateInfo->imageUsage;
 
     for (uint32_t i = 0; i < pCreateInfo->minImageCount; ++i) {
-        CtsSwapchainEntry* entry = &swapchain->pEntries[i];
+        struct CtsSwapchainEntry* entry = &swapchain->pEntries[i];
 
-        ctsCreateSemaphore(device, &semaphoreCreateInfo, pAllocator, &entry->semaphore);
-        ctsCreateImageImpl(device, &imageCreateInfo, pAllocator, &entry->image);
+        ctsCreateSemaphore(deviceHandle, &semaphoreCreateInfo, pAllocator, &entry->semaphore);
+        ctsCreateImageImpl(deviceHandle, &imageCreateInfo, pAllocator, &entry->image);
 
         // Make sure the first wait never blocks
         ctsSignalSemaphores(1, &entry->semaphore);
     }
 
     ctsGetPhysicalDeviceSurfaceCapabilities(
-        device->physicalDevice,
-        device->physicalDevice->surface,
+        CtsPhysicalDeviceToHandle(device->physicalDevice),
+        CtsSurfaceToHandle(device->physicalDevice->surface),
         &swapchain->surfaceCapabilities
     );
 
     ctsInitFSTextureHelper();
-    *pSwapchain = swapchain;
+    *pSwapchain = CtsSwapchainToHandle(swapchain);
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
 void ctsDestroySwapchainImpl(
-    CtsDevice device,
-    CtsSwapchain swapchain,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice deviceHandle,
+    VkSwapchainKHR swapchainHandle,
+    const VkAllocationCallbacks* pAllocator
 ) {
-    (void) device;
+    (void) deviceHandle;
+
+    struct CtsSwapchain* swapchain = CtsSwapchainFromHandle(swapchainHandle);
     
     if (swapchain != NULL) {
         for (uint32_t i = 0; i < swapchain->entryCount; ++i) {
-            CtsSwapchainEntry* entry = &swapchain->pEntries[i];
+            struct CtsSwapchainEntry* entry = &swapchain->pEntries[i];
 
             if (entry->image != NULL) {
-                ctsDestroyImageImpl(device, entry->image, pAllocator);
+                ctsDestroyImageImpl(deviceHandle, entry->image, pAllocator);
             }
 
             if (entry->semaphore != NULL) {
-                ctsDestroySemaphore(device, entry->semaphore, pAllocator);
+                ctsDestroySemaphore(deviceHandle, entry->semaphore, pAllocator);
             }
         }
 
@@ -226,60 +242,61 @@ void ctsDestroySwapchainImpl(
     }
 }
 
-CtsResult ctsQueuePresentImpl(
-    CtsQueue queue,
-    const CtsPresentInfo* pPresentInfo
+VkResult ctsQueuePresentImpl(
+    VkQueue queueHandle,
+    const VkPresentInfoKHR* pPresentInfo
 ) {
     ctsWaitSemaphores(pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores);
 
     for (uint32_t i = 0; i < pPresentInfo->swapchainCount; ++i) {
         uint32_t imageIndex = pPresentInfo->pImageIndices[i];
-        CtsSwapchain swapchain = pPresentInfo->pSwapchains[i];
-        CtsDevice device = swapchain->device;
-        CtsPhysicalDevice physicalDevice = swapchain->device->physicalDevice;
-        CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
+        struct CtsSwapchain* swapchain = CtsSwapchainFromHandle(pPresentInfo->pSwapchains[i]);
+        struct CtsDevice* device = swapchain->device;
+        struct CtsPhysicalDevice* physicalDevice = swapchain->device->physicalDevice;
+        struct CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
 
-        CtsResult result = validateSwapchainSurface(swapchain);
+        VkResult result = validateSwapchainSurface(swapchain);
         
-        if (result != CTS_SUCCESS) {
+        if (result != VK_SUCCESS) {
             ctsSignalSemaphores(1, &entry->semaphore);
             return result;
         }
 
-        ctsDrawFSTexture(device, entry->image);
+        struct CtsImage* image = CtsImageFromHandle(entry->image);
+        ctsDrawFSTexture(device, image);
         ctsSurfaceSwapBuffers(physicalDevice->surface);
         ctsSignalSemaphores(1, &entry->semaphore);
     }
 
-    return CTS_SUCCESS;
+    return VK_SUCCESS;
 }
 
-CtsResult validateSwapchainSurface(CtsSwapchain swapchain) {
-    CtsSurface surface = swapchain->device->physicalDevice->surface;
-    CtsExtent2D* swapChainExtent = &swapchain->extent;
-    CtsExtent2D* surfaceMinExtent = &swapchain->surfaceCapabilities.minImageExtent;
-    CtsExtent2D* surfaceMaxExtent = &swapchain->surfaceCapabilities.maxImageExtent;
+VkResult validateSwapchainSurface(struct CtsSwapchain* swapchain) {
+    struct CtsSurface* surface = swapchain->device->physicalDevice->surface;
+    VkExtent2D* swapChainExtent = &swapchain->extent;
+    VkExtent2D* surfaceMinExtent = &swapchain->surfaceCapabilities.minImageExtent;
+    VkExtent2D* surfaceMaxExtent = &swapchain->surfaceCapabilities.maxImageExtent;
 
-    CtsExtent2D surfaceExtent;
-    if (ctsGetSurfaceExtent(surface, &surfaceExtent) == CTS_SUCCESS) {
+    VkExtent2D surfaceExtent;
+    if (ctsGetSurfaceExtent(surface, &surfaceExtent) == VK_SUCCESS) {
         if (surfaceExtent.width < surfaceMinExtent->width   || 
             surfaceExtent.width > surfaceMaxExtent->width   || 
             surfaceExtent.height < surfaceMinExtent->height || 
             surfaceExtent.height > surfaceMaxExtent->height
         ) {
-            return CTS_ERROR_OUT_OF_DATE;
+            return VK_ERROR_OUT_OF_DATE_KHR;
         }
 
         if (surfaceExtent.width != swapChainExtent->width ||
             surfaceExtent.height != swapChainExtent->height
         ) {
-            return CTS_SUBOPTIMAL;
+            return VK_SUBOPTIMAL_KHR;
         }
 
-        return CTS_SUCCESS;
+        return VK_SUCCESS;
     }
 
-    return CTS_ERROR_UNKNOWN;
+    return VK_ERROR_UNKNOWN;
 }
 
 #ifdef __cplusplus

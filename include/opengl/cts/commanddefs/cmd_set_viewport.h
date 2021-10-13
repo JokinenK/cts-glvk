@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,10 +9,10 @@ extern "C" {
 
 typedef struct CtsCmdSetViewport {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
+    VkCommandBuffer commandBuffer;
     uint32_t firstViewport;
     uint32_t viewportCount;
-    const CtsViewport* pViewports;
+    const VkViewport* pViewports;
 } CtsCmdSetViewport;
 
 #ifdef __cplusplus

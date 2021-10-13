@@ -2,41 +2,38 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <cts/allocator.h>
-#include <cts/typedefs/device.h>
-#include <cts/typedefs/enums.h>
-#include <cts/typedefs/semaphore.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateSemaphore(
-    CtsDevice device,
-    const CtsSemaphoreCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsSemaphore* pSemaphore
+VkResult ctsCreateSemaphore(
+    VkDevice device,
+    const VkSemaphoreCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSemaphore* pSemaphore
 );
 
 void ctsDestroySemaphore(
-    CtsDevice device,
-    CtsSemaphore semaphore,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkSemaphore semaphore,
+    const VkAllocationCallbacks* pAllocator
 );
 
-CtsResult ctsWaitSemaphore(
-    CtsSemaphore semaphore,
+VkResult ctsWaitSemaphore(
+    VkSemaphore semaphore,
     uint64_t timeout
 );
 
 void ctsWaitSemaphores(
     uint32_t semaphoreCount,
-    const CtsSemaphore* pSemaphores
+    const VkSemaphore* pSemaphores
 );
 
 void ctsSignalSemaphores(
     uint32_t semaphoreCount,
-    const CtsSemaphore* pSemaphores
+    const VkSemaphore* pSemaphores
 );
 
 #ifdef __cplusplus

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/commanddefs/cmd_base.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,10 +10,10 @@ extern "C" {
 
 typedef struct CtsFlushMappedMemoryRanges {
     CtsCmdBase base;
-    CtsDevice device;
+    VkDevice device;
     uint32_t memoryRangeCount;
-    const CtsMappedMemoryRange* pMemoryRanges;
-    CtsResult* pResult;
+    const VkMappedMemoryRange* pMemoryRanges;
+    VkResult* pResult;
 } CtsFlushMappedMemoryRanges;
 
 #ifdef __cplusplus

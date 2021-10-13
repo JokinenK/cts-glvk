@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stddef.h>
-#include <cts/align.h>
-#include <cts/allocator.h>
-#include <cts/pool_allocator.h>
+#include "cts/util/align.h"
+#include "cts/allocator.h"
+#include "cts/util/pool_allocator.h"
 
 typedef struct CtsPoolAllocatorBlock {
 	struct CtsPoolAllocatorBlock* next;
@@ -13,9 +13,9 @@ typedef struct CtsPoolAllocatorPool {
 } CtsPoolAllocatorPool;
 
 struct CtsPoolAllocatorImpl {
-	const CtsAllocationCallbacks* pAllocator;
-	CtsDeviceSize blockSize;
-    CtsDeviceSize growSize;
+	const VkAllocationCallbacks* pAllocator;
+	VkDeviceSize blockSize;
+    VkDeviceSize growSize;
 	CtsPoolAllocatorPool* pools;
     CtsPoolAllocatorBlock* blocks;
 };
@@ -26,7 +26,7 @@ static CtsPoolAllocatorPool* allocatePool(CtsPoolAllocator instance)
 		instance->pAllocator,
 		instance->growSize,
 		alignof(CtsPoolAllocatorPool),
-		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+		VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
 
 	if (pool != NULL) {
@@ -64,7 +64,7 @@ static void* proxyAllocation(
 	void* pUserData,
 	size_t size,
 	size_t align,
-	CtsSystemAllocationScope scope
+	VkSystemAllocationScope scope
 ) {
 	(void) scope;
 
@@ -76,7 +76,7 @@ static void* proxyReallocation(
 	void* pOriginal,
 	size_t size,
 	size_t align,
-	CtsSystemAllocationScope scope
+	VkSystemAllocationScope scope
 ) {
 	(void) scope;
 
@@ -93,21 +93,25 @@ static void proxyFree(
 static void proxyInternalAllocation(
 	void* pUserData,
 	size_t size,
-	CtsSystemAllocationScope scope
+	VkInternalAllocationType allocationType,
+	VkSystemAllocationScope allocationScope
 ) {
 	(void) pUserData;
 	(void) size;
-	(void) scope;
+	(void) allocationType;
+	(void) allocationScope;
 }
 
 static void proxyInternalFree(
 	void* pUserData,
 	size_t size, 
-	CtsSystemAllocationScope scope
+	VkInternalAllocationType allocationType,
+	VkSystemAllocationScope allocationScope
 ) {
 	(void) pUserData;
 	(void) size;
-	(void) scope;
+	(void) allocationType;
+	(void) allocationScope;
 }
 
 bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorCreateInfo* pCreateInfo)
@@ -116,7 +120,7 @@ bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorC
 		pCreateInfo->pAllocator,
 		sizeof(struct CtsPoolAllocatorImpl),
 		alignof(struct CtsPoolAllocatorImpl),
-		CTS_SYSTEM_ALLOCATION_SCOPE_OBJECT
+		VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
 	);
 
 	if (instance == NULL) {
@@ -133,13 +137,13 @@ bool ctsCreatePoolAllocator(CtsPoolAllocator* pInstance, const CtsPoolAllocatorC
 	return true;
 }
 
-void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator instance, CtsAllocationCallbacks* pAllocator) {
-	pAllocator->userData           = instance;
-	pAllocator->allocation         = proxyAllocation;
-	pAllocator->reallocation       = proxyReallocation;
-	pAllocator->free               = proxyFree;
-	pAllocator->internalAllocation = proxyInternalAllocation;
-	pAllocator->internalFree       = proxyInternalFree;
+void ctsGetPoolAllocatorCallbacks(CtsPoolAllocator instance, VkAllocationCallbacks* pAllocator) {
+	pAllocator->pUserData             = instance;
+	pAllocator->pfnAllocation         = proxyAllocation;
+	pAllocator->pfnReallocation       = proxyReallocation;
+	pAllocator->pfnFree               = proxyFree;
+	pAllocator->pfnInternalAllocation = proxyInternalAllocation;
+	pAllocator->pfnInternalFree       = proxyInternalFree;
 }
 
 bool ctsDestroyPoolAllocator(CtsPoolAllocator instance)

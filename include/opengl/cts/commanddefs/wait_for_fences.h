@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,12 +9,12 @@ extern "C" {
 
 typedef struct CtsWaitForFences {
     CtsCmdBase base;
-    CtsDevice device;
+    VkDevice device;
     uint32_t fenceCount;
-    const CtsFence* pFences;
-    CtsBool32 waitAll;
+    const VkFence* pFences;
+    VkBool32 waitAll;
     uint64_t timeout;
-    CtsResult* pResult;
+    VkResult* pResult;
 } CtsWaitForFences;
 
 #ifdef __cplusplus

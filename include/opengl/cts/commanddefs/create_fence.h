@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,11 +9,11 @@ extern "C" {
 
 typedef struct CtsCreateFence {
     CtsCmdBase base;
-    CtsDevice device;
-    const CtsFenceCreateInfo* pCreateInfo;
-    const CtsAllocationCallbacks* pAllocator;
-    CtsFence* pFence;
-    CtsResult* pResult;
+    VkDevice device;
+    const VkFenceCreateInfo* pCreateInfo;
+    const VkAllocationCallbacks* pAllocator;
+    VkFence* pFence;
+    VkResult* pResult;
 } CtsCreateFence;
 
 #ifdef __cplusplus

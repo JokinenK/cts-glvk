@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct CtsFreeMemory {
     CtsCmdBase base;
-    CtsDevice device;
-    CtsDeviceMemory memory;
-    const CtsAllocationCallbacks* pAllocator;
+    VkDevice device;
+    VkDeviceMemory memory;
+    const VkAllocationCallbacks* pAllocator;
 } CtsFreeMemory;
 
 #ifdef __cplusplus

@@ -1,19 +1,17 @@
 #pragma once
 
 #include <stdint.h>
-#include <cts/typedefs/pipeline_layout.h>
-#include <cts/typedefs/descriptor_set_layout.h>
-#include <cts/typedefs/push_constant_range.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsPipelineLayoutImpl {
+struct CtsPipelineLayout {
     uint32_t setLayoutCount;
-    CtsDescriptorSetLayout* setLayouts;
+    struct CtsDescriptorSetLayout** ppSetLayouts;
     uint32_t pushConstantRangeCount;
-    CtsPushConstantRange* pushConstantRanges;
+    VkPushConstantRange* pushConstantRanges;
 };
 
 #ifdef __cplusplus

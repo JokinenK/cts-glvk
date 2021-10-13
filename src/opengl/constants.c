@@ -2,7 +2,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-#include <glad/glad.h>
+#include "glad/glad.h"
+#include "vulkan/vulkan_core.h"
 #include <cts/constants.h>
 #include <private/constants_private.h>
 
@@ -57,7 +58,7 @@ uint32_t getOpenGLVersion() {
         GLint minor = 0;
         glGetIntegerv(GL_MINOR_VERSION, &minor);
         
-        gOpenGLVersion = CTS_MAKE_VERSION(major, minor, 0);
+        gOpenGLVersion = VK_MAKE_VERSION(major, minor, 0);
     }
 
     return gOpenGLVersion;

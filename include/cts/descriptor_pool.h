@@ -1,23 +1,22 @@
 #pragma once
 
-#include <cts/allocator.h>
-#include <cts/types.h>
+#include "vulkan/vulkan_core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-CtsResult ctsCreateDescriptorPool(
-    CtsDevice device,
-    const CtsDescriptorPoolCreateInfo* pCreateInfo,
-    const CtsAllocationCallbacks* pAllocator,
-    CtsDescriptorPool* pDescriptorPool
+VkResult ctsCreateDescriptorPool(
+    VkDevice device,
+    const VkDescriptorPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorPool* pDescriptorPool
 );
 
 void ctsDestroyDescriptorPool(
-    CtsDevice device,
-    CtsDescriptorPool descriptorPool,
-    const CtsAllocationCallbacks* pAllocator
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    const VkAllocationCallbacks* pAllocator
 );
 
 #ifdef __cplusplus

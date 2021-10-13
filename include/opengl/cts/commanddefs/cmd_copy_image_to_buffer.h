@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cts/types.h>
-#include <cts/commanddefs/cmd_base.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/commanddefs/cmd_base.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,12 +9,12 @@ extern "C" {
 
 typedef struct CtsCmdCopyImageToBuffer {
     CtsCmdBase base;
-    CtsCommandBuffer commandBuffer;
-    CtsImage srcImage;
-    CtsImageLayout srcImageLayout;
-    CtsBuffer dstBuffer;
+    VkCommandBuffer commandBuffer;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    VkBuffer dstBuffer;
     uint32_t regionCount;
-    const CtsBufferImageCopy* pRegions;
+    const VkBufferImageCopy* pRegions;
 } CtsCmdCopyImageToBuffer;
 
 #ifdef __cplusplus

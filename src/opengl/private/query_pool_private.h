@@ -1,15 +1,15 @@
 #pragma once
 
-#include <cts/pool_allocator.h>
-#include <cts/typedefs/query_pool.h>
+#include "vulkan/vulkan_core.h"
+#include "cts/util/pool_allocator.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct CtsQueryPoolImpl {
+struct CtsQueryPool {
     CtsPoolAllocator poolAllocatorInstance;
-    CtsAllocationCallbacks poolAllocator;
+    VkAllocationCallbacks poolAllocator;
 };
 
 #ifdef __cplusplus
