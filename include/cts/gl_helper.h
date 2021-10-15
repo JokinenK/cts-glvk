@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "glad/glad.h"
 #include "vulkan/vulkan_core.h"
 
@@ -8,18 +9,10 @@
 extern "C" {
 #endif
 
-struct CtsGlHelper {
-    GLenum shaders[2];
-    GLuint shaderProgram;
-    GLuint readFramebuffer;
-    GLuint writeFramebuffer;
-};
-
-VkResult ctsInitGlHelper(struct CtsGlHelper* surfaceHelper);
-void ctsDestroyGlHelper(struct CtsGlHelper* surfaceHelper);
+bool ctsInitGlHelper();
+void ctsDestroyGlHelper();
 
 void ctsGlHelperBlitTexture(
-    struct CtsGlHelper* surfaceHelper,
     struct CtsDevice* device,
     struct CtsImage* src,
     struct CtsImage* dst,
@@ -29,12 +22,9 @@ void ctsGlHelperBlitTexture(
 );
 
 void ctsGlHelperDrawFSTexture(
-    struct CtsGlHelper* surfaceHelper,
     struct CtsDevice* device,
     struct CtsImage* image
 );
-
-
 
 #ifdef __cplusplus
 }

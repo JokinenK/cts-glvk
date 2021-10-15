@@ -113,6 +113,9 @@ static void handleCmdUpdateBuffer(const CtsCmdBase* pCmd);
 static void handleCmdWaitEvents(const CtsCmdBase* pCmd);
 static void handleCmdWriteTimestamp(const CtsCmdBase* pCmd);
 
+static void handleCreateWin32SurfaceKHR(const CtsCmdBase* pCmd);
+static void handleDestroySurfaceKHR(const CtsCmdBase* pCmd);
+
 #pragma endregion
 #pragma region PublicMethodBodies
 
@@ -254,6 +257,9 @@ static CtsCommandMetadata* createCommandMetadata()
     lookup[CTS_COMMAND_CMD_UPDATE_BUFFER]             = (CtsCommandMetadata) { .handler = handleCmdUpdateBuffer,            .size = sizeof(CtsCmdUpdateBuffer),            .align = alignof(CtsCmdUpdateBuffer)            };
     lookup[CTS_COMMAND_CMD_WAIT_EVENTS]               = (CtsCommandMetadata) { .handler = handleCmdWaitEvents,              .size = sizeof(CtsCmdWaitEvents),              .align = alignof(CtsCmdWaitEvents)              };
     lookup[CTS_COMMAND_CMD_WRITE_TIMESTAMP]           = (CtsCommandMetadata) { .handler = handleCmdWriteTimestamp,          .size = sizeof(CtsCmdWriteTimestamp),          .align = alignof(CtsCmdWriteTimestamp)          };
+
+    lookup[CTS_COMMAND_CREATE_WIN32_SURFACE_KHR]      = (CtsCommandMetadata) { .handler = handleCreateWin32SurfaceKHR,      .size = sizeof(CtsCreateWin32SurfaceKHR),      .align = alignof(CtsCreateWin32SurfaceKHR)      };
+    lookup[CTS_COMMAND_DESTROY_SURFACE_KHR]           = (CtsCommandMetadata) { .handler = handleDestroySurfaceKHR,          .size = sizeof(CtsDestroySurfaceKHR),          .align = alignof(CtsDestroySurfaceKHR)          };
 
     return lookup;
 }
@@ -616,6 +622,16 @@ static void handleCmdWaitEvents(const CtsCmdBase* pCmd) {
 static void handleCmdWriteTimestamp(const CtsCmdBase* pCmd) {
     const CtsCmdWriteTimestamp* cmd = (const CtsCmdWriteTimestamp*) pCmd;
     ctsCmdWriteTimestampImpl(cmd->commandBuffer, cmd->pipelineStage, cmd->queryPool, cmd->query);
+}
+
+static void handleCreateWin32SurfaceKHR(const CtsCmdBase* pCmd) {
+    const CtsCreateWin32SurfaceKHR* cmd = (const CtsCreateWin32SurfaceKHR*) pCmd;
+    *cmd->pResult = ctsCreateWin32SurfaceKHRImpl(cmd->instance, cmd->pCreateInfo, cmd->pAllocator, cmd->pSurface);
+}
+
+static void handleDestroySurfaceKHR(const CtsCmdBase* pCmd) {
+    const CtsDestroySurfaceKHR* cmd = (const CtsDestroySurfaceKHR*) pCmd;
+    ctsDestroySurfaceKHRImpl(cmd->instance,  cmd->surface, cmd->pAllocator);
 }
 
 #pragma endregion

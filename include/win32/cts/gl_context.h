@@ -22,14 +22,13 @@ struct CtsGlContext {
     HWND window;
     HDC device;
     HGLRC context;
-    struct CtsGlHelper helper;
 };
 
-bool ctsInitGlContext(struct CtsGlContext* context, HWND window, HINSTANCE instance);
-bool ctsInitGlContextOffscreen(struct CtsGlContext* context);
+bool ctsInitGlWindow(HWND window, HDC dc);
+bool ctsInitGlContext(struct CtsGlContext* context);
 void ctsDestroyGlContext(struct CtsGlContext* context);
-void ctsGlContextMakeCurrent(struct CtsGlContext* context);
-void ctsGlContextClearCurrent(struct CtsGlContext* context);
+void ctsGlContextActivate(struct CtsGlContext* context);
+void ctsGlContextDeactivate(struct CtsGlContext* context);
 void ctsGlContextSwapBuffers(struct CtsGlContext* context);
 
 #ifdef __cplusplus

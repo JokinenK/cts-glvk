@@ -34,7 +34,6 @@ struct CtsQueue {
     CtsPlatformMutex mutex;
     CtsPlatformConditionVariable notEmptyCondition;
     CtsPlatformConditionVariable cmdFinishedCondVar;
-    CtsPlatformConditionVariable surfacePresentCondVar;
     
     struct CtsGenericQueue queue;
 };

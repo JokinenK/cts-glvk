@@ -144,6 +144,7 @@ VkResult ctsCreateSwapchainKHRImpl(
     VkSwapchainKHR* pSwapchain
 ) {
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
+    struct CtsSurface* surface = CtsSurfaceFromHandle(pCreateInfo->surface);
     struct CtsSwapchain* swapchain = ctsAllocation(
         pAllocator,
         sizeof(struct CtsSwapchain),
@@ -165,6 +166,7 @@ VkResult ctsCreateSwapchainKHRImpl(
     //(void) pCreateInfo->presentMode;
 
     swapchain->device = device;
+    swapchain->surface = surface;
     swapchain->entryCount = pCreateInfo->minImageCount;
     swapchain->nextEntry = 0;
     swapchain->extent = pCreateInfo->imageExtent;
@@ -196,6 +198,7 @@ VkResult ctsCreateSwapchainKHRImpl(
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.usage = pCreateInfo->imageUsage;
 
+
     for (uint32_t i = 0; i < pCreateInfo->minImageCount; ++i) {
         struct CtsSwapchainEntry* entry = &swapchain->pEntries[i];
 
@@ -208,7 +211,7 @@ VkResult ctsCreateSwapchainKHRImpl(
 
     ctsGetPhysicalDeviceSurfaceCapabilitiesKHR(
         CtsPhysicalDeviceToHandle(device->physicalDevice),
-        CtsSurfaceToHandle(device->physicalDevice->surface),
+        CtsSurfaceToHandle(surface),
         &swapchain->surfaceCapabilities
     );
 
@@ -253,8 +256,9 @@ VkResult VKAPI_CALL ctsQueuePresentKHRImpl(
     for (uint32_t i = 0; i < pPresentInfo->swapchainCount; ++i) {
         uint32_t imageIndex = pPresentInfo->pImageIndices[i];
         struct CtsSwapchain* swapchain = CtsSwapchainFromHandle(pPresentInfo->pSwapchains[i]);
+        struct CtsSurface* surface = swapchain->surface;
         struct CtsDevice* device = swapchain->device;
-        struct CtsPhysicalDevice* physicalDevice = swapchain->device->physicalDevice;
+        struct CtsPhysicalDevice* physicalDevice = device->physicalDevice;
         struct CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
 
         VkResult result = validateSwapchainSurface(swapchain);
@@ -264,12 +268,18 @@ VkResult VKAPI_CALL ctsQueuePresentKHRImpl(
             return result;
         }
 
-        struct CtsGlContext* context = ctsSurfaceGetGlContext(physicalDevice->surface);
+        struct CtsGlContext* context = &physicalDevice->context;
         struct CtsImage* image = CtsImageFromHandle(entry->image);
         
-        ctsGlHelperDrawFSTexture(&context->helper, device, image);
-        ctsGlContextSwapBuffers(context);
-        
+        wglMakeCurrent(context->device, NULL);
+        wglMakeCurrent(surface->device, context->context);
+
+        ctsGlHelperDrawFSTexture(device, image);
+        SwapBuffers(surface->device);
+
+        wglMakeCurrent(surface->device, NULL);
+        wglMakeCurrent(context->device, context->context);
+
         ctsSignalSemaphores(1, &entry->semaphore);
     }
 
@@ -277,7 +287,7 @@ VkResult VKAPI_CALL ctsQueuePresentKHRImpl(
 }
 
 VkResult validateSwapchainSurface(struct CtsSwapchain* swapchain) {
-    struct CtsSurface* surface = swapchain->device->physicalDevice->surface;
+    struct CtsSurface* surface = swapchain->surface;
     VkExtent2D* swapChainExtent = &swapchain->extent;
     VkExtent2D* surfaceMinExtent = &swapchain->surfaceCapabilities.minImageExtent;
     VkExtent2D* surfaceMaxExtent = &swapchain->surfaceCapabilities.maxImageExtent;

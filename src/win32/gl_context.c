@@ -47,13 +47,11 @@ static bool initGlad();
 static bool initExtensions();
 static HWND createWindow(const char* className, const char* title);
 
-bool ctsInitGlContext(struct CtsGlContext* context, HWND window, HINSTANCE instance)
+bool ctsInitGlWindow(HWND window, HDC dc)
 {
     if (!initExtensions()) {
         return false;
     }
-
-    HDC device = GetDC(window);
 
     int pixelFormatAttribs[] = {
         WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
@@ -69,7 +67,7 @@ bool ctsInitGlContext(struct CtsGlContext* context, HWND window, HINSTANCE insta
 
     int pixelFormat;
     UINT numFormats;
-    wglChoosePixelFormatARB(device, pixelFormatAttribs, 0, 1, &pixelFormat, &numFormats);
+    wglChoosePixelFormatARB(dc, pixelFormatAttribs, 0, 1, &pixelFormat, &numFormats);
 
     if (!numFormats) {
         fprintf(stderr, "Failed to query the pixel formats.");
@@ -77,10 +75,29 @@ bool ctsInitGlContext(struct CtsGlContext* context, HWND window, HINSTANCE insta
     }
 
     PIXELFORMATDESCRIPTOR pfd;
-    DescribePixelFormat(device, pixelFormat, sizeof(pfd), &pfd);
+    DescribePixelFormat(dc, pixelFormat, sizeof(pfd), &pfd);
     
-    if (!SetPixelFormat(device, pixelFormat, &pfd)) {
+    if (!SetPixelFormat(dc, pixelFormat, &pfd)) {
         fprintf(stderr, "Failed to set the pixel format.");
+        return false;
+    }
+
+    return true;
+}
+
+bool ctsInitGlContext(struct CtsGlContext* context)
+{
+    if (!initExtensions()) {
+        return false;
+    }
+
+    HWND window = createWindow("ctsRenderer", "OffscreenWindow");
+    HINSTANCE instance = GetModuleHandle(NULL);
+    HDC dc = GetDC(window);
+    HDC prevDc = wglGetCurrentDC();
+    HGLRC prevCtx = wglGetCurrentContext();
+
+    if (!ctsInitGlWindow(window, dc)) {
         return false;
     }
 
@@ -92,63 +109,57 @@ bool ctsInitGlContext(struct CtsGlContext* context, HWND window, HINSTANCE insta
         0,
     };
 
-    HGLRC prevCtx = wglGetCurrentContext();
-    wglMakeCurrent(device, NULL);
+    wglMakeCurrent(prevDc, NULL);
     
-    HGLRC ctx = wglCreateContextAttribsARB(device, NULL, attributes);
+    HGLRC ctx = wglCreateContextAttribsARB(dc, NULL, attributes);
 
     if (!ctx) {
         return false;
     }
 
+    wglMakeCurrent(dc, ctx);
+    initGlad();
+    ctsInitGlHelper();
+    
+    wglMakeCurrent(dc, NULL);
+    wglMakeCurrent(prevDc, prevCtx);
+
     context->window = window;
     context->instance = instance;
-    context->device = device;
+    context->device = dc;
     context->context = ctx;
 
-    wglMakeCurrent(device, ctx);
-    initGlad();
-    ctsInitGlHelper(&context->helper);
-    wglMakeCurrent(device, prevCtx);
-
     return true;
-}
-
-bool ctsInitGlContextOffscreen(struct CtsGlContext* context)
-{
-    return ctsInitGlContext(
-        context,
-        createWindow("ctsRenderer", "OffscreenWindow"),
-        GetModuleHandle(0)
-    );
 }
 
 void ctsDestroyGlContext(struct CtsGlContext* context)
 {
     wglMakeCurrent(context->device, context->context);
-    ctsDestroyGlHelper(&context->helper);
+    ctsDestroyGlHelper();
     wglMakeCurrent(context->device, NULL);
     wglDeleteContext(context->context);
+    ReleaseDC(context->window, context->device);
+    DestroyWindow(context->window);
 }
 
-void ctsGlContextMakeCurrent(struct CtsGlContext* context)
+void ctsGlContextActivate(struct CtsGlContext* context)
 {
-    if (context->device && context->context) {
-        wglMakeCurrent(context->device, context->context);
+    if (!wglMakeCurrent(context->device, context->context)) {
+        fprintf(stderr, "ctsGlContextActivate failed: %d\n", GetLastError());
     }
 }
 
-void ctsGlContextClearCurrent(struct CtsGlContext* context)
+void ctsGlContextDeactivate(struct CtsGlContext* context)
 {
-    if (context->device) {
-        wglMakeCurrent(context->device, NULL);
+    if (!wglMakeCurrent(context->device, NULL)) {
+        fprintf(stderr, "ctsGlContextDeactivate failed: %d\n", GetLastError());
     }
 }
 
 void ctsGlContextSwapBuffers(struct CtsGlContext* context)
 {
-    if (context->device) {
-        SwapBuffers(context->device);
+    if (!SwapBuffers(context->device)) {
+        fprintf(stderr, "ctsGlContextSwapBuffers failed: %d\n", GetLastError());
     }
 }
 
@@ -233,30 +244,41 @@ static bool initExtensions()
 
 static HWND createWindow(const char* className, const char* title)
 {
-    WNDCLASSA windowClass = {
-        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-        .lpfnWndProc = DefWindowProcA,
-        .hInstance = GetModuleHandle(0),
-        .lpszClassName = className,
-    };
+    WNDCLASS wnd;
+    memset(&wnd, 0, sizeof(wnd));
+    wnd.cbClsExtra = 0;
+    wnd.cbWndExtra = 0;
+    wnd.hCursor = LoadCursor(0, IDC_ARROW);
+    wnd.hIcon = LoadIcon(0, IDI_WINLOGO);
+    wnd.lpszMenuName = 0;
+    wnd.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+    wnd.hbrBackground = 0;
+    wnd.lpfnWndProc = DefWindowProcA;
+    wnd.hInstance = GetModuleHandle(NULL);
+    wnd.lpszClassName = className;
 
-    if (!RegisterClassA(&windowClass)) {
+    if (!RegisterClass(&wnd)) {
         fprintf(stderr, "Failed to register window.");
         return NULL;
     }
 
-    HWND window = CreateWindowExA(
+    HWND window = CreateWindowEx(
         0,
         className,
         title,
-        0,
+
+        // Window style
+        WS_OVERLAPPEDWINDOW,
+        
+        // Size and position
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        0,
-        0,
-        GetModuleHandle(0),
+
+        NULL,
+        NULL,
+        GetModuleHandle(NULL),
         NULL
     );
 

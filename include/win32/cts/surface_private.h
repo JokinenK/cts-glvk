@@ -16,11 +16,24 @@ extern "C" {
 
 struct CtsSurface {
     struct CtsObjectBase base;
-    struct CtsGlContext context;
+    HINSTANCE instance;
+    HWND window;
+    HDC device;
 };
 
-struct CtsGlContext* ctsSurfaceGetGlContext(struct CtsSurface* surface);
-bool ctsSurfaceQueryDeviceDetails(struct CtsSurface* surface, uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID);
+VkResult ctsCreateWin32SurfaceKHRImpl(
+    VkInstance instanceHandle,
+    const VkWin32SurfaceCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSurfaceKHR* pSurface
+);
+
+void ctsDestroySurfaceKHRImpl(
+    VkInstance instanceHandle,
+    VkSurfaceKHR surfaceHandle,
+    const VkAllocationCallbacks* pAllocator
+);
+
 VkResult ctsGetSurfaceExtent(struct CtsSurface* surface, VkExtent2D* pExtent);
 
 #ifdef __cplusplus

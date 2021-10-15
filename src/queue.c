@@ -109,25 +109,21 @@ void ctsQueueDispatch(
 static void workerEntry(void* pArgs) {
     struct CtsQueue* queue = (struct CtsQueue*) pArgs;
     struct CtsPhysicalDevice* physicalDevice = queue->physicalDevice;
-    struct CtsGlContext* context = &physicalDevice->offscreenContext;    
 
     CtsQueueItem queueItem;
     const CtsCmdBase* cmd;
     const CtsCommandMetadata* commandMetadata;
 
+    ctsGlContextActivate(&physicalDevice->context);
+
     while (physicalDevice->isRunning) {
         ctsLockPlatformMutex(&queue->mutex);
-        
-        while (physicalDevice->isRunning && physicalDevice->surface == NULL) {
-            ctsSleepPlatformConditionVariable(&queue->surfacePresentCondVar, &queue->mutex);
-        }
         
         while (physicalDevice->isRunning && !ctsGenericQueuePop(&queue->queue, &queueItem)) {
             ctsSleepPlatformConditionVariable(&queue->notEmptyCondition, &queue->mutex);
         }
 
         ctsUnlockPlatformMutex(&queue->mutex);
-        ctsGlContextMakeCurrent(ctsSurfaceGetGlContext(physicalDevice->surface));
 
         if (!physicalDevice->isRunning) {
             break;

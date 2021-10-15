@@ -17,6 +17,7 @@ typedef struct CtsWin32DeviceInfo {
     uint8_t     uuid[16];
 } CtsWin32DeviceInfo;
 
+bool ctsDeviceInfoQuery(uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID);
 bool ctsWin32ParseDeviceInfo(uint32_t vendorId, CtsWin32DeviceInfo* pDeviceInfo);
 
 #ifdef __cplusplus

@@ -46,73 +46,84 @@ static const char gFsShaderSource[] =
     "}\n";
 
 
-struct ShaderData {
+struct ShaderSource {
     GLenum type;
     const char* source;
     const int sourceLen;
-} gShaderModules[] = {
+} gShaderSources[] = {
     { GL_VERTEX_SHADER,   gVsShaderSource, sizeof(gVsShaderSource) },
     { GL_FRAGMENT_SHADER, gFsShaderSource, sizeof(gFsShaderSource) },
 };
 
-VkResult ctsInitGlHelper(struct CtsGlHelper* helper) {
+static int gReferenceCount = 0;
+static GLuint gShaderProgram = GL_INVALID_VALUE;
+static GLuint gReadFramebuffer = GL_INVALID_VALUE;
+static GLuint gWriteFramebuffer = GL_INVALID_VALUE;
+static GLuint gShaders[CTS_ARRAY_SIZE(gShaderSources)];
+
+bool ctsInitGlHelper() {
+    if (gReferenceCount++ > 0) {
+        return true;
+    }
+
     GLint success;
     GLchar buffer[512];
 
     glEnable(GL_FRAMEBUFFER_SRGB); 
-    helper->shaderProgram = glCreateProgram();
+    gShaderProgram = glCreateProgram();
 
-    glGenFramebuffers(1, &helper->readFramebuffer);
-    glGenFramebuffers(1, &helper->writeFramebuffer);
+    glGenFramebuffers(1, &gReadFramebuffer);
+    glGenFramebuffers(1, &gWriteFramebuffer);
 
-    for (uint32_t i = 0; i < CTS_ARRAY_SIZE(gShaderModules); ++i) {
-        struct ShaderData* data = &gShaderModules[i];
+    for (uint32_t i = 0; i < CTS_ARRAY_SIZE(gShaderSources); ++i) {
+        struct ShaderSource* source = &gShaderSources[i];
 
-        GLenum handle = glCreateShader(data->type);
-        glShaderSource(handle, 1, &data->source, &data->sourceLen);
+        GLenum handle = glCreateShader(source->type);
+        glShaderSource(handle, 1, &source->source, &source->sourceLen);
         glCompileShader(handle);
         glGetShaderiv(handle, GL_COMPILE_STATUS, &success);
 
         if (success) {
-            glAttachShader(helper->shaderProgram, handle);
+            glAttachShader(gShaderProgram, handle);
         }
         else {
             glGetShaderInfoLog(handle, sizeof(buffer), NULL, buffer);
-            fprintf(stderr, "Shader compilation failed for type %d. Reason %s", data->type, buffer);
+            fprintf(stderr, "Shader compilation failed for type %d. Reason %s", source->type, buffer);
         }
 
-        helper->shaders[i] = handle;
+        gShaders[i] = handle;
     }
 
-    glLinkProgram(helper->shaderProgram);
-    glGetProgramiv(helper->shaderProgram, GL_LINK_STATUS, &success);
+    glLinkProgram(gShaderProgram);
+    glGetProgramiv(gShaderProgram, GL_LINK_STATUS, &success);
 
     if (!success) {
-        glGetProgramInfoLog(helper->shaderProgram, sizeof(buffer), NULL, buffer);
+        glGetProgramInfoLog(gShaderProgram, sizeof(buffer), NULL, buffer);
         fprintf(stderr, "Shader linking failed: %s", buffer);
-        return VK_NOT_READY;
+        return false;
     }
 
-    glUseProgram(helper->shaderProgram);
-    glUniform1i(glGetUniformLocation(helper->shaderProgram, "sampler"), 0);
+    glUseProgram(gShaderProgram);
+    glUniform1i(glGetUniformLocation(gShaderProgram, "sampler"), 0);
     glUseProgram(0);
     glActiveTexture(GL_TEXTURE0);
     
-    return VK_SUCCESS;
+    return true;
 }
 
 void ctsDestroyGlHelper(struct CtsGlHelper* helper) {
-    for (uint32_t i = 0; i < CTS_ARRAY_SIZE(gShaderModules); ++i) {
-        glDeleteShader(helper->shaders[i]);
-    }
+    if (--gReferenceCount == 0) {
+        for (uint32_t i = 0; i < CTS_ARRAY_SIZE(gShaderSources); ++i) {
+            glDeleteShader(gShaders[i]);
+        }
 
-    glDeleteFramebuffers(1, &helper->readFramebuffer);
-    glDeleteFramebuffers(1, &helper->writeFramebuffer);
-    glDeleteProgram(helper->shaderProgram);
+        glDeleteFramebuffers(1, &gReadFramebuffer);
+        glDeleteFramebuffers(1, &gWriteFramebuffer);
+        glDeleteProgram(gShaderProgram);
+    }
 }
 
 void ctsGlHelperBlitTexture(
-    struct CtsGlHelper* helper,
     struct CtsDevice* device,
     struct CtsImage* src,
     struct CtsImage* dst,
@@ -128,8 +139,8 @@ void ctsGlHelperBlitTexture(
         ? device->activeWriteFramebuffer->handle
         : 0u;
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, helper->readFramebuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, helper->writeFramebuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, gReadFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gWriteFramebuffer);
 
     for (uint32_t i = 0; i < regionCount; ++i) {
         const VkImageBlit* pRegion = &pRegions[i];
@@ -169,7 +180,6 @@ void ctsGlHelperBlitTexture(
 }
 
 void ctsGlHelperDrawFSTexture(
-    struct CtsGlHelper* helper,
     struct CtsDevice* device,
     struct CtsImage* image
 ) {
@@ -186,7 +196,7 @@ void ctsGlHelperDrawFSTexture(
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, image->handle);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glUseProgram(helper->shaderProgram);
+    glUseProgram(gShaderProgram);
 
     if (prevCullFace) { glDisable(GL_CULL_FACE); }
     if (prevDepthTest) { glDisable(GL_DEPTH_TEST); }
@@ -199,7 +209,10 @@ void ctsGlHelperDrawFSTexture(
 
     glUseProgram(prevProgram);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevFramebuffer);
-    glBindTexture(prevTarget, prevTexture);
+
+    if (prevTarget != GL_NONE) {
+        glBindTexture(prevTarget, prevTexture);
+    }
 }
 
 

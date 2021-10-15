@@ -15,6 +15,7 @@
 #include "cts/swapchain_private.h"
 #include "cts/surface_private.h"
 #include "cts/queue_private.h"
+#include "cts/device_info.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,9 +27,9 @@ static const VkExtensionProperties gKhrSwapchainExtension = {
     .specVersion = VK_KHR_SWAPCHAIN_SPEC_VERSION,
 };
 
-static void parseDeviceFeatures(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceFeatures* pFeatures);
-static void parseDeviceProperties(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceProperties* pProperties);
-static void parseDeviceLimits(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceLimits* pLimits);
+static void parseDeviceFeatures(VkPhysicalDeviceFeatures* pFeatures);
+static void parseDeviceProperties(VkPhysicalDeviceProperties* pProperties);
+static void parseDeviceLimits(VkPhysicalDeviceLimits* pLimits);
 
 static bool isValidFormat(VkFormat format);
 static bool isPackedFormat(VkFormat format);
@@ -51,10 +52,10 @@ void ctsPhysicalDeviceInit(struct CtsPhysicalDevice* physicalDevice, struct CtsI
     physicalDevice->instance = instance;
     physicalDevice->isRunning = true;
 
-    ctsInitGlContextOffscreen(&physicalDevice->offscreenContext);
-    ctsGlContextMakeCurrent(&physicalDevice->offscreenContext);
+    ctsInitGlContext(&physicalDevice->context);
+    ctsGlContextActivate(&physicalDevice->context);
     ctsPhysicalDeviceParseFeatures(physicalDevice);
-    ctsGlContextClearCurrent(&physicalDevice->offscreenContext);
+    ctsGlContextDeactivate(&physicalDevice->context);
 
     ctsCreateQueue(&queueCreateInfo, pAllocator, &physicalDevice->queue);
 }
@@ -66,12 +67,7 @@ void ctsPhysicalDeviceDestroy(struct CtsPhysicalDevice* physicalDevice, const Vk
     ctsDestroyPlatformConditionVariable(&physicalDevice->conditionVariable);
     ctsDestroyPlatformMutex(&physicalDevice->mutex);
     ctsDestroyQueue(physicalDevice->queue, pAllocator);
-    ctsDestroyGlContext(&physicalDevice->offscreenContext);
-}
-
-void ctsPhysicalDeviceSetSurface(struct CtsPhysicalDevice* physicalDevice, struct CtsSurface* surface) {
-    physicalDevice->surface = surface;
-    ctsWakeAllPlatformConditionVariable(&physicalDevice->queue->surfacePresentCondVar);
+    ctsDestroyGlContext(&physicalDevice->context);
 }
 
 VkResult VKAPI_CALL ctsGetPhysicalDeviceQueueFamilyProperties(
@@ -244,9 +240,9 @@ VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties(
     return VK_SUCCESS;
 }
 
-void ctsPhysicalDeviceParseFeatures(struct CtsPhysicalDevice* physicalDevice) {
-    parseDeviceProperties(physicalDevice, &gPhysicalDeviceProperties);
-    parseDeviceFeatures(physicalDevice, &gPhysicalDeviceFeatures);
+void ctsPhysicalDeviceParseFeatures() {
+    parseDeviceProperties(&gPhysicalDeviceProperties);
+    parseDeviceFeatures(&gPhysicalDeviceFeatures);
 }
 
 const VkMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex)
@@ -254,7 +250,7 @@ const VkMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex)
     return &gPhysicalMemoryProperties.memoryTypes[memoryTypeIndex];
 }
 
-static void parseDeviceFeatures(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceFeatures* pFeatures) {
+static void parseDeviceFeatures(VkPhysicalDeviceFeatures* pFeatures) {
     pFeatures->robustBufferAccess                       = VK_FALSE;
     pFeatures->fullDrawIndexUint32                      = VK_TRUE;
     pFeatures->imageCubeArray                           = GLAD_GL_ARB_texture_cube_map_array;
@@ -312,18 +308,18 @@ static void parseDeviceFeatures(struct CtsPhysicalDevice* physicalDevice, VkPhys
     pFeatures->inheritedQueries                         = VK_FALSE;
 }
 
-static void parseDeviceProperties(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceProperties* pProperties) {
+static void parseDeviceProperties(VkPhysicalDeviceProperties* pProperties) {
     pProperties->apiVersion = VK_API_VERSION_1_0;
     pProperties->driverVersion = getOpenGLVersion();
     pProperties->vendorID = getVendorID();
     pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
     strncpy(pProperties->deviceName, getRenderer(), sizeof(pProperties->deviceName));
 
-    ctsSurfaceQueryDeviceDetails(physicalDevice->surface, pProperties->vendorID, &pProperties->deviceID, pProperties->pipelineCacheUUID);
-    parseDeviceLimits(physicalDevice, &pProperties->limits);
+    ctsDeviceInfoQuery(pProperties->vendorID, &pProperties->deviceID, pProperties->pipelineCacheUUID);
+    parseDeviceLimits(&pProperties->limits);
 }
 
-static void parseDeviceLimits(struct CtsPhysicalDevice* physicalDevice, VkPhysicalDeviceLimits* pLimits) {
+static void parseDeviceLimits(VkPhysicalDeviceLimits* pLimits) {
     GLint i32 = 0;
     GLint i32Array[2];
 

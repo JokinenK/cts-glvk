@@ -37,28 +37,20 @@ VkResult VKAPI_CALL ctsCreateWin32SurfaceKHR(
     VkSurfaceKHR* pSurface
 ) {
     struct CtsInstance* instance = CtsInstanceFromHandle(instanceHandle);
-    struct CtsPhysicalDevice* physicalDevice = &instance->physicalDevice;
-    struct CtsSurface* surface = ctsAllocation(
-        pAllocator,
-        sizeof(struct CtsSurface),
-        alignof(struct CtsSurface),
-        VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE
-    );
 
-    if (!surface) {
-        return VK_ERROR_OUT_OF_HOST_MEMORY;
-    }
+    VkResult result;
+    CtsCreateWin32SurfaceKHR cmd;
+    cmd.base.type = CTS_COMMAND_CREATE_WIN32_SURFACE_KHR;
+    cmd.base.pNext = NULL;
 
-    set_loader_magic_value(surface);
-    if (!ctsInitGlContext(&surface->context, pCreateInfo->hwnd, pCreateInfo->hinstance)) {
-        ctsDestroySurfaceKHR(instanceHandle, CtsSurfaceToHandle(surface), pAllocator);
-        return VK_ERROR_INCOMPATIBLE_DRIVER;
-    }
+    cmd.instance = instanceHandle;
+    cmd.pCreateInfo = pCreateInfo;
+    cmd.pAllocator = pAllocator;
+    cmd.pSurface = pSurface;
+    cmd.pResult = &result;
 
-    ctsPhysicalDeviceSetSurface(physicalDevice, surface);
-    *pSurface = CtsSurfaceToHandle(surface);
-
-    return VK_SUCCESS;
+    ctsQueueDispatch(instance->physicalDevice.queue, &cmd.base);
+    return result;
 }
 
 void VKAPI_CALL ctsDestroySurfaceKHR(
@@ -66,10 +58,17 @@ void VKAPI_CALL ctsDestroySurfaceKHR(
     VkSurfaceKHR surfaceHandle,
     const VkAllocationCallbacks* pAllocator
 ) {
-    struct CtsSurface* surface = CtsSurfaceFromHandle(surfaceHandle);
+    struct CtsInstance* instance = CtsInstanceFromHandle(instanceHandle);
 
-    ctsDestroyGlContext(&surface->context);
-    ctsFree(pAllocator, surface);
+    CtsDestroySurfaceKHR cmd;
+    cmd.base.type = CTS_COMMAND_DESTROY_SURFACE_KHR;
+    cmd.base.pNext = NULL;
+
+    cmd.instance = instanceHandle;
+    cmd.surface = surfaceHandle;
+    cmd.pAllocator = pAllocator;
+
+    ctsQueueDispatch(instance->physicalDevice.queue, &cmd.base);
 }
 
 VkResult VKAPI_CALL ctsGetPhysicalDeviceSurfaceSupportKHR(
@@ -136,34 +135,59 @@ VkBool32 ctsGetPhysicalDeviceWin32PresentationSupportKHR(
     return VK_TRUE;
 }
 
-struct CtsGlContext* ctsSurfaceGetGlContext(struct CtsSurface* surface)
-{
-    return &surface->context;
-}
-
-bool ctsSurfaceQueryDeviceDetails(struct CtsSurface* surface, uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID)
-{
-    CtsWin32DeviceInfo deviceInfo;
-    if (ctsWin32ParseDeviceInfo(vendorId, &deviceInfo)) {
-        *pDeviceId = deviceInfo.deviceId;
-        memcpy(pUUID, deviceInfo.uuid, sizeof(deviceInfo.uuid));
-
-        return true;
-    }
-
-    return false;
-}
-
 VkResult ctsGetSurfaceExtent(struct CtsSurface* surface, VkExtent2D* pExtent)
 {
     RECT rect;
-    if (GetWindowRect(surface->context.window, &rect)) {
+    if (GetWindowRect(surface->window, &rect)) {
         pExtent->width = rect.right - rect.left;
         pExtent->height = rect.bottom - rect.top;
         return VK_SUCCESS;
     }
 
     return VK_ERROR_INITIALIZATION_FAILED;
+}
+
+VkResult VKAPI_CALL ctsCreateWin32SurfaceKHRImpl(
+    VkInstance instanceHandle,
+    const VkWin32SurfaceCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSurfaceKHR* pSurface
+) {
+    struct CtsInstance* instance = CtsInstanceFromHandle(instanceHandle);
+    struct CtsPhysicalDevice* physicalDevice = &instance->physicalDevice;
+    struct CtsSurface* surface = ctsAllocation(
+        pAllocator,
+        sizeof(struct CtsSurface),
+        alignof(struct CtsSurface),
+        VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE
+    );
+
+    if (!surface) {
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    set_loader_magic_value(surface);
+    surface->window = pCreateInfo->hwnd;
+    surface->device = GetDC(pCreateInfo->hwnd);
+    surface->instance = pCreateInfo->hinstance;
+    
+    if (!ctsInitGlWindow(surface->window, surface->device)) {
+        ctsDestroySurfaceKHRImpl(instanceHandle, CtsSurfaceToHandle(surface), pAllocator);
+        return VK_ERROR_INCOMPATIBLE_DRIVER;
+    }
+
+    *pSurface = CtsSurfaceToHandle(surface);
+    return VK_SUCCESS;
+}
+
+void VKAPI_CALL ctsDestroySurfaceKHRImpl(
+    VkInstance instanceHandle,
+    VkSurfaceKHR surfaceHandle,
+    const VkAllocationCallbacks* pAllocator
+) {
+    struct CtsSurface* surface = CtsSurfaceFromHandle(surfaceHandle);
+
+    ctsFree(pAllocator, surface);
 }
 
 #ifdef __cplusplus

@@ -21,6 +21,19 @@ extern "C" {
 // Might be undefined, copied from implementation to here
 static const DEVPROPKEY DeviceFirstInstallDate = { 0x83da6326, 0x97a6, 0x4088, 0x94, 0x53, 0xa1, 0x92, 0x3f, 0x57, 0x3b, 0x29, 101 };
 
+bool ctsDeviceInfoQuery(uint32_t vendorId, uint32_t* pDeviceId, uint8_t* pUUID)
+{
+    CtsWin32DeviceInfo deviceInfo;
+    if (ctsWin32ParseDeviceInfo(vendorId, &deviceInfo)) {
+        *pDeviceId = deviceInfo.deviceId;
+        memcpy(pUUID, deviceInfo.uuid, sizeof(deviceInfo.uuid));
+
+        return true;
+    }
+
+    return false;
+}
+
 bool ctsWin32ParseDeviceInfo(uint32_t vendorId, CtsWin32DeviceInfo* pDeviceInfo) {
     bool deviceFound = false;
     HDEVINFO deviceInfoSet = SetupDiGetClassDevsA(

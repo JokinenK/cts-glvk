@@ -73,9 +73,7 @@ static const VkPhysicalDeviceMemoryProperties gPhysicalMemoryProperties = {
 
 struct CtsPhysicalDevice {
     struct CtsObjectBase base;
-    
     struct CtsInstance* instance;
-    struct CtsSurface* surface;
 
     CtsPlatformMutex mutex;
     CtsPlatformConditionVariable conditionVariable;
@@ -83,13 +81,11 @@ struct CtsPhysicalDevice {
     bool isRunning;
     struct CtsQueue* queue;
 
-    struct CtsGlContext offscreenContext;
+    struct CtsGlContext context;
 };
 
 void ctsPhysicalDeviceInit(struct CtsPhysicalDevice* physicalDevice, struct CtsInstance* instance, const VkAllocationCallbacks* pAllocator);
 void ctsPhysicalDeviceDestroy(struct CtsPhysicalDevice* physicalDevice, const VkAllocationCallbacks* pAllocator);
-
-void ctsPhysicalDeviceSetSurface(struct CtsPhysicalDevice* physicalDevice, struct CtsSurface* surface);
 
 void ctsPhysicalDeviceParseFeatures(struct CtsPhysicalDevice* physicalDevice);
 const VkMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex);

@@ -1507,8 +1507,8 @@ void ctsCmdBlitImageImpl(
     VkFilter filter
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
-    struct CtsSurface* surface = commandBuffer->device->physicalDevice->surface;
-    struct CtsGlContext* context = ctsSurfaceGetGlContext(surface);
+    struct CtsPhysicalDevice* physicalDevice = commandBuffer->device->physicalDevice;
+    struct CtsGlContext* context = &physicalDevice->context;
 
     (void) srcImageLayout;
     (void) dstImageLayout;
@@ -1517,7 +1517,6 @@ void ctsCmdBlitImageImpl(
     struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
 
     ctsGlHelperBlitTexture(
-        &context->helper,
         commandBuffer->device,
         srcImage,
         dstImage,
@@ -1636,6 +1635,7 @@ void ctsCmdCopyBufferToImageImpl(
     }
 
     bindTexture(device, 0, previous.target, previous.texture, NULL);
+
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
@@ -1745,6 +1745,7 @@ void ctsCmdCopyImageToBufferImpl(
     }
 
     bindTexture(device, 0, previous.target, previous.texture, NULL);
+
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
@@ -1988,7 +1989,8 @@ void ctsCmdResolveImageImpl(
     const VkImageResolve* pRegions
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
-    struct CtsGlContext* context = ctsSurfaceGetGlContext(commandBuffer->device->physicalDevice->surface);
+    struct CtsPhysicalDevice* physicalDevice = commandBuffer->device->physicalDevice;
+    struct CtsGlContext* context = &physicalDevice->context;
     struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
     struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
 
@@ -2013,7 +2015,6 @@ void ctsCmdResolveImageImpl(
         };
 
         ctsGlHelperBlitTexture(
-            &context->helper,
             commandBuffer->device,
             srcImage,
             dstImage,
@@ -2342,6 +2343,10 @@ static void useProgram(struct CtsDevice* device, GLuint program, GLuint* pPrevio
 }
 
 static void bindTexture(struct CtsDevice* device, uint32_t unit, GLenum target, uint32_t texture, CtsGlTextureBinding* pPrevious) {
+    if (target == GL_NONE) {
+        return;
+    }
+
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(target, texture);
 
@@ -2547,7 +2552,8 @@ static void bindDepthStencilState(
 static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* renderPass, uint32_t subpassNumber) {
     const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
     struct CtsFramebuffer* framebuffer = device->activeWriteFramebuffer;
-    struct CtsGlContext* context = ctsSurfaceGetGlContext(device->physicalDevice->surface);
+    struct CtsPhysicalDevice* physicalDevice = device->physicalDevice;
+    struct CtsGlContext* context = &physicalDevice->context;
 
     VkImageBlit imageBlit;
     imageBlit.srcSubresource = (VkImageSubresourceLayers) {
@@ -2577,7 +2583,7 @@ static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* re
             imageBlit.dstOffsets[0] = (VkOffset3D){0, 0, 1};
             imageBlit.dstOffsets[1] = (VkOffset3D){dstImage->width, dstImage->height, 1};
 
-            ctsGlHelperBlitTexture(&context->helper, device, srcImage, dstImage, 1, &imageBlit, VK_FILTER_LINEAR);
+            ctsGlHelperBlitTexture(device, srcImage, dstImage, 1, &imageBlit, VK_FILTER_LINEAR);
         }
     }
 }

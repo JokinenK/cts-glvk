@@ -17,6 +17,7 @@ struct CtsSwapchainEntry {
 struct CtsSwapchain {
     struct CtsObjectBase base;
     struct CtsDevice* device;
+    struct CtsSurface* surface;
     uint32_t entryCount;
     uint32_t nextEntry;
     struct CtsSwapchainEntry* pEntries;

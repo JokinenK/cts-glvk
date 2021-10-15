@@ -73,3 +73,6 @@
 #include <cts/commanddefs/unmap_memory.h>
 #include <cts/commanddefs/update_descriptor_sets.h>
 #include <cts/commanddefs/wait_for_fences.h>
+
+#include <cts/commanddefs/create_win32_surface_khr.h>
+#include <cts/commanddefs/destroy_surface_khr.h>
