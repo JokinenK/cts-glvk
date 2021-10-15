@@ -350,11 +350,15 @@ static void createShader(
         spvc_context context = NULL;
         spvc_parsed_ir ir = NULL;
         spvc_compiler compiler = NULL;
+        spvc_compiler_options options = NULL;
 
         spvc_context_create(&context);
         spvc_context_set_error_callback(context, spirvCallback, NULL);
         spvc_context_parse_spirv(context, (const SpvId*) shaderModule->code, shaderModule->codeSize / sizeof(SpvId), &ir);
         spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler);
+        spvc_compiler_create_compiler_options(compiler, &options);
+        spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_FLIP_VERTEX_Y, SPVC_TRUE);
+        spvc_compiler_install_compiler_options(compiler, options);
         spvc_compiler_compile(compiler, &source);
         const int sourceLen = strlen(source);
 
