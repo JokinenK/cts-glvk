@@ -30,7 +30,7 @@ VkResult VKAPI_CALL ctsCreateSwapchainKHR(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     VkResult result;
-    CtsCreateSwapchain cmd;
+    CtsCreateSwapchainKHR cmd;
     cmd.base.type = CTS_COMMAND_CREATE_SWAPCHAIN;
     cmd.base.pNext = NULL;
 
@@ -52,7 +52,7 @@ void VKAPI_CALL ctsDestroySwapchainKHR(
 ) {
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
-    CtsDestroySwapchain cmd;
+    CtsDestroySwapchainKHR cmd;
     cmd.base.type = CTS_COMMAND_DESTROY_SWAPCHAIN;
     cmd.base.pNext = NULL;
 
@@ -70,7 +70,7 @@ VkResult VKAPI_CALL ctsQueuePresentKHR(
     struct CtsQueue* queue = CtsQueueFromHandle(queueHandle);
 
     VkResult result;
-    CtsQueuePresent cmd;
+    CtsQueuePresentKHR cmd;
     cmd.base.type = CTS_COMMAND_QUEUE_PRESENT;
     cmd.base.pNext = NULL;
 

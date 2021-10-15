@@ -4,6 +4,7 @@
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_win32.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/surface_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,6 +18,14 @@ typedef struct CtsCreateWin32SurfaceKHR {
     VkSurfaceKHR* pSurface;
     VkResult* pResult;
 } CtsCreateWin32SurfaceKHR;
+
+CTS_DEFINE_TRAMPOLINE(
+    CreateWin32SurfaceKHR,
+    instance,
+    pCreateInfo,
+    pAllocator,
+    pSurface
+);
 
 #ifdef __cplusplus
 }

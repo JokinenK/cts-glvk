@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/descriptor_set_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +17,15 @@ typedef struct CtsUpdateDescriptorSets {
     uint32_t descriptorCopyCount;
     const VkCopyDescriptorSet* pDescriptorCopies;
 } CtsUpdateDescriptorSets;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    UpdateDescriptorSets,
+    device,
+    descriptorWriteCount,
+    pDescriptorWrites,
+    descriptorCopyCount,
+    pDescriptorCopies
+);
 
 #ifdef __cplusplus
 }

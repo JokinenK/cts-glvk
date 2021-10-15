@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/image_view_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsDestroyImageView {
     VkImageView imageView;
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyImageView;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    DestroyImageView,
+    device,
+    imageView,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

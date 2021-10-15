@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/descriptor_set_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +17,14 @@ typedef struct CtsFreeDescriptorSets {
     const VkDescriptorSet* pDescriptorSets;
     VkResult* pResult;
 } CtsFreeDescriptorSets;
+
+CTS_DEFINE_TRAMPOLINE(
+    FreeDescriptorSets,
+    device,
+    descriptorPool,
+    descriptorSetCount,
+    pDescriptorSets
+);
 
 #ifdef __cplusplus
 }

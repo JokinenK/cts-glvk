@@ -2,14 +2,14 @@
 
 #include <cts/commanddefs/cmd_base.h>
 #include <cts/commanddefs/command_types.h>
+#include <cts/trampoline.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void(*CtsCommandHandler)(const CtsCmdBase* pCmd);
 typedef struct CtsCommandMetadata {
-    CtsCommandHandler handler;
+    CtsCmdTrampolineFn handler;
     size_t size;
     size_t align;
 } CtsCommandMetadata;

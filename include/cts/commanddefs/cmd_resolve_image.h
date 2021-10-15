@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,6 +18,17 @@ typedef struct CtsCmdResolveImage {
     uint32_t regionCount;
     VkImageResolve* pRegions;
 } CtsCmdResolveImage;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdResolveImage, 
+    commandBuffer,
+    srcImage,
+    srcImageLayout,
+    dstImage,
+    dstImageLayout,
+    regionCount,
+    pRegions
+);
 
 #ifdef __cplusplus
 }

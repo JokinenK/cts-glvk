@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/command_types.h"
+#include "cts/trampoline.h"
 
 #ifdef __cplusplus
 extern "C" {

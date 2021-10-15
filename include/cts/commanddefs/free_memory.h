@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/device_memory_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsFreeMemory {
     VkDeviceMemory memory;
     const VkAllocationCallbacks* pAllocator;
 } CtsFreeMemory;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    FreeMemory,
+    device,
+    memory,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

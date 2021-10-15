@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/framebuffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsDestroyFramebuffer {
     VkFramebuffer framebuffer;
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyFramebuffer;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    DestroyFramebuffer,
+    device,
+    framebuffer,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/device_memory_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +19,16 @@ typedef struct CtsMapMemory {
     void** ppData;
     VkResult* pResult;
 } CtsMapMemory;
+
+CTS_DEFINE_TRAMPOLINE(
+    MapMemory,
+    device,
+    memory,
+    offset,
+    size,
+    flags,
+    ppData
+);
 
 #ifdef __cplusplus
 }

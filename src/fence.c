@@ -202,7 +202,7 @@ VkResult ctsGetFenceStatusImpl(
         : VK_NOT_READY;
 }
 
-void ctsSignalFenceFenceImpl(
+void ctsSignalFenceImpl(
     VkDevice deviceHandle,
     VkFence fenceHandle
 ) {

@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/surface_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsDestroySurfaceKHR {
     VkSurfaceKHR surface;
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroySurfaceKHR;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    DestroySurfaceKHR,
+    instance,
+    surface,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

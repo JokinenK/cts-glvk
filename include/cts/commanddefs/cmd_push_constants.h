@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +17,16 @@ typedef struct CtsCmdPushConstants {
     uint32_t size;
     const void* pValues;
 } CtsCmdPushConstants;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdPushConstants, 
+    commandBuffer,
+    layout,
+    stageFlags,
+    offset,
+    size,
+    pValues
+);
 
 #ifdef __cplusplus
 }

@@ -2,17 +2,25 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/swapchain_private.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct CtsDestroySwapchain {
+typedef struct CtsDestroySwapchainKHR {
     CtsCmdBase base;
     VkDevice device;
     VkSwapchainKHR swapchain;
     const VkAllocationCallbacks* pAllocator;
-} CtsDestroySwapchain;
+} CtsDestroySwapchainKHR;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    DestroySwapchainKHR,
+    device,
+    swapchain,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +15,14 @@ typedef struct CtsCmdSetViewport {
     uint32_t viewportCount;
     const VkViewport* pViewports;
 } CtsCmdSetViewport;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdSetViewport, 
+    commandBuffer,
+    firstViewport,
+    viewportCount,
+    pViewports
+);
 
 #ifdef __cplusplus
 }

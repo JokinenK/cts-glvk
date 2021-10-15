@@ -38,7 +38,7 @@ VkResult ctsGetFenceStatusImpl(
     VkFence fence
 );
 
-void ctsSignalFenceFenceImpl(
+void ctsSignalFenceImpl(
     VkDevice device,
     VkFence fence
 );

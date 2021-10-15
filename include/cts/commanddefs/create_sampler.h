@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/sampler_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,14 @@ typedef struct CtsCreateSampler {
     VkSampler* pSampler;
     VkResult* pResult;
 } CtsCreateSampler;
+
+CTS_DEFINE_TRAMPOLINE(
+    CreateSampler,
+    device,
+    pCreateInfo,
+    pAllocator,
+    pSampler
+);
 
 #ifdef __cplusplus
 }

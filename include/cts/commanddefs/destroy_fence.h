@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/fence_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsDestroyFence {
     VkFence fence;
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyFence;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    DestroyFence,
+    device,
+    fence,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

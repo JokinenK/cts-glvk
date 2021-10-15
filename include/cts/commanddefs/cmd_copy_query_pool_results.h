@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +19,18 @@ typedef struct CtsCmdCopyQueryPoolResults {
     VkDeviceSize stride;
     VkQueryResultFlags flags;
 } CtsCmdCopyQueryPoolResults;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdCopyQueryPoolResults, 
+    commandBuffer, 
+    queryPool, 
+    firstQuery,
+    queryCount,
+    dstBuffer,
+    dstOffset,
+    stride,
+    flags
+);
 
 #ifdef __cplusplus
 }

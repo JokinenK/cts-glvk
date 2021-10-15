@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/fence_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +17,15 @@ typedef struct CtsWaitForFences {
     uint64_t timeout;
     VkResult* pResult;
 } CtsWaitForFences;
+
+CTS_DEFINE_TRAMPOLINE(
+    WaitForFences,
+    device,
+    fenceCount,
+    pFences,
+    waitAll,
+    timeout
+);
 
 #ifdef __cplusplus
 }

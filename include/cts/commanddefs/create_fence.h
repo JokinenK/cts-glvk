@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/fence_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,14 @@ typedef struct CtsCreateFence {
     VkFence* pFence;
     VkResult* pResult;
 } CtsCreateFence;
+
+CTS_DEFINE_TRAMPOLINE(
+    CreateFence, 
+    device,
+    pCreateInfo,
+    pAllocator,
+    pFence
+);
 
 #ifdef __cplusplus
 }

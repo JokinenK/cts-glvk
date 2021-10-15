@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/pipeline_layout_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsDestroyPipelineLayout {
     VkPipelineLayout pipelineLayout;
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyPipelineLayout;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    DestroyPipelineLayout,
+    device,
+    pipelineLayout,
+    pAllocator
+);
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/descriptor_set_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +15,13 @@ typedef struct CtsAllocateDescriptorSets {
     VkDescriptorSet* pDescriptorSets;
     VkResult* pResult;
 } CtsAllocateDescriptorSets;
+
+CTS_DEFINE_TRAMPOLINE(
+    AllocateDescriptorSets, 
+    device, 
+    pAllocateInfo, 
+    pDescriptorSets
+);
 
 #ifdef __cplusplus
 }

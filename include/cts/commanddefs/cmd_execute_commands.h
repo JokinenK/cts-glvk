@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,13 @@ typedef struct CtsCmdExecuteCommands {
     uint32_t commandBufferCount;
     const VkCommandBuffer* pCommandBuffers;
 } CtsCmdExecuteCommands;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdExecuteCommands, 
+    commandBuffer,
+    commandBufferCount,
+    pCommandBuffers
+);
 
 #ifdef __cplusplus
 }

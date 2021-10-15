@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/image_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,14 @@ typedef struct CtsCreateImage {
     VkImage* pImage;
     VkResult* pResult;
 } CtsCreateImage;
+
+CTS_DEFINE_TRAMPOLINE(
+    CreateImage,
+    device,
+    pCreateInfo,
+    pAllocator,
+    pImage
+);
 
 #ifdef __cplusplus
 }

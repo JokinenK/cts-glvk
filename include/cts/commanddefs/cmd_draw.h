@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,15 @@ typedef struct CtsCmdDraw {
     uint32_t firstVertex;
     uint32_t firstInstance;
 } CtsCmdDraw;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdDraw, 
+    commandBuffer, 
+    vertexCount, 
+    instanceCount,
+    firstVertex,
+    firstInstance
+);
 
 #ifdef __cplusplus
 }

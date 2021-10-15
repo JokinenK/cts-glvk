@@ -29,5 +29,19 @@
             }],
             "externalConsole": true
         },
+        {
+            "name": "(gdb) vkcube.exe",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${env:VULKAN_SDK}\\Bin\\vkcubepp.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${env:VULKAN_SDK}\\Bin\\",
+            "environment": [{
+                "name": "VK_ICD_FILENAMES",
+                "value": "${command:cmake.launchTargetDirectory}\\manifest.json",
+            }],
+            "externalConsole": true
+        },
     ]
 }

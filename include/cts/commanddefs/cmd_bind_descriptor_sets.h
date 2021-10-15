@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +19,18 @@ typedef struct CtsCmdBindDescriptorSets {
     uint32_t dynamicOffsetCount;
     const uint32_t* pDynamicOffsets;
 } CtsCmdBindDescriptorSets;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdBindDescriptorSets, 
+    commandBuffer, 
+    pipelineBindPoint, 
+    pipelineLayout,
+    firstSet,
+    descriptorSetCount,
+    pDescriptorSets,
+    dynamicOffsetCount,
+    pDynamicOffsets
+);
 
 #ifdef __cplusplus
 }

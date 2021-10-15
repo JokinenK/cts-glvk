@@ -13,6 +13,11 @@ typedef struct CtsCmdEndRenderPass {
     VkCommandBuffer commandBuffer;
 } CtsCmdEndRenderPass;
 
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdEndRenderPass, 
+    commandBuffer
+);
+
 #ifdef __cplusplus
 }
 #endif

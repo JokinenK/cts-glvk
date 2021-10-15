@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +15,14 @@ typedef struct CtsCmdSetScissor {
     uint32_t scissorCount;
     const VkRect2D* pScissors;
 } CtsCmdSetScissor;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdSetScissor, 
+    commandBuffer,
+    firstScissor,
+    scissorCount,
+    pScissors
+);
 
 #ifdef __cplusplus
 }

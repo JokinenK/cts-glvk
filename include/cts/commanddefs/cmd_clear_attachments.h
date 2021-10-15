@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,15 @@ typedef struct CtsCmdClearAttachments {
     uint32_t rectCount;
     const VkClearRect* pRects;
 } CtsCmdClearAttachments;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdClearAttachments, 
+    commandBuffer, 
+    attachmentCount, 
+    pAttachments,
+    rectCount,
+    pRects
+);
 
 #ifdef __cplusplus
 }

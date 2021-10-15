@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,15 @@ typedef struct CtsCmdFillBuffer {
     VkDeviceSize size;
     uint32_t data;
 } CtsCmdFillBuffer;
+
+CTS_DEFINE_TRAMPOLINE_VOID(
+    CmdFillBuffer, 
+    commandBuffer,
+    dstBuffer,
+    dstOffset,
+    size,
+    data
+);
 
 #ifdef __cplusplus
 }

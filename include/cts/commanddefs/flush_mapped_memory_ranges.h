@@ -16,6 +16,13 @@ typedef struct CtsFlushMappedMemoryRanges {
     VkResult* pResult;
 } CtsFlushMappedMemoryRanges;
 
+CTS_DEFINE_TRAMPOLINE(
+    FlushMappedMemoryRanges,
+    device,
+    memoryRangeCount,
+    pMemoryRanges
+);
+
 #ifdef __cplusplus
 }
 #endif

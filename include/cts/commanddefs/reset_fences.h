@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/fence_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +15,13 @@ typedef struct CtsResetFences {
     const VkFence* pFences;
     VkResult* pResult;
 } CtsResetFences;
+
+CTS_DEFINE_TRAMPOLINE(
+    ResetFences,
+    device,
+    fenceCount,
+    pFences
+);
 
 #ifdef __cplusplus
 }
