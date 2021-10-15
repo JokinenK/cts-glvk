@@ -42,7 +42,7 @@ static const VkPhysicalDeviceMemoryProperties gPhysicalMemoryProperties = {
             .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             .heapIndex = HEAP_INDEX_BUFFERS_DEVICE
         }, {
-            .propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+            .propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             .heapIndex = HEAP_INDEX_IMAGES_HOST
         }, {
             .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
