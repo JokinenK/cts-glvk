@@ -2,7 +2,7 @@
 #include <string.h>
 #include "cts/swapchain.h"
 #include "cts/semaphore.h"
-#include "cts/fullscreen_texture.h"
+#include "cts/gl_helper.h"
 #include "cts/commands.h"
 #include "cts/private.h"
 #include "cts/device_private.h"
@@ -264,10 +264,11 @@ VkResult VKAPI_CALL ctsQueuePresentKHRImpl(
             return result;
         }
 
+        struct CtsGlContext* context = ctsSurfaceGetGlContext(physicalDevice->surface);
         struct CtsImage* image = CtsImageFromHandle(entry->image);
         
-        ctsDrawFSTexture(&physicalDevice->surface->helper, device, image);
-        ctsSurfaceSwapBuffers(physicalDevice->surface);
+        ctsGlHelperDrawFSTexture(&context->helper, device, image);
+        ctsGlContextSwapBuffers(context);
         
         ctsSignalSemaphores(1, &entry->semaphore);
     }

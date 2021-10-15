@@ -8,7 +8,7 @@
 #include "cts/commands.h"
 #include "cts/command_dispatcher.h"
 #include "cts/type_mapper.h"
-#include "cts/fullscreen_texture.h"
+#include "cts/gl_helper.h"
 #include "cts/gl_enums.h"
 #include "cts/gl_pipeline.h"
 #include "cts/gl_shader.h"
@@ -1508,6 +1508,7 @@ void ctsCmdBlitImageImpl(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
     struct CtsSurface* surface = commandBuffer->device->physicalDevice->surface;
+    struct CtsGlContext* context = ctsSurfaceGetGlContext(surface);
 
     (void) srcImageLayout;
     (void) dstImageLayout;
@@ -1515,8 +1516,8 @@ void ctsCmdBlitImageImpl(
     struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
     struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
 
-    ctsBlitTexture(
-        &surface->helper,
+    ctsGlHelperBlitTexture(
+        &context->helper,
         commandBuffer->device,
         srcImage,
         dstImage,
@@ -1987,7 +1988,7 @@ void ctsCmdResolveImageImpl(
     const VkImageResolve* pRegions
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
-    struct CtsSurface* surface = commandBuffer->device->physicalDevice->surface;
+    struct CtsGlContext* context = ctsSurfaceGetGlContext(commandBuffer->device->physicalDevice->surface);
     struct CtsImage* srcImage = CtsImageFromHandle(srcImageHandle);
     struct CtsImage* dstImage = CtsImageFromHandle(dstImageHandle);
 
@@ -2011,8 +2012,8 @@ void ctsCmdResolveImageImpl(
             .z = pRegion->dstOffset.z + pRegion->extent.depth
         };
 
-        ctsBlitTexture(
-            &surface->helper,
+        ctsGlHelperBlitTexture(
+            &context->helper,
             commandBuffer->device,
             srcImage,
             dstImage,
@@ -2546,7 +2547,7 @@ static void bindDepthStencilState(
 static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* renderPass, uint32_t subpassNumber) {
     const CtsGlSubpassDescription* subpassDescription = &renderPass->pSubpasses[subpassNumber];
     struct CtsFramebuffer* framebuffer = device->activeWriteFramebuffer;
-    struct CtsSurface* surface = device->physicalDevice->surface;
+    struct CtsGlContext* context = ctsSurfaceGetGlContext(device->physicalDevice->surface);
 
     VkImageBlit imageBlit;
     imageBlit.srcSubresource = (VkImageSubresourceLayers) {
@@ -2576,7 +2577,7 @@ static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* re
             imageBlit.dstOffsets[0] = (VkOffset3D){0, 0, 1};
             imageBlit.dstOffsets[1] = (VkOffset3D){dstImage->width, dstImage->height, 1};
 
-            ctsBlitTexture(&surface->helper, device, srcImage, dstImage, 1, &imageBlit, VK_FILTER_LINEAR);
+            ctsGlHelperBlitTexture(&context->helper, device, srcImage, dstImage, 1, &imageBlit, VK_FILTER_LINEAR);
         }
     }
 }

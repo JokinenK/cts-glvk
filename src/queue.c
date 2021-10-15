@@ -109,12 +109,11 @@ void ctsQueueDispatch(
 static void workerEntry(void* pArgs) {
     struct CtsQueue* queue = (struct CtsQueue*) pArgs;
     struct CtsPhysicalDevice* physicalDevice = queue->physicalDevice;
+    struct CtsGlContext* context = &physicalDevice->offscreenContext;    
 
     CtsQueueItem queueItem;
     const CtsCmdBase* cmd;
     const CtsCommandMetadata* commandMetadata;
-
-    
 
     while (physicalDevice->isRunning) {
         ctsLockPlatformMutex(&queue->mutex);
@@ -128,7 +127,7 @@ static void workerEntry(void* pArgs) {
         }
 
         ctsUnlockPlatformMutex(&queue->mutex);
-        ctsSurfaceMakeCurrent(physicalDevice->surface);
+        ctsGlContextMakeCurrent(ctsSurfaceGetGlContext(physicalDevice->surface));
 
         if (!physicalDevice->isRunning) {
             break;

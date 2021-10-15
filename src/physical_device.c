@@ -51,12 +51,10 @@ void ctsPhysicalDeviceInit(struct CtsPhysicalDevice* physicalDevice, struct CtsI
     physicalDevice->instance = instance;
     physicalDevice->isRunning = true;
 
-    struct CtsSurface offscreenSurface;
-    ctsInitOffscreenSurface(&offscreenSurface);
-    ctsSurfaceMakeCurrent(&offscreenSurface);
+    ctsInitGlContextOffscreen(&physicalDevice->offscreenContext);
+    ctsGlContextMakeCurrent(&physicalDevice->offscreenContext);
     ctsPhysicalDeviceParseFeatures(physicalDevice);
-    ctsSurfaceClearCurrent(&offscreenSurface);
-    ctsDestroyOffscreenSurface(&offscreenSurface);
+    ctsGlContextClearCurrent(&physicalDevice->offscreenContext);
 
     ctsCreateQueue(&queueCreateInfo, pAllocator, &physicalDevice->queue);
 }
@@ -68,6 +66,7 @@ void ctsPhysicalDeviceDestroy(struct CtsPhysicalDevice* physicalDevice, const Vk
     ctsDestroyPlatformConditionVariable(&physicalDevice->conditionVariable);
     ctsDestroyPlatformMutex(&physicalDevice->mutex);
     ctsDestroyQueue(physicalDevice->queue, pAllocator);
+    ctsDestroyGlContext(&physicalDevice->offscreenContext);
 }
 
 void ctsPhysicalDeviceSetSurface(struct CtsPhysicalDevice* physicalDevice, struct CtsSurface* surface) {

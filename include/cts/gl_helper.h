@@ -8,18 +8,18 @@
 extern "C" {
 #endif
 
-struct CtsSurfaceHelper {
+struct CtsGlHelper {
     GLenum shaders[2];
     GLuint shaderProgram;
     GLuint readFramebuffer;
     GLuint writeFramebuffer;
 };
 
-VkResult ctsInitSurfaceHelper(struct CtsSurfaceHelper* surfaceHelper);
-void ctsDestroySurfaceHelper(struct CtsSurfaceHelper* surfaceHelper);
+VkResult ctsInitGlHelper(struct CtsGlHelper* surfaceHelper);
+void ctsDestroyGlHelper(struct CtsGlHelper* surfaceHelper);
 
-void ctsBlitTexture(
-    struct CtsSurfaceHelper* surfaceHelper,
+void ctsGlHelperBlitTexture(
+    struct CtsGlHelper* surfaceHelper,
     struct CtsDevice* device,
     struct CtsImage* src,
     struct CtsImage* dst,
@@ -28,8 +28,8 @@ void ctsBlitTexture(
     VkFilter filter
 );
 
-void ctsDrawFSTexture(
-    struct CtsSurfaceHelper* surfaceHelper,
+void ctsGlHelperDrawFSTexture(
+    struct CtsGlHelper* surfaceHelper,
     struct CtsDevice* device,
     struct CtsImage* image
 );

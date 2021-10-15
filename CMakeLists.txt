@@ -32,7 +32,7 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/device.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/fence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/framebuffer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/fullscreen_texture.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gl_helper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/image_view.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/instance.c
@@ -57,7 +57,6 @@ list(APPEND SOURCES
 
 list(APPEND INCLUDE_PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/contrib/glad/include
     ${CMAKE_SOURCE_DIR}/contrib/vulkan-headers/include
 )
@@ -70,6 +69,7 @@ list(APPEND LIBRARIES
 if(WIN32)
     list(APPEND SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/device_info.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/gl_context.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/surface.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_time.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win32/platform_condition_variable.c
@@ -81,7 +81,6 @@ if(WIN32)
 
     list(APPEND INCLUDE_PATHS
         ${CMAKE_CURRENT_SOURCE_DIR}/include/win32
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/private/win32
     )
 
     list(APPEND LIBRARIES

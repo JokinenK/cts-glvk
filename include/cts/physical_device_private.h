@@ -6,6 +6,7 @@
 #include "cts/platform/platform_condition_variable.h"
 #include "cts/object_base.h"
 #include "cts/surface_private.h"
+#include "cts/gl_context.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +82,8 @@ struct CtsPhysicalDevice {
 
     bool isRunning;
     struct CtsQueue* queue;
+
+    struct CtsGlContext offscreenContext;
 };
 
 void ctsPhysicalDeviceInit(struct CtsPhysicalDevice* physicalDevice, struct CtsInstance* instance, const VkAllocationCallbacks* pAllocator);
