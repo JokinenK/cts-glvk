@@ -1,9 +1,9 @@
 #include <stdbool.h>
 #include <stddef.h>
-#include <cts/descriptor_pool.h>
-#include <private/private.h>
-#include <private/descriptor_pool_private.h>
-#include <private/descriptor_set_private.h>
+#include "cts/descriptor_pool.h"
+#include "cts/private.h"
+#include "cts/descriptor_pool_private.h"
+#include "cts/descriptor_set_private.h"
 
 #ifdef __cplusplus
 extern "C" {

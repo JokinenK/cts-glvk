@@ -1,18 +1,18 @@
 #include <stdint.h>
 #include <string.h>
-#include <cts/swapchain.h>
-#include <cts/semaphore.h>
-#include <cts/fullscreen_texture.h>
-#include <cts/commands.h>
-#include <private/private.h>
-#include <private/device_private.h>
-#include <private/fence_private.h>
-#include <private/image_private.h>
-#include <private/physical_device_private.h>
-#include <private/swapchain_private.h>
-#include <private/semaphore_private.h>
-#include <private/surface_private.h>
-#include <private/queue_private.h>
+#include "cts/swapchain.h"
+#include "cts/semaphore.h"
+#include "cts/fullscreen_texture.h"
+#include "cts/commands.h"
+#include "cts/private.h"
+#include "cts/device_private.h"
+#include "cts/fence_private.h"
+#include "cts/image_private.h"
+#include "cts/physical_device_private.h"
+#include "cts/swapchain_private.h"
+#include "cts/semaphore_private.h"
+#include "cts/surface_private.h"
+#include "cts/queue_private.h"
 
 #ifdef __cplusplus
 extern "C" {

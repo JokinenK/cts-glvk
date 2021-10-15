@@ -4,8 +4,8 @@
 #include "vulkan/vulkan_core.h"
 #include "cts/platform/platform_mutex.h"
 #include "cts/platform/platform_condition_variable.h"
-#include "private/object_base.h"
-#include "private/surface_private.h"
+#include "cts/object_base.h"
+#include "cts/surface_private.h"
 
 #ifdef __cplusplus
 extern "C" {

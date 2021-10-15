@@ -1,7 +1,7 @@
 #include <stddef.h>
-#include <cts/query_pool.h>
-#include <private/private.h>
-#include <private/query_pool_private.h>
+#include "cts/query_pool.h"
+#include "cts/private.h"
+#include "cts/query_pool_private.h"
 
 #ifdef __cplusplus
 extern "C" {

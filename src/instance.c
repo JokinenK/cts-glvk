@@ -2,10 +2,10 @@
 #include <Windows.h>
 #include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_win32.h"
-#include <cts/instance.h>
-#include <private/private.h>
-#include <private/instance_private.h>
-#include <private/physical_device_private.h>
+#include "cts/instance.h"
+#include "cts/private.h"
+#include "cts/instance_private.h"
+#include "cts/physical_device_private.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,11 +1,11 @@
 #include <stddef.h>
-#include <cts/sampler.h>
-#include <cts/type_mapper.h>
-#include <cts/commands.h>
-#include <private/private.h>
-#include <private/device_private.h>
-#include <private/sampler_private.h>
-#include <private/queue_private.h>
+#include "cts/sampler.h"
+#include "cts/type_mapper.h"
+#include "cts/commands.h"
+#include "cts/private.h"
+#include "cts/device_private.h"
+#include "cts/sampler_private.h"
+#include "cts/queue_private.h"
 
 #ifdef __cplusplus
 extern "C" {

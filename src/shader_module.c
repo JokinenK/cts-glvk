@@ -1,10 +1,10 @@
 #include <stddef.h>
 #include <string.h>
-#include <cts/shader_module.h>
-#include <cts/allocator.h>
-#include <cts/util/align.h>
-#include <private/private.h>
-#include <private/shader_module_private.h>
+#include "cts/shader_module.h"
+#include "cts/allocator.h"
+#include "cts/util/align.h"
+#include "cts/private.h"
+#include "cts/shader_module_private.h"
 
 #ifdef __cplusplus
 extern "C" {

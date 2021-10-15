@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "glad/glad.h"
 #include "cts/fence.h"
-#include "private/object_base.h"
+#include "cts/object_base.h"
 
 #ifdef __cplusplus
 extern "C" {

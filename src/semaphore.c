@@ -1,8 +1,8 @@
 #include "cts/util/align.h"
 #include "cts/allocator.h"
-#include <cts/semaphore.h>
-#include <private/private.h>
-#include <private/semaphore_private.h>
+#include "cts/semaphore.h"
+#include "cts/private.h"
+#include "cts/semaphore_private.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "cts/surface.h"
 #include "cts/fullscreen_texture.h"
-#include "private/object_base.h"
+#include "cts/object_base.h"
 
 #ifdef __cplusplus
 extern "C" {

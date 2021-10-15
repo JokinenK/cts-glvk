@@ -7,7 +7,7 @@
 #include "cts/platform/platform_thread.h"
 #include "cts/platform/platform_mutex.h"
 #include "cts/platform/platform_condition_variable.h"
-#include "private/object_base.h"
+#include "cts/object_base.h"
 
 #ifdef __cplusplus
 extern "C" {

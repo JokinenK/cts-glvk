@@ -1,15 +1,15 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <cts/framebuffer.h>
-#include <cts/commands.h>
-#include <private/private.h>
-#include <private/device_private.h>
-#include <private/framebuffer_private.h>
-#include <private/image_view_private.h>
-#include <private/image_private.h>
-#include <private/queue_private.h>
-#include <private/render_pass_private.h>
+#include "cts/framebuffer.h"
+#include "cts/commands.h"
+#include "cts/private.h"
+#include "cts/device_private.h"
+#include "cts/framebuffer_private.h"
+#include "cts/image_view_private.h"
+#include "cts/image_private.h"
+#include "cts/queue_private.h"
+#include "cts/render_pass_private.h"
 
 #ifdef __cplusplus
 extern "C" {

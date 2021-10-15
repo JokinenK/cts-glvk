@@ -2,7 +2,7 @@
 
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
-#include "private/command_buffer_private.h"
+#include "cts/command_buffer_private.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -8,8 +8,6 @@
             "includePath": [
                 "include",
                 "include/win32",
-                "src",
-                "src/private/win32",
                 "contrib/glad/include",
                 "contrib/vulkan-headers/include",
                 "contrib/spirv-cross",
@@ -36,8 +34,6 @@
                 "path": [
                     "include",
                     "include/win32",
-                    "src",
-                    "src/private/win32/",
                     "contrib/glad/include",
                     "contrib/vulkan-headers/include",
                     "contrib/spirv-cross",

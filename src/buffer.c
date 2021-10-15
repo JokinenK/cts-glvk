@@ -4,10 +4,10 @@
 #include "cts/allocator.h"
 #include "cts/buffer.h"
 #include "cts/util/align.h"
-#include <cts/type_mapper.h>
-#include <private/private.h>
-#include <private/buffer_private.h>
-#include <private/device_memory_private.h>
+#include "cts/type_mapper.h"
+#include "cts/private.h"
+#include "cts/buffer_private.h"
+#include "cts/device_memory_private.h"
 
 #ifdef __cplusplus
 extern "C" {

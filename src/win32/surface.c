@@ -4,13 +4,13 @@
 #include <Windows.h>
 #include <WinUser.h>
 #include "glad/glad.h"
-#include <cts/surface.h>
-#include <cts/device_info.h>
-#include <cts/commands.h>
-#include <private/private.h>
-#include <private/surface_private.h>
-#include <private/instance_private.h>
-#include <private/queue_private.h>
+#include "cts/surface.h"
+#include "cts/device_info.h"
+#include "cts/commands.h"
+#include "cts/private.h"
+#include "cts/surface_private.h"
+#include "cts/instance_private.h"
+#include "cts/queue_private.h"
 
 #ifdef __cplusplus
 extern "C" {

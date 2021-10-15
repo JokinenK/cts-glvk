@@ -4,7 +4,7 @@
 #include "cts/allocator.h"
 #include "cts/util/linear_allocator.h"
 #include "cts/util/pool_allocator.h"
-#include "private/object_base.h"
+#include "cts/object_base.h"
 
 #ifdef __cplusplus
 extern "C" {

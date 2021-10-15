@@ -2,13 +2,13 @@
 #include <string.h>
 #include "cts/util/align.h"
 #include "cts/allocator.h"
-#include <cts/command_dispatcher.h>
-#include <private/private.h>
-#include <private/device_private.h>
-#include <private/instance_private.h>
-#include <private/physical_device_private.h>
-#include <private/queue_private.h>
-#include <private/surface_private.h>
+#include "cts/command_dispatcher.h"
+#include "cts/private.h"
+#include "cts/device_private.h"
+#include "cts/instance_private.h"
+#include "cts/physical_device_private.h"
+#include "cts/queue_private.h"
+#include "cts/surface_private.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,7 +5,7 @@
 #include "vulkan/vulkan_core.h"
 #include "cts/icd.h"
 #include "cts/renderer.h"
-#include "private/surface_private.h"
+#include "cts/surface_private.h"
 
 #define GETPROCADDR(func) if(!strcmp(pName, "vk" #func)) return (PFN_vkVoidFunction)&cts##func
 

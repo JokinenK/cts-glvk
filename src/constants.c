@@ -4,8 +4,8 @@
 #include <string.h>
 #include "glad/glad.h"
 #include "vulkan/vulkan_core.h"
-#include <cts/constants.h>
-#include <private/constants_private.h>
+#include "cts/constants.h"
+#include "cts/constants_private.h"
 
 #ifdef __cplusplus
 extern "C" {

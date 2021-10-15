@@ -1,15 +1,15 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <cts/macros.h>
-#include <cts/fullscreen_texture.h>
-#include <cts/type_mapper.h>
-#include <cts/gl_shader.h>
-#include <cts/gl_pipeline.h>
-#include <private/private.h>
-#include <private/device_private.h>
-#include <private/framebuffer_private.h>
-#include <private/image_private.h>
-#include <private/pipeline_private.h>
+#include "cts/macros.h"
+#include "cts/fullscreen_texture.h"
+#include "cts/type_mapper.h"
+#include "cts/gl_shader.h"
+#include "cts/gl_pipeline.h"
+#include "cts/private.h"
+#include "cts/device_private.h"
+#include "cts/framebuffer_private.h"
+#include "cts/image_private.h"
+#include "cts/pipeline_private.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,14 +1,14 @@
 #include <assert.h>
 #include <stddef.h>
-#include <cts/descriptor_set.h>
-#include <cts/commands.h>
-#include <cts/type_mapper.h>
-#include <private/private.h>
-#include <private/device_private.h>
-#include <private/descriptor_pool_private.h>
-#include <private/descriptor_set_layout_private.h>
-#include <private/descriptor_set_private.h>
-#include <private/queue_private.h>
+#include "cts/descriptor_set.h"
+#include "cts/commands.h"
+#include "cts/type_mapper.h"
+#include "cts/private.h"
+#include "cts/device_private.h"
+#include "cts/descriptor_pool_private.h"
+#include "cts/descriptor_set_layout_private.h"
+#include "cts/descriptor_set_private.h"
+#include "cts/queue_private.h"
 
 #ifdef __cplusplus
 extern "C" {

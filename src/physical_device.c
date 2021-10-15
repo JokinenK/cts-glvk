@@ -3,18 +3,18 @@
 #include <string.h>
 #include <float.h>
 #include "glad/glad.h"
-#include <cts/macros.h>
-#include <cts/constants.h>
-#include <cts/instance.h>
-#include <cts/type_mapper.h>
-#include <cts/platform/platform_mutex.h>
-#include <cts/platform/platform_condition_variable.h>
-#include <private/private.h>
-#include <private/instance_private.h>
-#include <private/physical_device_private.h>
-#include <private/swapchain_private.h>
-#include <private/surface_private.h>
-#include <private/queue_private.h>
+#include "cts/macros.h"
+#include "cts/constants.h"
+#include "cts/instance.h"
+#include "cts/type_mapper.h"
+#include "cts/platform/platform_mutex.h"
+#include "cts/platform/platform_condition_variable.h"
+#include "cts/private.h"
+#include "cts/instance_private.h"
+#include "cts/physical_device_private.h"
+#include "cts/swapchain_private.h"
+#include "cts/surface_private.h"
+#include "cts/queue_private.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include "vulkan/vk_icd.h"
-#include <cts/device.h>
-#include <private/private.h>
-#include <private/instance_private.h>
-#include <private/device_private.h>
-#include <private/queue_private.h>
-#include <private/physical_device_private.h>
+#include "cts/device.h"
+#include "cts/private.h"
+#include "cts/instance_private.h"
+#include "cts/device_private.h"
+#include "cts/queue_private.h"
+#include "cts/physical_device_private.h"
 
 #ifdef __cplusplus
 extern "C" {
