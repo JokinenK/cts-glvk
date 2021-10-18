@@ -262,11 +262,6 @@ VkResult VKAPI_CALL ctsQueuePresentKHRImpl(
         struct CtsSwapchainEntry* entry = &swapchain->pEntries[imageIndex];
 
         VkResult result = validateSwapchainSurface(swapchain);
-        
-        if (result != VK_SUCCESS) {
-            ctsSignalSemaphores(1, &entry->semaphore);
-            return result;
-        }
 
         struct CtsGlContext* context = &physicalDevice->context;
         struct CtsImage* image = CtsImageFromHandle(entry->image);
