@@ -33,9 +33,10 @@ static const GLenum sStencilOps[] = {
     GL_DECR_WRAP  // VK_STENCIL_OP_DECREMENT_AND_WRAP = 7,
 };
 
+// These values are swapped intentionally, OpenGL renders upside down compared to Vulkan
 static const GLenum sFrontFaces[] = {
-    GL_CCW,  // VK_FRONT_FACE_COUNTER_CLOCKWISE = 0,
-    GL_CW,   // VK_FRONT_FACE_CLOCKWISE = 1,
+    GL_CW,  // VK_FRONT_FACE_COUNTER_CLOCKWISE = 0,
+    GL_CCW, // VK_FRONT_FACE_CLOCKWISE = 1,
 };
 
 static const GLenum sPrimitiveTopologies[] = {
