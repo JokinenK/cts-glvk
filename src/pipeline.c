@@ -82,6 +82,7 @@ static void destroyTessellationState(
 
 static void createViewportState(
     const VkPipelineViewportStateCreateInfo* pCreateInfo,
+    VkFlags dynamicState,
     const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineViewportState* pViewportState
 );
@@ -276,21 +277,23 @@ static CtsGlGraphicsPipeline* createGraphicsPipeline(
         VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     ); 
     
-    createShader(pCreateInfo->stageCount, pCreateInfo->pStages, pAllocator, &graphicsPipeline->shader);
-    createVertexInputState(pCreateInfo->pVertexInputState, pAllocator, &graphicsPipeline->vertexInputState);
-    createInputAssemblyState(pCreateInfo->pInputAssemblyState, pAllocator, &graphicsPipeline->inputAssemblyState);
-    createTessellationState(pCreateInfo->pTessellationState, pAllocator, &graphicsPipeline->tessellationState);
-    createViewportState(pCreateInfo->pViewportState, pAllocator, &graphicsPipeline->viewportState);
-    createRasterizationState(pCreateInfo->pRasterizationState, pAllocator, &graphicsPipeline->rasterizationState);
-    createMultisampleState(pCreateInfo->pMultisampleState, pAllocator, &graphicsPipeline->multisampleState);
-    createDepthStencilState(pCreateInfo->pDepthStencilState, pAllocator, &graphicsPipeline->depthStencilState);
-    createColorBlendState(pCreateInfo->pColorBlendState, pAllocator, &graphicsPipeline->colorBlendState);
     graphicsPipeline->dynamicState       = parseDynamicStateFlagBits(pCreateInfo->pDynamicState);
     graphicsPipeline->layout             = pCreateInfo->layout;
     graphicsPipeline->renderPass         = pCreateInfo->renderPass;
     graphicsPipeline->subpass            = pCreateInfo->subpass;
     graphicsPipeline->basePipelineHandle = pCreateInfo->basePipelineHandle;
     graphicsPipeline->basePipelineIndex  = pCreateInfo->basePipelineIndex;
+    
+    createShader(pCreateInfo->stageCount, pCreateInfo->pStages, pAllocator, &graphicsPipeline->shader);
+    createVertexInputState(pCreateInfo->pVertexInputState, pAllocator, &graphicsPipeline->vertexInputState);
+    createInputAssemblyState(pCreateInfo->pInputAssemblyState, pAllocator, &graphicsPipeline->inputAssemblyState);
+    createTessellationState(pCreateInfo->pTessellationState, pAllocator, &graphicsPipeline->tessellationState);
+    createViewportState(pCreateInfo->pViewportState, graphicsPipeline->dynamicState, pAllocator, &graphicsPipeline->viewportState);
+    createRasterizationState(pCreateInfo->pRasterizationState, pAllocator, &graphicsPipeline->rasterizationState);
+    createMultisampleState(pCreateInfo->pMultisampleState, pAllocator, &graphicsPipeline->multisampleState);
+    createDepthStencilState(pCreateInfo->pDepthStencilState, pAllocator, &graphicsPipeline->depthStencilState);
+    createColorBlendState(pCreateInfo->pColorBlendState, pAllocator, &graphicsPipeline->colorBlendState);
+    
 
     return graphicsPipeline;
 }
@@ -506,6 +509,7 @@ static void destroyTessellationState(
 
 static void createViewportState(
     const VkPipelineViewportStateCreateInfo* pCreateInfo,
+    VkFlags dynamicState,
     const VkAllocationCallbacks* pAllocator,
     CtsGlPipelineViewportState* pViewportState
 ) {
@@ -522,14 +526,16 @@ static void createViewportState(
         alignof(VkViewport),
         VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
-
-    for (uint32_t i = 0; i < pCreateInfo->viewportCount; ++i) {
-        pViewportState->pViewports[i].x        = pCreateInfo->pViewports[i].x;
-        pViewportState->pViewports[i].y        = pCreateInfo->pViewports[i].y;
-        pViewportState->pViewports[i].width    = pCreateInfo->pViewports[i].width;
-        pViewportState->pViewports[i].height   = pCreateInfo->pViewports[i].height;
-        pViewportState->pViewports[i].minDepth = pCreateInfo->pViewports[i].minDepth;
-        pViewportState->pViewports[i].maxDepth = pCreateInfo->pViewports[i].maxDepth;
+    
+    if ((dynamicState & CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT) == 0) {
+        for (uint32_t i = 0; i < pCreateInfo->viewportCount; ++i) {
+            pViewportState->pViewports[i].x        = pCreateInfo->pViewports[i].x;
+            pViewportState->pViewports[i].y        = pCreateInfo->pViewports[i].y;
+            pViewportState->pViewports[i].width    = pCreateInfo->pViewports[i].width;
+            pViewportState->pViewports[i].height   = pCreateInfo->pViewports[i].height;
+            pViewportState->pViewports[i].minDepth = pCreateInfo->pViewports[i].minDepth;
+            pViewportState->pViewports[i].maxDepth = pCreateInfo->pViewports[i].maxDepth;
+        }
     }
 
     pViewportState->scissorCount = pCreateInfo->scissorCount;
@@ -540,11 +546,13 @@ static void createViewportState(
         VK_SYSTEM_ALLOCATION_SCOPE_OBJECT
     );
 
-    for (uint32_t i = 0; i < pCreateInfo->scissorCount; ++i) {
-        pViewportState->pScissors[i].extent.width  = pCreateInfo->pScissors[i].extent.width;
-        pViewportState->pScissors[i].extent.height = pCreateInfo->pScissors[i].extent.height;
-        pViewportState->pScissors[i].offset.x      = pCreateInfo->pScissors[i].offset.x;
-        pViewportState->pScissors[i].offset.y      = pCreateInfo->pScissors[i].offset.y;
+    if ((dynamicState & CTS_GL_DYNAMIC_STATE_SCISSOR_BIT) == 0) {
+        for (uint32_t i = 0; i < pCreateInfo->scissorCount; ++i) {
+            pViewportState->pScissors[i].extent.width  = pCreateInfo->pScissors[i].extent.width;
+            pViewportState->pScissors[i].extent.height = pCreateInfo->pScissors[i].extent.height;
+            pViewportState->pScissors[i].offset.x      = pCreateInfo->pScissors[i].offset.x;
+            pViewportState->pScissors[i].offset.y      = pCreateInfo->pScissors[i].offset.y;
+        }
     }
 }
 
@@ -640,7 +648,7 @@ static void createDepthStencilState(
     pDepthStencilState->frontFailOp           = parseStencilOp(pCreateInfo->front.failOp);
     pDepthStencilState->frontPassOp           = parseStencilOp(pCreateInfo->front.passOp);
     pDepthStencilState->frontDepthFailOp      = parseStencilOp(pCreateInfo->front.depthFailOp);
-    pDepthStencilState->frontCompareOp        = parseStencilOp(pCreateInfo->front.compareOp);
+    pDepthStencilState->frontCompareOp        = parseCompareOp(pCreateInfo->front.compareOp);
     pDepthStencilState->frontCompareMask      = pCreateInfo->front.compareMask;
     pDepthStencilState->frontWriteMask        = pCreateInfo->front.writeMask;
     pDepthStencilState->frontReference        = pCreateInfo->front.reference;
@@ -648,7 +656,7 @@ static void createDepthStencilState(
     pDepthStencilState->backFailOp            = parseStencilOp(pCreateInfo->back.failOp);
     pDepthStencilState->backPassOp            = parseStencilOp(pCreateInfo->back.passOp);
     pDepthStencilState->backDepthFailOp       = parseStencilOp(pCreateInfo->back.depthFailOp);
-    pDepthStencilState->backCompareOp         = parseStencilOp(pCreateInfo->back.compareOp);
+    pDepthStencilState->backCompareOp         = parseCompareOp(pCreateInfo->back.compareOp);
     pDepthStencilState->backCompareMask       = pCreateInfo->back.compareMask;
     pDepthStencilState->backWriteMask         = pCreateInfo->back.writeMask;
     pDepthStencilState->backReference         = pCreateInfo->back.reference;
