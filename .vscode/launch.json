@@ -13,7 +13,7 @@
             "stopAtEntry": false,
             "cwd": "${command:cmake.launchTargetDirectory}",
             "environment": [],
-            "externalConsole": true
+            "console": "externalTerminal"
         },
         {
             "name": "(gdb) Launch (CTS ICR)",
@@ -27,7 +27,7 @@
                 "name": "VK_ICD_FILENAMES",
                 "value": "${command:cmake.launchTargetDirectory}\\manifest.json",
             }],
-            "externalConsole": true
+            "console": "externalTerminal"
         },
         {
             "name": "(gdb) vkcube.exe",
@@ -41,7 +41,7 @@
                 "name": "VK_ICD_FILENAMES",
                 "value": "${command:cmake.launchTargetDirectory}\\manifest.json",
             }],
-            "externalConsole": true
+            "console": "externalTerminal"
         },
     ]
 }
