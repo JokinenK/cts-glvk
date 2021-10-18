@@ -2182,11 +2182,7 @@ void ctsCmdSetViewportImpl(
     if (hasFlag(device->dynamicStateFlags, CTS_GL_DYNAMIC_STATE_VIEWPORT_BIT)) {
         for (uint32_t i = firstViewport; i < viewportCount; ++i) {
             const VkViewport* viewport = &pViewports[i];
-
-            float y = viewport->y + viewport->height;
-            float height = -viewport->height;
-
-            glViewportIndexedf(i, viewport->x, y, viewport->width, height);
+            glViewportIndexedf(i, viewport->x, viewport->y, viewport->width, viewport->height);
             glDepthRangeIndexed(i, viewport->minDepth, viewport->maxDepth);
         }
     }
