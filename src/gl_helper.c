@@ -29,7 +29,7 @@ static const char gVsShaderSource[] =
     "    float y = 1.0f - float(((uint(gl_VertexID) + 1u) / 3u) % 2u);\n"
     "\n"
     "    gl_Position = vec4(-1.0f + x * 2.0f, -1.0f + y * 2.0f, 0.0f, 1.0f);\n"
-    "    uv = vec2(x, y);\n"
+    "    uv = vec2(x, -y);\n"
     "}\n";
 
 static const char gFsShaderSource[] = 
@@ -179,7 +179,7 @@ void ctsGlHelperBlitTexture(
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevWriteFramebuffer);
 }
 
-void ctsGlHelperDrawFSTexture(
+void ctsGlDrawFinalImage(
     struct CtsDevice* device,
     struct CtsImage* image
 ) {

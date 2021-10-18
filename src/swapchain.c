@@ -274,7 +274,7 @@ VkResult VKAPI_CALL ctsQueuePresentKHRImpl(
         wglMakeCurrent(context->device, NULL);
         wglMakeCurrent(surface->device, context->context);
 
-        ctsGlHelperDrawFSTexture(device, image);
+        ctsGlDrawFinalImage(device, image);
         SwapBuffers(surface->device);
 
         wglMakeCurrent(surface->device, NULL);

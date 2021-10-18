@@ -21,7 +21,7 @@ void ctsGlHelperBlitTexture(
     VkFilter filter
 );
 
-void ctsGlHelperDrawFSTexture(
+void ctsGlDrawFinalImage(
     struct CtsDevice* device,
     struct CtsImage* image
 );
