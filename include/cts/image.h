@@ -21,6 +21,13 @@ void VKAPI_CALL ctsDestroyImage(
     const VkAllocationCallbacks* pAllocator
 );
 
+void VKAPI_CALL ctsGetImageSubresourceLayout(
+    VkDevice device,
+    VkImage image,
+    const VkImageSubresource* pSubresource,
+    VkSubresourceLayout* pLayout
+);
+
 #ifdef __cplusplus
 }
 #endif

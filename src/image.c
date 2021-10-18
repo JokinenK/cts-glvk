@@ -62,6 +62,35 @@ void VKAPI_CALL ctsDestroyImage(
     ctsQueueDispatch(device->queue, &cmd.base);
 }
 
+void VKAPI_CALL ctsGetImageSubresourceLayout(
+    VkDevice device,
+    VkImage imageHandle,
+    const VkImageSubresource* pSubresource,
+    VkSubresourceLayout* pLayout
+) {
+    struct CtsImage* image = CtsImageFromHandle(imageHandle);
+    uint32_t width = image->width;
+    uint32_t height = image->height;
+    uint32_t numComponents = image->numComponents;
+    uint32_t numLayers = image->arrayLayers;
+    uint32_t arrayPitch = width * height * numComponents;
+    uint32_t offset = arrayPitch * pSubresource->arrayLayer;
+
+    // TODO: Handle layers
+    for (uint32_t i = 1; i < pSubresource->mipLevel; ++i) {
+        width = nextMipValue(width);
+        height = nextMipValue(height);
+        arrayPitch = width * height * numComponents;
+        offset += arrayPitch * pSubresource->arrayLayer;
+    }
+
+    pLayout->offset = offset;
+    pLayout->size = width * height * numComponents;
+    pLayout->rowPitch = width * numComponents;
+    pLayout->arrayPitch = arrayPitch;
+    pLayout->depthPitch = arrayPitch;
+}
+
 VkResult ctsCreateImageImpl(
     VkDevice deviceHandle,
     const VkImageCreateInfo* pCreateInfo,

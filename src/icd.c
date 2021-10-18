@@ -169,6 +169,7 @@ static PFN_vkVoidFunction ctsGetDeviceProcAddr(VkDevice device, const char *pNam
 	
 	GETPROCADDR(CreateImage);
 	GETPROCADDR(DestroyImage);
+	GETPROCADDR(GetImageSubresourceLayout);
 	
 	GETPROCADDR(GetPhysicalDeviceQueueFamilyProperties);
 	GETPROCADDR(EnumerateDeviceExtensionProperties);
