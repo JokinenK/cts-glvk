@@ -202,15 +202,18 @@ VkResult ctsMapMemoryImpl(
     }
 
     GLuint mapFlags = createBufferMapFlags(memory->propertyFlags);
+    GLuint actualSize = (size == VK_WHOLE_SIZE)
+        ? memory->size
+        : size;
 
     if (isBufferMemory(memory)) {
         glBindBuffer(GL_COPY_WRITE_BUFFER, memory->handle);
-        memory->pMappedMemory = glMapBufferRange(GL_COPY_WRITE_BUFFER, offset, size, mapFlags);
+        memory->pMappedMemory = glMapBufferRange(GL_COPY_WRITE_BUFFER, offset, actualSize, mapFlags);
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
     } else if (isMappableImage(memory)) {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, memory->handle);
         readImages(memory);
-        memory->pMappedMemory = glMapBufferRange(GL_PIXEL_PACK_BUFFER, offset, size, mapFlags);
+        memory->pMappedMemory = glMapBufferRange(GL_PIXEL_PACK_BUFFER, offset, actualSize, mapFlags);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     } else {
         /* Unmappable image, do nothing */
