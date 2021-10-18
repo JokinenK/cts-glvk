@@ -113,3 +113,8 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_PATHS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBRARIES})
+
+add_custom_target(
+    ${PROJECT_NAME}_MANIFEST ALL
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/manifest.json $<TARGET_FILE_DIR:${PROJECT_NAME}>/manifest.json
+) 

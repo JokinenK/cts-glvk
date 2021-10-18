@@ -77,6 +77,6 @@ add_custom_target(
 ) 
 
 add_custom_target(
-    MANIFEST ALL
+    ${PROJECT_NAME}_MANIFEST ALL
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/manifest.json $<TARGET_FILE_DIR:${PROJECT_NAME}>/manifest.json
 ) 
