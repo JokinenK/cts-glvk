@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include "vulkan/vulkan_core.h"
 #include "cts/allocator.h"
 #include "cts/semaphore.h"
@@ -636,6 +637,32 @@ void VKAPI_CALL ctsCmdDispatch(
     );
 
     cmd->commandBuffer = commandBufferHandle;
+    cmd->groupCountX = groupCountX;
+    cmd->groupCountY = groupCountY;
+    cmd->groupCountZ = groupCountZ;
+}
+
+void VKAPI_CALL ctsCmdDispatchBase(
+    VkCommandBuffer commandBufferHandle,
+    uint32_t baseGroupX,
+    uint32_t baseGroupY,
+    uint32_t baseGroupZ,
+    uint32_t groupCountX,
+    uint32_t groupCountY,
+    uint32_t groupCountZ
+) {
+    struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
+
+    CtsCmdDispatchBase* cmd = allocateCommand(
+        commandBuffer,
+        CTS_COMMAND_CMD_DISPATCH_BASE,
+        0
+    );
+
+    cmd->commandBuffer = commandBufferHandle;
+    cmd->baseGroupX = baseGroupX;
+    cmd->baseGroupY = baseGroupY;
+    cmd->baseGroupZ = baseGroupZ;
     cmd->groupCountX = groupCountX;
     cmd->groupCountY = groupCountY;
     cmd->groupCountZ = groupCountZ;
@@ -1771,6 +1798,19 @@ void ctsCmdDispatchImpl(
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
     glDispatchCompute(groupCountX, groupCountY, groupCountZ);
+}
+
+void ctsCmdDispatchBaseImpl(
+    VkCommandBuffer commandBuffer,
+    uint32_t baseGroupX,
+    uint32_t baseGroupY,
+    uint32_t baseGroupZ,
+    uint32_t groupCountX,
+    uint32_t groupCountY,
+    uint32_t groupCountZ
+) {
+    fprintf(stderr, "ctsCmdDispatchBaseImpl - not implemented");
+    abort();
 }
 
 void ctsCmdDispatchIndirectImpl(

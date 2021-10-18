@@ -15,6 +15,12 @@ VkResult VKAPI_CALL ctsGetPhysicalDeviceQueueFamilyProperties(
     VkQueueFamilyProperties* pQueueFamilyProperties
 );
 
+void VKAPI_CALL ctsGetPhysicalDeviceQueueFamilyProperties2(
+    VkPhysicalDevice physicalDevice,
+    uint32_t* pQueueFamilyPropertyCount,
+    VkQueueFamilyProperties2* pQueueFamilyProperties
+);
+
 VkResult VKAPI_CALL ctsEnumerateDeviceExtensionProperties(
     VkPhysicalDevice physicalDevice,
     const char* pLayerName,
@@ -33,9 +39,21 @@ void VKAPI_CALL ctsGetPhysicalDeviceSparseImageFormatProperties(
     VkSparseImageFormatProperties* pProperties
 );
 
+void VKAPI_CALL ctsGetPhysicalDeviceSparseImageFormatProperties2(
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+    uint32_t* pPropertyCount,
+    VkSparseImageFormatProperties2* pProperties
+);
+
 void VKAPI_CALL ctsGetPhysicalDeviceProperties(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties* pProperties
+);
+
+void VKAPI_CALL ctsGetPhysicalDeviceProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties
 );
 
 void VKAPI_CALL ctsGetPhysicalDeviceFeatures(
@@ -43,15 +61,31 @@ void VKAPI_CALL ctsGetPhysicalDeviceFeatures(
     VkPhysicalDeviceFeatures* pFeatures
 );
 
+void VKAPI_CALL ctsGetPhysicalDeviceFeatures2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceFeatures2* pFeatures
+);
+
 void VKAPI_CALL ctsGetPhysicalDeviceMemoryProperties(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceMemoryProperties* pMemoryProperties
+);
+
+void VKAPI_CALL ctsGetPhysicalDeviceMemoryProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties2* pMemoryProperties
 );
 
 void VKAPI_CALL ctsGetPhysicalDeviceFormatProperties(
     VkPhysicalDevice physicalDevice,
     VkFormat format,
     VkFormatProperties* pFormatProperties
+);
+
+void VKAPI_CALL ctsGetPhysicalDeviceFormatProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkFormat format,
+    VkFormatProperties2* pFormatProperties
 );
 
 VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties(
@@ -62,6 +96,12 @@ VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties(
     VkImageUsageFlags usage,
     VkImageCreateFlags flags,
     VkImageFormatProperties* pImageFormatProperties
+);
+
+VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties2(
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+    VkImageFormatProperties2* pImageFormatProperties
 );
 
 #ifdef __cplusplus

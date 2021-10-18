@@ -48,11 +48,23 @@ VkResult VKAPI_CALL ctsBindBufferMemory(
     VkDeviceSize offset
 );
 
+VkResult VKAPI_CALL ctsBindBufferMemory2(
+    VkDevice device,
+    uint32_t bindInfoCount,
+    const VkBindBufferMemoryInfo* pBindInfos
+);
+
 VkResult VKAPI_CALL ctsBindImageMemory(
     VkDevice device,
     VkImage image, 
     VkDeviceMemory memory,
     VkDeviceSize offset
+);
+
+VkResult ctsBindImageMemory2(
+    VkDevice device,
+    uint32_t bindInfoCount,
+    const VkBindImageMemoryInfo* pBindInfos
 );
 
 void VKAPI_CALL ctsGetBufferMemoryRequirements(
@@ -61,10 +73,36 @@ void VKAPI_CALL ctsGetBufferMemoryRequirements(
     VkMemoryRequirements* pMemoryRequirements
 );
 
+void VKAPI_CALL ctsGetBufferMemoryRequirements2(
+    VkDevice device,
+    const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements
+);
+
 void VKAPI_CALL ctsGetImageMemoryRequirements(
     VkDevice device,
     VkImage image,
     VkMemoryRequirements* pMemoryRequirements
+);
+
+void VKAPI_CALL ctsGetImageMemoryRequirements2(
+    VkDevice device,
+    const VkImageMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements
+);
+
+void VKAPI_CALL ctsGetImageSparseMemoryRequirements(
+    VkDevice device,
+    VkImage image,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements* pSparseMemoryRequirements
+);
+
+void VKAPI_CALL vkGetImageSparseMemoryRequirements2(
+    VkDevice device,
+    const VkImageSparseMemoryRequirementsInfo2* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements
 );
 
 #ifdef __cplusplus

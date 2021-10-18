@@ -59,8 +59,38 @@ static PFN_vkVoidFunction ctsGetInstanceProcAddr(VkInstance instance, const char
 	GETPROCADDR(CreateWin32SurfaceKHR);
 	GETPROCADDR(GetPhysicalDeviceWin32PresentationSupportKHR);
 	
+	// VK_VERSION_1_1
+	GETPROCADDR(BindBufferMemory2);
+	GETPROCADDR(BindImageMemory2);
+	GETPROCADDR(CmdDispatchBase);
+	GETPROCADDR(CmdSetDeviceMask);
+	//GETPROCADDR(CreateDescriptorUpdateTemplate);
+	//GETPROCADDR(CreateSamplerYcbcrConversion);
+	//GETPROCADDR(DestroyDescriptorUpdateTemplate);
+	//GETPROCADDR(DestroySamplerYcbcrConversion);
+	GETPROCADDR(EnumerateInstanceVersion);
+	//GETPROCADDR(EnumeratePhysicalDeviceGroups);
+	GETPROCADDR(GetBufferMemoryRequirements2);
+	//GETPROCADDR(GetDescriptorSetLayoutSupport);
+	//GETPROCADDR(GetDeviceGroupPeerMemoryFeatures);
+	GETPROCADDR(GetDeviceQueue2);
+	GETPROCADDR(GetImageMemoryRequirements2);
+	//GETPROCADDR(GetImageSparseMemoryRequirements2);
+	//GETPROCADDR(GetPhysicalDeviceExternalBufferProperties);
+	//GETPROCADDR(GetPhysicalDeviceExternalFenceProperties);
+	//GETPROCADDR(GetPhysicalDeviceExternalSemaphoreProperties);
+	GETPROCADDR(GetPhysicalDeviceFeatures2);
+	GETPROCADDR(GetPhysicalDeviceFormatProperties2);
+	GETPROCADDR(GetPhysicalDeviceImageFormatProperties2);
+	GETPROCADDR(GetPhysicalDeviceMemoryProperties2);
+	GETPROCADDR(GetPhysicalDeviceProperties2);
+	GETPROCADDR(GetPhysicalDeviceQueueFamilyProperties2);
+	GETPROCADDR(GetPhysicalDeviceSparseImageFormatProperties2);
+	//GETPROCADDR(TrimCommandPool);
+	//GETPROCADDR(UpdateDescriptorSetWithTemplate);
+
 	if (!isExtension(pName)) {
-		//printf("ctsGetInstanceProcAddr is missing export for: %s\n", pName);
+		//fprintf(stderr, "ctsGetInstanceProcAddr is missing export for: %s\n", pName);
 	}
 
 	return NULL;
@@ -177,6 +207,9 @@ static PFN_vkVoidFunction ctsGetDeviceProcAddr(VkDevice device, const char *pNam
 	GETPROCADDR(GetPhysicalDeviceMemoryProperties);
 	GETPROCADDR(GetPhysicalDeviceFormatProperties);
 	
+	GETPROCADDR(CreatePipelineCache);
+	GETPROCADDR(DestroyPipelineCache);
+
 	GETPROCADDR(CreatePipelineLayout);
 	GETPROCADDR(DestroyPipelineLayout);
 	
@@ -214,9 +247,40 @@ static PFN_vkVoidFunction ctsGetDeviceProcAddr(VkDevice device, const char *pNam
 
 	GETPROCADDR(CreateWin32SurfaceKHR);
 	GETPROCADDR(GetPhysicalDeviceWin32PresentationSupportKHR);
+
+
+	// VK_VERSION_1_1
+	GETPROCADDR(BindBufferMemory2);
+	GETPROCADDR(BindImageMemory2);
+	GETPROCADDR(CmdDispatchBase);
+	GETPROCADDR(CmdSetDeviceMask);
+	//GETPROCADDR(CreateDescriptorUpdateTemplate);
+	//GETPROCADDR(CreateSamplerYcbcrConversion);
+	//GETPROCADDR(DestroyDescriptorUpdateTemplate);
+	//GETPROCADDR(DestroySamplerYcbcrConversion);
+	GETPROCADDR(EnumerateInstanceVersion);
+	//GETPROCADDR(EnumeratePhysicalDeviceGroups);
+	GETPROCADDR(GetBufferMemoryRequirements2);
+	//GETPROCADDR(GetDescriptorSetLayoutSupport);
+	//GETPROCADDR(GetDeviceGroupPeerMemoryFeatures);
+	GETPROCADDR(GetDeviceQueue2);
+	GETPROCADDR(GetImageMemoryRequirements2);
+	//GETPROCADDR(GetImageSparseMemoryRequirements2);
+	//GETPROCADDR(GetPhysicalDeviceExternalBufferProperties);
+	//GETPROCADDR(GetPhysicalDeviceExternalFenceProperties);
+	//GETPROCADDR(GetPhysicalDeviceExternalSemaphoreProperties);
+	GETPROCADDR(GetPhysicalDeviceFeatures2);
+	GETPROCADDR(GetPhysicalDeviceFormatProperties2);
+	GETPROCADDR(GetPhysicalDeviceImageFormatProperties2);
+	GETPROCADDR(GetPhysicalDeviceMemoryProperties2);
+	GETPROCADDR(GetPhysicalDeviceProperties2);
+	GETPROCADDR(GetPhysicalDeviceQueueFamilyProperties2);
+	GETPROCADDR(GetPhysicalDeviceSparseImageFormatProperties2);
+	//GETPROCADDR(TrimCommandPool);
+	//GETPROCADDR(UpdateDescriptorSetWithTemplate);
     
 	if (!isExtension(pName)) {
-		//printf("ctsGetDeviceProcAddr is missing export for: %s\n", pName);
+		//fprintf(stderr, "ctsGetDeviceProcAddr is missing export for: %s\n", pName);
 	}
 
 	return NULL;

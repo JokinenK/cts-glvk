@@ -88,6 +88,30 @@ VkResult VKAPI_CALL ctsGetPhysicalDeviceQueueFamilyProperties(
     return VK_SUCCESS;
 }
 
+void VKAPI_CALL ctsGetPhysicalDeviceQueueFamilyProperties2(
+    VkPhysicalDevice physicalDevice,
+    uint32_t* pQueueFamilyPropertyCount,
+    VkQueueFamilyProperties2* pQueueFamilyProperties
+) {
+    if (pQueueFamilyPropertyCount != NULL) {
+        ctsGetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount, NULL);
+
+        if (pQueueFamilyProperties != NULL) {
+            for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; ++i) {
+                pQueueFamilyProperties[i].sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
+                pQueueFamilyProperties[i].pNext = NULL;
+
+                uint32_t one = 1;
+                ctsGetPhysicalDeviceQueueFamilyProperties(
+                    physicalDevice, 
+                    &one, 
+                    &pQueueFamilyProperties[i].queueFamilyProperties
+                );
+            }
+        }
+    }
+}
+
 VkResult VKAPI_CALL ctsEnumerateDeviceExtensionProperties(
     VkPhysicalDevice physicalDeviceHandle,
     const char* pLayerName,
@@ -130,6 +154,46 @@ void VKAPI_CALL ctsGetPhysicalDeviceSparseImageFormatProperties(
     }
 }
 
+void VKAPI_CALL ctsGetPhysicalDeviceSparseImageFormatProperties2(
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+    uint32_t* pPropertyCount,
+    VkSparseImageFormatProperties2* pProperties
+) {
+    if (pPropertyCount != NULL) {
+        ctsGetPhysicalDeviceSparseImageFormatProperties(
+            physicalDevice,
+            pFormatInfo->format, 
+            pFormatInfo->type,
+            pFormatInfo->samples,
+            pFormatInfo->usage,
+            pFormatInfo->tiling,
+            pPropertyCount,
+            NULL
+        );
+
+        if (pProperties != NULL) {
+            for (uint32_t i = 0; i < *pPropertyCount; ++i) {
+                pProperties[i].sType = VK_STRUCTURE_TYPE_SPARSE_IMAGE_FORMAT_PROPERTIES_2;
+                pProperties[i].pNext = NULL;
+
+                uint32_t one = 1;
+                ctsGetPhysicalDeviceSparseImageFormatProperties(
+                    physicalDevice,
+                    pFormatInfo->format, 
+                    pFormatInfo->type,
+                    pFormatInfo->samples,
+                    pFormatInfo->usage,
+                    pFormatInfo->tiling,
+                    &one,
+                    &pProperties[i].properties
+                );
+            }
+        }
+    }
+
+}
+
 void VKAPI_CALL ctsGetPhysicalDeviceProperties(
     VkPhysicalDevice physicalDeviceHandle,
     VkPhysicalDeviceProperties* pProperties
@@ -137,6 +201,16 @@ void VKAPI_CALL ctsGetPhysicalDeviceProperties(
     if (pProperties != NULL) {
         *pProperties = gPhysicalDeviceProperties;
     }
+}
+
+void VKAPI_CALL ctsGetPhysicalDeviceProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties
+) {
+    pProperties->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    pProperties->pNext = NULL;
+
+    ctsGetPhysicalDeviceProperties(physicalDevice, &pProperties->properties);
 }
 
 void VKAPI_CALL ctsGetPhysicalDeviceFeatures(
@@ -148,6 +222,14 @@ void VKAPI_CALL ctsGetPhysicalDeviceFeatures(
     }
 }
 
+void VKAPI_CALL ctsGetPhysicalDeviceFeatures2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceFeatures2* pFeatures
+) {
+    pFeatures->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    pFeatures->pNext = NULL;
+    ctsGetPhysicalDeviceFeatures(physicalDevice, &pFeatures->features);
+}
 
 void VKAPI_CALL ctsGetPhysicalDeviceMemoryProperties(
     VkPhysicalDevice physicalDeviceHandle,
@@ -156,6 +238,16 @@ void VKAPI_CALL ctsGetPhysicalDeviceMemoryProperties(
     if (pMemoryProperties != NULL) {
         *pMemoryProperties = gPhysicalMemoryProperties;
     }
+}
+
+void VKAPI_CALL ctsGetPhysicalDeviceMemoryProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties2* pMemoryProperties
+) {
+    pMemoryProperties->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+    pMemoryProperties->pNext = NULL;
+
+    ctsGetPhysicalDeviceMemoryProperties(physicalDevice, &pMemoryProperties->memoryProperties);
 }
 
 void VKAPI_CALL ctsGetPhysicalDeviceFormatProperties(
@@ -214,6 +306,16 @@ void VKAPI_CALL ctsGetPhysicalDeviceFormatProperties(
     }
 }
 
+void VKAPI_CALL ctsGetPhysicalDeviceFormatProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkFormat format,
+    VkFormatProperties2* pFormatProperties
+) {
+    pFormatProperties->sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
+    pFormatProperties->pNext = NULL;
+    ctsGetPhysicalDeviceFormatProperties(physicalDevice, format, &pFormatProperties->formatProperties);
+}
+
 VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties(
     VkPhysicalDevice physicalDevice,
     VkFormat format,
@@ -238,6 +340,25 @@ VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties(
         VK_SAMPLE_COUNT_32_BIT
     );
     return VK_SUCCESS;
+}
+
+VkResult VKAPI_CALL ctsGetPhysicalDeviceImageFormatProperties2(
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+    VkImageFormatProperties2* pImageFormatProperties
+) {
+    pImageFormatProperties->sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
+    pImageFormatProperties->pNext = NULL;
+
+    return ctsGetPhysicalDeviceImageFormatProperties(
+        physicalDevice, 
+        pImageFormatInfo->format, 
+        pImageFormatInfo->type, 
+        pImageFormatInfo->tiling, 
+        pImageFormatInfo->usage, 
+        pImageFormatInfo->flags, 
+        &pImageFormatProperties->imageFormatProperties
+    );
 }
 
 void ctsPhysicalDeviceParseFeatures() {
@@ -496,7 +617,7 @@ static void parseDeviceLimits(VkPhysicalDeviceLimits* pLimits) {
     glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &i32);
     pLimits->minUniformBufferOffsetAlignment = i32;
 
-    i32 = UINT32_MAX; // glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &i32);
+    i32 = 256; // glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &i32);
     pLimits->minStorageBufferOffsetAlignment = i32;
     
     glGetIntegerv(GL_MIN_PROGRAM_TEXEL_OFFSET, &i32);

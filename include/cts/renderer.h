@@ -14,6 +14,7 @@
 #include <cts/image.h>
 #include <cts/instance.h>
 #include <cts/physical_device.h>
+#include <cts/pipeline_cache.h>
 #include <cts/pipeline_layout.h>
 #include <cts/pipeline.h>
 #include <cts/render_pass.h>

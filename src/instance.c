@@ -61,7 +61,7 @@ VkResult VKAPI_CALL ctsDestroyInstance(
 VkResult VKAPI_CALL ctsEnumerateInstanceVersion(
     uint32_t* pApiVersion
 ) {
-    *pApiVersion = VK_MAKE_VERSION(1, 0, 0);
+    *pApiVersion = VK_MAKE_VERSION(1, 1, 0);
     return VK_SUCCESS;
 }
 

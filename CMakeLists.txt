@@ -37,6 +37,7 @@ list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/image.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/instance.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/physical_device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pipeline_cache.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pipeline_layout.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pipeline.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/query_pool.c

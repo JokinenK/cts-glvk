@@ -291,57 +291,96 @@ void ctsFreeMemoryImpl(
 }
 
 VkResult VKAPI_CALL ctsBindBufferMemory(
-    VkDevice deviceHandle,
-    VkBuffer bufferHandle, 
-    VkDeviceMemory memoryHandle,
+    VkDevice device,
+    VkBuffer buffer, 
+    VkDeviceMemory memory,
     VkDeviceSize memoryOffset
 ) {
+    VkBindBufferMemoryInfo bindBufferMemoryInfo;
+    bindBufferMemoryInfo.sType = VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO;
+    bindBufferMemoryInfo.pNext = NULL;
+    bindBufferMemoryInfo.buffer = buffer;
+    bindBufferMemoryInfo.memory = memory;
+    bindBufferMemoryInfo.memoryOffset = memoryOffset;
+
+    return ctsBindBufferMemory2(device, 1, &bindBufferMemoryInfo);
+}
+
+VkResult VKAPI_CALL ctsBindBufferMemory2(
+    VkDevice deviceHandle,
+    uint32_t bindInfoCount,
+    const VkBindBufferMemoryInfo* pBindInfos
+) {
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
-    struct CtsBuffer* buffer = CtsBufferFromHandle(bufferHandle);
-    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
 
-    if (!isBufferMemory(memory)) {
-        return VK_ERROR_FORMAT_NOT_SUPPORTED;
-    }
+    for (uint32_t i = 0; i < bindInfoCount; ++i) {
+        const VkBindBufferMemoryInfo* pBindInfo = &pBindInfos[i];
+        struct CtsBuffer* buffer = CtsBufferFromHandle(pBindInfo->buffer);
+        struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(pBindInfo->memory);
 
-    if (buffer->memory == NULL) {
-        if (buffer->size > memory->size - memoryOffset) {
-            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        if (!isBufferMemory(memory)) {
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
         }
 
-        buffer->memory = memory;
-        buffer->offset = (GLsizei)memoryOffset;
+        if (buffer->memory == NULL) {
+            if (buffer->size > memory->size - pBindInfo->memoryOffset) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            buffer->memory = memory;
+            buffer->offset = (GLsizei)pBindInfo->memoryOffset;
+        }
     }
 
     return VK_SUCCESS;
 }
 
 VkResult VKAPI_CALL ctsBindImageMemory(
-    VkDevice deviceHandle,
-    VkImage imageHandle,
-    VkDeviceMemory memoryHandle,
+    VkDevice device,
+    VkImage image,
+    VkDeviceMemory memory,
     VkDeviceSize memoryOffset
 ) {
+    VkBindImageMemoryInfo bindImageMemoryInfo;
+    bindImageMemoryInfo.sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO;
+    bindImageMemoryInfo.pNext = NULL;
+    bindImageMemoryInfo.image = image;
+    bindImageMemoryInfo.memory = memory;
+    bindImageMemoryInfo.memoryOffset = memoryOffset;
+
+    return ctsBindImageMemory2(device, 1, &bindImageMemoryInfo);
+}
+
+VkResult ctsBindImageMemory2(
+    VkDevice deviceHandle,
+    uint32_t bindInfoCount,
+    const VkBindImageMemoryInfo* pBindInfos
+) {
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
-    struct CtsImage* image = CtsImageFromHandle(imageHandle);
-    struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(memoryHandle);
 
-    if (!isImageMemory(memory)) {
-        return VK_ERROR_FORMAT_NOT_SUPPORTED;
-    }
+    for (uint32_t i = 0; i < bindInfoCount; ++i) {
+        const VkBindImageMemoryInfo* pBindInfo = &pBindInfos[i];
+        struct CtsImage* image = CtsImageFromHandle(pBindInfo->image);
+        struct CtsDeviceMemory* memory = CtsDeviceMemoryFromHandle(pBindInfo->memory);
 
-    if (image->memory == NULL) {
-        if (image->size > memory->size - memoryOffset) {
-            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        if (!isImageMemory(memory)) {
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
         }
 
-        image->memory = memory;
-        image->offset = memoryOffset;
-        appendImage(memory, image);
+        if (image->memory == NULL) {
+            if (image->size > memory->size - pBindInfo->memoryOffset) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            image->memory = memory;
+            image->offset = pBindInfo->memoryOffset;
+            appendImage(memory, image);
+        }
     }
-    
+
     return VK_SUCCESS;
 }
+
 
 void VKAPI_CALL ctsGetBufferMemoryRequirements(
     VkDevice deviceHandle,
@@ -367,11 +406,23 @@ void VKAPI_CALL ctsGetBufferMemoryRequirements(
         case GL_TEXTURE_BUFFER: {
             align = gPhysicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
         } break;
+
+        default: {
+            align = 256;
+        }
     }
 
     pMemoryRequirements->size = buffer->size;
     pMemoryRequirements->alignment = align;
     pMemoryRequirements->memoryTypeBits = HEAP_BITS_BUFFER;
+}
+
+void VKAPI_CALL ctsGetBufferMemoryRequirements2(
+    VkDevice device,
+    const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements
+) {
+    ctsGetBufferMemoryRequirements(device, pInfo->buffer, &pMemoryRequirements->memoryRequirements);
 }
 
 void VKAPI_CALL ctsGetImageMemoryRequirements(
@@ -385,6 +436,44 @@ void VKAPI_CALL ctsGetImageMemoryRequirements(
     pMemoryRequirements->size = image->size;
     pMemoryRequirements->alignment = 1;
     pMemoryRequirements->memoryTypeBits = HEAP_BITS_IMAGE;
+}
+
+void VKAPI_CALL ctsGetImageMemoryRequirements2(
+    VkDevice device,
+    const VkImageMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements
+) {
+    ctsGetImageMemoryRequirements(device, pInfo->image, &pMemoryRequirements->memoryRequirements);
+}
+
+
+void VKAPI_CALL ctsGetImageSparseMemoryRequirements(
+    VkDevice device,
+    VkImage image,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements* pSparseMemoryRequirements
+) {
+    fprintf(stderr, "ctsGetImageSparseMemoryRequirements - not implemented");
+    abort();
+}
+
+void VKAPI_CALL vkGetImageSparseMemoryRequirements2(
+    VkDevice device,
+    const VkImageSparseMemoryRequirementsInfo2* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements
+) {
+    if (pSparseMemoryRequirementCount != NULL) {
+        ctsGetImageSparseMemoryRequirements(device, pInfo->image, pSparseMemoryRequirementCount, NULL);
+
+        for (uint32_t i = 0; i < *pSparseMemoryRequirementCount; ++i) {
+            pSparseMemoryRequirements[i].sType = VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2;
+            pSparseMemoryRequirements[i].pNext = NULL; 
+
+            uint32_t one = 1;
+            ctsGetImageSparseMemoryRequirements(device, pInfo->image, &one, &pSparseMemoryRequirements[i].memoryRequirements);
+        }
+    }
 }
 
 static bool isHostVisible(struct CtsDeviceMemory* memory) {

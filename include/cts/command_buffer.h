@@ -167,6 +167,16 @@ void VKAPI_CALL ctsCmdDispatch(
     uint32_t groupCountZ
 );
 
+void VKAPI_CALL ctsCmdDispatchBase(
+    VkCommandBuffer commandBufferHandle,
+    uint32_t baseGroupX,
+    uint32_t baseGroupY,
+    uint32_t baseGroupZ,
+    uint32_t groupCountX,
+    uint32_t groupCountY,
+    uint32_t groupCountZ
+);
+
 void VKAPI_CALL ctsCmdDispatchIndirect(
     VkCommandBuffer commandBuffer,
     VkBuffer buffer,

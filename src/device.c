@@ -57,6 +57,14 @@ void VKAPI_CALL ctsGetDeviceQueue(
     }
 }
 
+void VKAPI_CALL ctsGetDeviceQueue2(
+    VkDevice device,
+    const VkDeviceQueueInfo2* pQueueInfo,
+    VkQueue* pQueue
+) {
+    ctsGetDeviceQueue(device, pQueueInfo->queueFamilyIndex,  pQueueInfo->queueIndex, pQueue);
+}
+
 void VKAPI_CALL ctsDestroyDevice(
     VkDevice deviceHandle,
     const VkAllocationCallbacks* pAllocator

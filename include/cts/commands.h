@@ -18,8 +18,9 @@
 #include <cts/commanddefs/cmd_copy_image.h>
 #include <cts/commanddefs/cmd_copy_image_to_buffer.h>
 #include <cts/commanddefs/cmd_copy_query_pool_results.h>
-#include <cts/commanddefs/cmd_dispatch.h>
+#include <cts/commanddefs/cmd_dispatch_base.h>
 #include <cts/commanddefs/cmd_dispatch_indirect.h>
+#include <cts/commanddefs/cmd_dispatch.h>
 #include <cts/commanddefs/cmd_draw.h>
 #include <cts/commanddefs/cmd_draw_indexed.h>
 #include <cts/commanddefs/cmd_draw_indexed_indirect.h>
