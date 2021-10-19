@@ -15,13 +15,15 @@ typedef struct CtsCmdDispatchIndirect {
     VkDeviceSize offset;
 } CtsCmdDispatchIndirect;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdDispatchIndirect, 
     ctsCmdDispatchIndirectImpl,
     commandBuffer, 
     buffer, 
     offset
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdDispatchIndirect);
 
 #ifdef __cplusplus
 }

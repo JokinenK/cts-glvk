@@ -31,8 +31,8 @@ VkResult VKAPI_CALL ctsCreateSwapchainKHR(
 
     VkResult result;
     CtsCreateSwapchainKHR cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_SWAPCHAIN;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateSwapchainKHR);
 
     cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
@@ -53,8 +53,8 @@ void VKAPI_CALL ctsDestroySwapchainKHR(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsDestroySwapchainKHR cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_SWAPCHAIN;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroySwapchainKHR);
 
     cmd.device = deviceHandle;
     cmd.swapchain = swapchain;
@@ -71,8 +71,8 @@ VkResult VKAPI_CALL ctsQueuePresentKHR(
 
     VkResult result;
     CtsQueuePresentKHR cmd;
-    cmd.base.type = CTS_COMMAND_QUEUE_PRESENT;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsQueuePresentKHR);
 
     cmd.queue = queueHandle;
     cmd.pPresentInfo = pPresentInfo;

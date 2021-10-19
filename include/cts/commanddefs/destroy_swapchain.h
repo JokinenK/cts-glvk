@@ -15,13 +15,15 @@ typedef struct CtsDestroySwapchainKHR {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroySwapchainKHR;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroySwapchainKHR,
     ctsDestroySwapchainKHRImpl,
     device,
     swapchain,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroySwapchainKHR);
 
 #ifdef __cplusplus
 }

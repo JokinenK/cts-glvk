@@ -15,12 +15,14 @@ typedef struct CtsUnmapMemory {
     VkDeviceMemory memory;
 } CtsUnmapMemory;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsUnmapMemory,
     ctsUnmapMemoryImpl,
     device,
     memory
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsUnmapMemory);
 
 #ifdef __cplusplus
 }

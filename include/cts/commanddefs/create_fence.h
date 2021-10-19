@@ -17,7 +17,7 @@ typedef struct CtsCreateFence {
     VkResult* pResult;
 } CtsCreateFence;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateFence, 
     ctsCreateFenceImpl, 
     device,
@@ -25,6 +25,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pFence
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateFence);
 
 #ifdef __cplusplus
 }

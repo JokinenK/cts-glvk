@@ -17,7 +17,7 @@ typedef struct CtsCreateFramebuffer {
     VkResult* pResult;
 } CtsCreateFramebuffer;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateFramebuffer, 
     ctsCreateFramebufferImpl,
     device,
@@ -25,6 +25,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pFramebuffer
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateFramebuffer);
 
 #ifdef __cplusplus
 }

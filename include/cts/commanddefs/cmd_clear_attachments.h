@@ -17,7 +17,7 @@ typedef struct CtsCmdClearAttachments {
     const VkClearRect* pRects;
 } CtsCmdClearAttachments;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdClearAttachments, 
     ctsCmdClearAttachmentsImpl, 
     commandBuffer, 
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     rectCount,
     pRects
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdClearAttachments);
 
 #ifdef __cplusplus
 }

@@ -20,7 +20,7 @@ typedef struct CtsMapMemory {
     VkResult* pResult;
 } CtsMapMemory;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsMapMemory,
     ctsMapMemoryImpl,
     device,
@@ -30,6 +30,8 @@ CTS_DEFINE_TRAMPOLINE(
     flags,
     ppData
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsMapMemory);
 
 #ifdef __cplusplus
 }

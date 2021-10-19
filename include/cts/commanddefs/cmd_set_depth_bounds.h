@@ -15,13 +15,15 @@ typedef struct CtsCmdSetDepthBounds {
     float maxDepthBounds;
 } CtsCmdSetDepthBounds;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetDepthBounds, 
     ctsCmdSetDepthBoundsImpl, 
     commandBuffer,
     minDepthBounds,
     maxDepthBounds
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetDepthBounds);
 
 #ifdef __cplusplus
 }

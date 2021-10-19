@@ -22,8 +22,8 @@ VkResult VKAPI_CALL ctsCreateImageView(
 
     VkResult result;
     CtsCreateImageView cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_IMAGE_VIEW;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateImageView);
 
     cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
@@ -43,8 +43,8 @@ void VKAPI_CALL ctsDestroyImageView(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsDestroyImageView cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_IMAGE_VIEW;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroyImageView);
 
     cmd.device = deviceHandle;
     cmd.imageView = imageView;

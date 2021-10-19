@@ -15,13 +15,15 @@ typedef struct CtsDestroyPipeline {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyPipeline;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroyPipeline,
     ctsDestroyPipelineImpl,
     device,
     pipeline,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroyPipeline);
 
 #ifdef __cplusplus
 }

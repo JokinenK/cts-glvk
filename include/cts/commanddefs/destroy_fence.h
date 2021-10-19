@@ -15,13 +15,15 @@ typedef struct CtsDestroyFence {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyFence;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroyFence,
     ctsDestroyFenceImpl,
     device,
     fence,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroyFence);
 
 #ifdef __cplusplus
 }

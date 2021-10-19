@@ -41,8 +41,8 @@ VkResult VKAPI_CALL ctsAllocateMemory(
 
     VkResult result;
     CtsAllocateMemory cmd;
-    cmd.base.type = CTS_COMMAND_ALLOCATE_MEMORY;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsAllocateMemory);
 
     cmd.device = deviceHandle;
     cmd.pAllocateInfo = pAllocateInfo;
@@ -66,8 +66,8 @@ VkResult VKAPI_CALL ctsMapMemory(
 
     VkResult result;
     CtsMapMemory cmd;
-    cmd.base.type = CTS_COMMAND_MAP_MEMORY;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsMapMemory);
 
     cmd.device = deviceHandle;
     cmd.memory = memory;
@@ -87,9 +87,9 @@ void VKAPI_CALL ctsUnmapMemory(
 ) {
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
-    CtsMapMemory cmd;
-    cmd.base.type = CTS_COMMAND_UNMAP_MEMORY;
+    CtsUnmapMemory cmd;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsUnmapMemory);
 
     cmd.device = deviceHandle;
     cmd.memory = memory;
@@ -106,8 +106,8 @@ VkResult VKAPI_CALL ctsFlushMappedMemoryRanges(
 
     VkResult result;
     CtsFlushMappedMemoryRanges cmd;
-    cmd.base.type = CTS_COMMAND_FLUSH_MAPPED_MEMORY_RANGES;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsFlushMappedMemoryRanges);
 
     cmd.device = deviceHandle;
     cmd.memoryRangeCount = memoryRangeCount;
@@ -126,8 +126,8 @@ void VKAPI_CALL ctsFreeMemory(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsFreeMemory cmd;
-    cmd.base.type = CTS_COMMAND_FREE_MEMORY;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsFreeMemory);
 
     cmd.device = deviceHandle;
     cmd.memory = memory;

@@ -16,13 +16,15 @@ typedef struct CtsResetFences {
     VkResult* pResult;
 } CtsResetFences;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsResetFences,
     ctsResetFencesImpl,
     device,
     fenceCount,
     pFences
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsResetFences);
 
 #ifdef __cplusplus
 }

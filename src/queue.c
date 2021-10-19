@@ -2,7 +2,6 @@
 #include <string.h>
 #include "cts/util/align.h"
 #include "cts/allocator.h"
-#include "cts/command_dispatcher.h"
 #include "cts/private.h"
 #include "cts/device_private.h"
 #include "cts/instance_private.h"
@@ -112,7 +111,6 @@ static void workerEntry(void* pArgs) {
 
     CtsQueueItem queueItem;
     const CtsCmdBase* cmd;
-    const CtsCommandMetadata* commandMetadata;
 
     ctsGlContextActivate(&physicalDevice->context);
 
@@ -131,8 +129,7 @@ static void workerEntry(void* pArgs) {
     
         cmd = queueItem.cmd;
         while (cmd != NULL) {
-            commandMetadata = ctsGetCommandMetadata(cmd->type);
-            commandMetadata->handler(cmd);
+            cmd->pMetadata->pfnHandler(cmd);
             cmd = cmd->pNext;
         }
 

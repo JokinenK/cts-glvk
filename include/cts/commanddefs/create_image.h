@@ -17,7 +17,7 @@ typedef struct CtsCreateImage {
     VkResult* pResult;
 } CtsCreateImage;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateImage,
     ctsCreateImageImpl,
     device,
@@ -25,6 +25,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pImage
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateImage);
 
 #ifdef __cplusplus
 }

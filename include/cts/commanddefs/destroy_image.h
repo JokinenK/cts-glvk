@@ -15,13 +15,15 @@ typedef struct CtsDestroyImage {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyImage;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroyImage,
     ctsDestroyImageImpl,
     device,
     image,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroyImage);
 
 #ifdef __cplusplus
 }

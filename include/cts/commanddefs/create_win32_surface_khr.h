@@ -19,7 +19,7 @@ typedef struct CtsCreateWin32SurfaceKHR {
     VkResult* pResult;
 } CtsCreateWin32SurfaceKHR;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateWin32SurfaceKHR,
     ctsCreateWin32SurfaceKHRImpl,
     instance,
@@ -27,6 +27,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pSurface
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateWin32SurfaceKHR);
 
 #ifdef __cplusplus
 }

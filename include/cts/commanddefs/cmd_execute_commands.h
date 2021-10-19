@@ -15,13 +15,15 @@ typedef struct CtsCmdExecuteCommands {
     const VkCommandBuffer* pCommandBuffers;
 } CtsCmdExecuteCommands;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdExecuteCommands, 
     ctsCmdExecuteCommandsImpl, 
     commandBuffer,
     commandBufferCount,
     pCommandBuffers
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdExecuteCommands);
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,7 @@ typedef struct CtsWaitForFences {
     VkResult* pResult;
 } CtsWaitForFences;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsWaitForFences,
     ctsWaitForFencesImpl,
     device,
@@ -27,6 +27,8 @@ CTS_DEFINE_TRAMPOLINE(
     waitAll,
     timeout
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsWaitForFences);
 
 #ifdef __cplusplus
 }

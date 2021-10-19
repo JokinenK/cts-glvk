@@ -16,7 +16,7 @@ typedef struct CtsCmdBeginQuery {
     VkQueryControlFlags flags;
 } CtsCmdBeginQuery;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBeginQuery, 
     ctsCmdBeginQueryImpl, 
     commandBuffer, 
@@ -24,6 +24,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     query,
     flags
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBeginQuery);
 
 #ifdef __cplusplus
 }

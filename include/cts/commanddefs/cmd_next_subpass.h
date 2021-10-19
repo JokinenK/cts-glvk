@@ -14,12 +14,14 @@ typedef struct CtsCmdNextSubpass {
     VkSubpassContents contents;
 } CtsCmdNextSubpass;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdNextSubpass, 
     ctsCmdNextSubpassImpl, 
     commandBuffer,
     contents
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdNextSubpass);
 
 #ifdef __cplusplus
 }

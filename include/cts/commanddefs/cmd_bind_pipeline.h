@@ -15,13 +15,15 @@ typedef struct CtsCmdBindPipeline {
     VkPipeline pipeline;
 } CtsCmdBindPipeline;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBindPipeline, 
     ctsCmdBindPipelineImpl, 
     commandBuffer, 
     pipelineBindPoint, 
     pipeline
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBindPipeline);
 
 #ifdef __cplusplus
 }

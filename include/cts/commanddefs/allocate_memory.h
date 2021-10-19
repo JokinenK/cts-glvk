@@ -18,7 +18,7 @@ typedef struct CtsAllocateMemory {
     VkResult* pResult;
 } CtsAllocateMemory;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsAllocateMemory, 
     ctsAllocateMemoryImpl, 
     device, 
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pMemory
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsAllocateMemory);
 
 #ifdef __cplusplus
 }

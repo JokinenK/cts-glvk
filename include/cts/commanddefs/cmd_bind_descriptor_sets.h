@@ -20,7 +20,7 @@ typedef struct CtsCmdBindDescriptorSets {
     const uint32_t* pDynamicOffsets;
 } CtsCmdBindDescriptorSets;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBindDescriptorSets, 
     ctsCmdBindDescriptorSetsImpl, 
     commandBuffer, 
@@ -32,6 +32,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     dynamicOffsetCount,
     pDynamicOffsets
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBindDescriptorSets);
 
 #ifdef __cplusplus
 }

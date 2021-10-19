@@ -15,13 +15,15 @@ typedef struct CtsCmdEndQuery {
     uint32_t query;
 } CtsCmdEndQuery;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdEndQuery, 
     ctsCmdEndQueryImpl, 
     commandBuffer, 
     queryPool, 
     query
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdEndQuery);
 
 #ifdef __cplusplus
 }

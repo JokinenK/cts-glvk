@@ -22,7 +22,6 @@ list(APPEND HEADERS
 list(APPEND SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/buffer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/command_buffer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/command_dispatcher.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/command_pool.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/constants.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/descriptor_pool.c

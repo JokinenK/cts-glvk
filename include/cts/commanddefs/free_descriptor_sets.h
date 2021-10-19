@@ -18,7 +18,7 @@ typedef struct CtsFreeDescriptorSets {
     VkResult* pResult;
 } CtsFreeDescriptorSets;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsFreeDescriptorSets,
     ctsFreeDescriptorSetsImpl,
     device,
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE(
     descriptorSetCount,
     pDescriptorSets
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsFreeDescriptorSets);
 
 #ifdef __cplusplus
 }

@@ -20,7 +20,7 @@ typedef struct CtsCmdCopyQueryPoolResults {
     VkQueryResultFlags flags;
 } CtsCmdCopyQueryPoolResults;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdCopyQueryPoolResults, 
     ctsCmdCopyQueryPoolResultsImpl, 
     commandBuffer, 
@@ -32,6 +32,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     stride,
     flags
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdCopyQueryPoolResults);
 
 #ifdef __cplusplus
 }

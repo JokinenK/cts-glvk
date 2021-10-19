@@ -7,7 +7,6 @@
 #include "cts/semaphore.h"
 #include "cts/command_buffer.h"
 #include "cts/commands.h"
-#include "cts/command_dispatcher.h"
 #include "cts/type_mapper.h"
 #include "cts/gl_helper.h"
 #include "cts/gl_enums.h"
@@ -34,6 +33,16 @@
 #include "cts/image_view_private.h"
 #include "cts/sampler_private.h"
 #include "cts/physical_device_private.h"
+
+#define ALLOCATE_COMMAND(pCommandBuffer, StructName, extraDataLen) \
+    (StructName*)allocateCommand(\
+        pCommandBuffer,\
+        sizeof(StructName),\
+        alignof(StructName),\
+        CTS_COMMAND_METADATA(StructName),\
+        extraDataLen\
+    )
+ 
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,7 +79,12 @@ static void bindColorBlendState(struct CtsDevice* device, CtsGlPipelineColorBlen
 
 static void resolveRenderPass(struct CtsDevice* device, struct CtsRenderPass* renderPass, uint32_t subpassNumber);
 
-static void* allocateCommand(struct CtsCommandBuffer* pCommandBuffer, CtsCommandType commandType, size_t extraDataLen);
+static void* allocateCommand(
+    struct CtsCommandBuffer* pCommandBuffer, 
+    size_t size,
+    size_t align,
+    CtsCmdMetadata* pMetadata,
+    size_t extraDataLen);
 
 VkResult VKAPI_CALL ctsBeginCommandBuffer(
     VkCommandBuffer commandBufferHandle,
@@ -171,9 +185,9 @@ void VKAPI_CALL ctsCmdBeginQuery(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdBeginQuery* cmd = allocateCommand(
+    CtsCmdBeginQuery* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BEGIN_QUERY,
+        CtsCmdBeginQuery,
         0
     );
 
@@ -190,9 +204,9 @@ void VKAPI_CALL ctsCmdEndQuery(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdEndQuery* cmd = allocateCommand(
+    CtsCmdEndQuery* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_END_QUERY,
+        CtsCmdEndQuery,
         0
     );
 
@@ -211,9 +225,9 @@ void VKAPI_CALL ctsCmdBeginRenderPass(
     size_t renderPassBeginSize = sizeof(VkRenderPassBeginInfo);
     size_t clearValueSize = pRenderPassBegin->clearValueCount * sizeof(VkClearValue);
 
-    CtsCmdBeginRenderPass* cmd = allocateCommand(
+    CtsCmdBeginRenderPass* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BEGIN_RENDER_PASS,
+        CtsCmdBeginRenderPass,
         renderPassBeginSize + clearValueSize
     );
 
@@ -234,9 +248,9 @@ void VKAPI_CALL ctsCmdEndRenderPass(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdEndRenderPass* cmd = allocateCommand(
+    CtsCmdEndRenderPass* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_END_RENDER_PASS,
+        CtsCmdEndRenderPass,
         0
     );
 
@@ -258,9 +272,9 @@ void VKAPI_CALL ctsCmdBindDescriptorSets(
     size_t descriptorSetSize = descriptorSetCount * sizeof(VkDescriptorSet);
     size_t dynamicOffsetSize = dynamicOffsetCount * sizeof(uint32_t);
 
-    CtsCmdBindDescriptorSets* cmd = allocateCommand(
+    CtsCmdBindDescriptorSets* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_DESCRIPTOR_SETS,
+        CtsCmdBindDescriptorSets,
         descriptorSetSize + dynamicOffsetSize
     );
 
@@ -287,9 +301,9 @@ void VKAPI_CALL ctsCmdBindIndexBuffer(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdBindIndexBuffer* cmd = allocateCommand(
+    CtsCmdBindIndexBuffer* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_INDEX_BUFFER,
+        CtsCmdBindIndexBuffer,
         0
     );
 
@@ -306,9 +320,9 @@ void VKAPI_CALL ctsCmdBindPipeline(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdBindPipeline* cmd = allocateCommand(
+    CtsCmdBindPipeline* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_PIPELINE,
+        CtsCmdBindPipeline,
         0
     );
 
@@ -329,9 +343,9 @@ void VKAPI_CALL ctsCmdBindVertexBuffers(
     size_t buffersSize = bindingCount * sizeof(VkBuffer);
     size_t offsetsSize = bindingCount * sizeof(VkDeviceSize);
 
-    CtsCmdBindVertexBuffers* cmd = allocateCommand(
+    CtsCmdBindVertexBuffers* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BIND_VERTEX_BUFFERS,
+        CtsCmdBindVertexBuffers,
         buffersSize + offsetsSize
     );
 
@@ -362,9 +376,9 @@ void VKAPI_CALL ctsCmdBlitImage(
 
     size_t regionsSize = regionCount * sizeof(VkImageBlit);
 
-    CtsCmdBlitImage* cmd = allocateCommand(
+    CtsCmdBlitImage* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_BLIT_IMAGE,
+        CtsCmdBlitImage,
         regionsSize
     );
 
@@ -393,9 +407,9 @@ void VKAPI_CALL ctsCmdClearAttachments(
     size_t attachmentsSize = attachmentCount * sizeof(VkClearAttachment);
     size_t rectsSize = rectCount * sizeof(VkClearRect);
 
-    CtsCmdClearAttachments* cmd = allocateCommand(
+    CtsCmdClearAttachments* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_CLEAR_ATTACHMENTS,
+        CtsCmdClearAttachments,
         attachmentsSize + rectsSize
     );
 
@@ -425,9 +439,9 @@ void VKAPI_CALL ctsCmdClearColorImage(
     size_t colorSize = sizeof(VkClearColorValue);
     size_t rangesSize = rangeCount * sizeof(VkImageSubresourceRange);
 
-    CtsCmdClearColorImage* cmd = allocateCommand(
+    CtsCmdClearColorImage* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_CLEAR_COLOR_IMAGE,
+        CtsCmdClearColorImage,
         colorSize + rangesSize
     );
 
@@ -458,9 +472,9 @@ void VKAPI_CALL ctsCmdClearDepthStencilImage(
     size_t depthStencilSize = sizeof(VkClearDepthStencilValue);
     size_t rangesSize = rangeCount * sizeof(VkImageSubresourceRange);
 
-    CtsCmdClearDepthStencilImage* cmd = allocateCommand(
+    CtsCmdClearDepthStencilImage* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_CLEAR_DEPTH_STENCIL_IMAGE,
+        CtsCmdClearDepthStencilImage,
         depthStencilSize + rangesSize
     );
 
@@ -489,9 +503,9 @@ void VKAPI_CALL ctsCmdCopyBuffer(
 
     size_t regionSize = regionCount * sizeof(VkBufferCopy);
 
-    CtsCmdCopyBuffer* cmd = allocateCommand(
+    CtsCmdCopyBuffer* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_BUFFER,
+        CtsCmdCopyBuffer,
         regionSize
     );
 
@@ -517,9 +531,9 @@ void VKAPI_CALL ctsCmdCopyBufferToImage(
 
     size_t regionSize = regionCount * sizeof(VkBufferImageCopy);
 
-    CtsCmdCopyBufferToImage* cmd = allocateCommand(
+    CtsCmdCopyBufferToImage* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_BUFFER_TO_IMAGE,
+        CtsCmdCopyBufferToImage,
         regionSize
     );
 
@@ -547,9 +561,9 @@ void VKAPI_CALL ctsCmdCopyImage(
 
     size_t regionsSize = regionCount * sizeof(VkImageCopy);
 
-    CtsCmdCopyImage* cmd = allocateCommand(
+    CtsCmdCopyImage* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_IMAGE,
+        CtsCmdCopyImage,
         regionsSize
     );
 
@@ -577,9 +591,9 @@ void VKAPI_CALL ctsCmdCopyImageToBuffer(
 
     size_t regionsSize = regionCount * sizeof(VkBufferImageCopy);
 
-    CtsCmdCopyImageToBuffer* cmd = allocateCommand(
+    CtsCmdCopyImageToBuffer* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_IMAGE_TO_BUFFER,
+        CtsCmdCopyImageToBuffer,
         regionsSize
     );
 
@@ -606,9 +620,9 @@ void VKAPI_CALL ctsCmdCopyQueryPoolResults(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdCopyQueryPoolResults* cmd = allocateCommand(
+    CtsCmdCopyQueryPoolResults* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_COPY_QUERY_POOL_RESULTS,
+        CtsCmdCopyQueryPoolResults,
         0
     );
 
@@ -630,9 +644,9 @@ void VKAPI_CALL ctsCmdDispatch(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDispatch* cmd = allocateCommand(
+    CtsCmdDispatch* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DISPATCH,
+        CtsCmdDispatch,
         0
     );
 
@@ -653,9 +667,9 @@ void VKAPI_CALL ctsCmdDispatchBase(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDispatchBase* cmd = allocateCommand(
+    CtsCmdDispatchBase* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DISPATCH_BASE,
+        CtsCmdDispatchBase,
         0
     );
 
@@ -675,9 +689,9 @@ void VKAPI_CALL ctsCmdDispatchIndirect(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDispatchIndirect* cmd = allocateCommand(
+    CtsCmdDispatchIndirect* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DISPATCH_INDIRECT,
+        CtsCmdDispatchIndirect,
         0
     );
 
@@ -695,9 +709,9 @@ void VKAPI_CALL ctsCmdDraw(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDraw* cmd = allocateCommand(
+    CtsCmdDraw* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW,
+        CtsCmdDraw,
         0
     );
 
@@ -718,9 +732,9 @@ void VKAPI_CALL ctsCmdDrawIndexed(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDrawIndexed* cmd = allocateCommand(
+    CtsCmdDrawIndexed* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW_INDEXED,
+        CtsCmdDrawIndexed,
         0
     );
 
@@ -741,9 +755,9 @@ void VKAPI_CALL ctsCmdDrawIndexedIndirect(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDrawIndexedIndirect* cmd = allocateCommand(
+    CtsCmdDrawIndexedIndirect* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW_INDEXED_INDIRECT,
+        CtsCmdDrawIndexedIndirect,
         0
     );
 
@@ -763,9 +777,9 @@ void VKAPI_CALL ctsCmdDrawIndirect(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdDrawIndirect* cmd = allocateCommand(
+    CtsCmdDrawIndirect* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_DRAW_INDIRECT,
+        CtsCmdDrawIndirect,
         0
     );
 
@@ -785,9 +799,9 @@ void VKAPI_CALL ctsCmdExecuteCommands(
 
     size_t commandBuffersSize = commandBufferCount * sizeof(VkCommandBuffer);
 
-    CtsCmdExecuteCommands* cmd = allocateCommand(
+    CtsCmdExecuteCommands* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_EXECUTE_COMMANDS,
+        CtsCmdExecuteCommands,
         commandBuffersSize
     );
 
@@ -808,9 +822,9 @@ void VKAPI_CALL ctsCmdFillBuffer(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdFillBuffer* cmd = allocateCommand(
+    CtsCmdFillBuffer* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_FILL_BUFFER,
+        CtsCmdFillBuffer,
         0
     );
 
@@ -827,9 +841,9 @@ void VKAPI_CALL ctsCmdNextSubpass(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdNextSubpass* cmd = allocateCommand(
+    CtsCmdNextSubpass* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_NEXT_SUBPASS,
+        CtsCmdNextSubpass,
         0
     );
 
@@ -855,9 +869,9 @@ void VKAPI_CALL ctsCmdPipelineBarrier(
     size_t bufferMemoryBarrierSize = bufferMemoryBarrierCount * sizeof(VkBufferMemoryBarrier);
     size_t imageMemoryBarrierSize = imageMemoryBarrierCount * sizeof(VkImageMemoryBarrier);
 
-    CtsCmdPipelineBarrier* cmd = allocateCommand(
+    CtsCmdPipelineBarrier* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_PIPELINE_BARRIER,
+        CtsCmdPipelineBarrier,
         memoryBarrierSize + bufferMemoryBarrierSize + imageMemoryBarrierSize
     );
 
@@ -891,9 +905,9 @@ void VKAPI_CALL ctsCmdPushConstants(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdPushConstants* cmd = allocateCommand(
+    CtsCmdPushConstants* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_PUSH_CONSTANTS,
+        CtsCmdPushConstants,
         size
     );
 
@@ -915,9 +929,9 @@ void VKAPI_CALL ctsCmdResetEvent(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdResetEvent* cmd = allocateCommand(
+    CtsCmdResetEvent* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_RESET_EVENT,
+        CtsCmdResetEvent,
         0
     );
 
@@ -934,9 +948,9 @@ void VKAPI_CALL ctsCmdResetQueryPool(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdResetQueryPool* cmd = allocateCommand(
+    CtsCmdResetQueryPool* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_RESET_QUERY_POOL,
+        CtsCmdResetQueryPool,
         0
     );
 
@@ -959,9 +973,9 @@ void VKAPI_CALL ctsCmdResolveImage(
 
     size_t regionsSize = regionCount * sizeof(VkImageBlit);
 
-    CtsCmdResolveImage* cmd = allocateCommand(
+    CtsCmdResolveImage* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_RESOLVE_IMAGE,
+        CtsCmdResolveImage,
         regionsSize
     );
 
@@ -984,9 +998,9 @@ void VKAPI_CALL ctsCmdSetBlendConstants(
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
     // TODO: This might need attention
-    CtsCmdSetBlendConstants* cmd = allocateCommand(
+    CtsCmdSetBlendConstants* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_BLEND_CONSTANTS,
+        CtsCmdSetBlendConstants,
         0
     );
 
@@ -1002,9 +1016,9 @@ void VKAPI_CALL ctsCmdSetDepthBias(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetDepthBias* cmd = allocateCommand(
+    CtsCmdSetDepthBias* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_DEPTH_BIAS,
+        CtsCmdSetDepthBias,
         0
     );
 
@@ -1021,9 +1035,9 @@ void VKAPI_CALL ctsCmdSetDepthBounds(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetDepthBounds* cmd = allocateCommand(
+    CtsCmdSetDepthBounds* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_DEPTH_BOUNDS,
+        CtsCmdSetDepthBounds,
         0
     );
 
@@ -1038,9 +1052,9 @@ void VKAPI_CALL ctsCmdSetDeviceMask(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetDeviceMask* cmd = allocateCommand(
+    CtsCmdSetDeviceMask* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_DEVICE_MASK,
+        CtsCmdSetDeviceMask,
         0
     );
 
@@ -1055,9 +1069,9 @@ void VKAPI_CALL ctsCmdSetEvent(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetEvent* cmd = allocateCommand(
+    CtsCmdSetEvent* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_EVENT,
+        CtsCmdSetEvent,
         0
     );
 
@@ -1072,9 +1086,9 @@ void VKAPI_CALL ctsCmdSetLineWidth(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetLineWidth* cmd = allocateCommand(
+    CtsCmdSetLineWidth* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_LINE_WIDTH,
+        CtsCmdSetLineWidth,
         0
     );
 
@@ -1092,9 +1106,9 @@ void VKAPI_CALL ctsCmdSetScissor(
 
     size_t scissorsSize = scissorCount * sizeof(VkRect2D);
 
-    CtsCmdSetScissor* cmd = allocateCommand(
+    CtsCmdSetScissor* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_SCISSOR,
+        CtsCmdSetScissor,
         scissorsSize
     );
 
@@ -1114,9 +1128,9 @@ void VKAPI_CALL ctsCmdSetStencilCompareMask(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetStencilCompareMask* cmd = allocateCommand(
+    CtsCmdSetStencilCompareMask* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_STENCIL_COMPARE_MASK,
+        CtsCmdSetStencilCompareMask,
         0
     );
 
@@ -1132,9 +1146,9 @@ void VKAPI_CALL ctsCmdSetStencilReference(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetStencilReference* cmd = allocateCommand(
+    CtsCmdSetStencilReference* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_STENCIL_REFERENCE,
+        CtsCmdSetStencilReference,
         0
     );
 
@@ -1150,9 +1164,9 @@ void VKAPI_CALL ctsCmdSetStencilWriteMask(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdSetStencilWriteMask* cmd = allocateCommand(
+    CtsCmdSetStencilWriteMask* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_STENCIL_WRITE_MASK,
+        CtsCmdSetStencilWriteMask,
         0
     );
 
@@ -1171,9 +1185,9 @@ void VKAPI_CALL ctsCmdSetViewport(
 
     size_t viewportsSize = viewportCount * sizeof(VkViewport);
 
-    CtsCmdSetViewport* cmd = allocateCommand(
+    CtsCmdSetViewport* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_SET_VIEWPORT,
+        CtsCmdSetViewport,
         viewportsSize
     );
 
@@ -1195,9 +1209,9 @@ void VKAPI_CALL ctsCmdUpdateBuffer(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdUpdateBuffer* cmd = allocateCommand(
+    CtsCmdUpdateBuffer* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_UPDATE_BUFFER,
+        CtsCmdUpdateBuffer,
         dataSize
     );
 
@@ -1230,9 +1244,9 @@ void VKAPI_CALL ctsCmdWaitEvents(
     size_t bufferMemoryBarriersSize = bufferMemoryBarrierCount * sizeof(VkBufferMemoryBarrier);
     size_t imageMemoryBarriersSize = imageMemoryBarrierCount * sizeof(VkImageMemoryBarrier);
 
-    CtsCmdWaitEvents* cmd = allocateCommand(
+    CtsCmdWaitEvents* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_WAIT_EVENTS,
+        CtsCmdWaitEvents,
         memoryBarriersSize + bufferMemoryBarriersSize + imageMemoryBarriersSize
     );
 
@@ -1265,9 +1279,9 @@ void VKAPI_CALL ctsCmdWriteTimestamp(
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
 
-    CtsCmdWriteTimestamp* cmd = allocateCommand(
+    CtsCmdWriteTimestamp* cmd = ALLOCATE_COMMAND(
         commandBuffer,
-        CTS_COMMAND_CMD_WRITE_TIMESTAMP,
+        CtsCmdWriteTimestamp,
         0
     );
 
@@ -1920,7 +1934,6 @@ void ctsCmdExecuteCommandsImpl(
     const VkCommandBuffer* pCommandBuffers
 ) {
     struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(commandBufferHandle);
-    const CtsCommandMetadata* commandMetadata;
 
     for (uint32_t i = 0; i < commandBufferCount; ++i) {
         const struct CtsCommandBuffer* commandBuffer = CtsCommandBufferFromHandle(pCommandBuffers[i]);
@@ -1929,10 +1942,10 @@ void ctsCmdExecuteCommandsImpl(
             continue;
         }
 
+        // TODO: This is handled wrong, should be copied to the main command buffer, not actually execute here.
         const CtsCmdBase* next = commandBuffer->root;
         while (next != NULL) {
-            commandMetadata = ctsGetCommandMetadata(next->type);
-            commandMetadata->handler(next);
+            next->pMetadata->pfnHandler(next);
             next = next->pNext;
         }
     }
@@ -2668,22 +2681,23 @@ static void bindColorBlendState(
     }
 }
 
-
 static void* allocateCommand(
     struct CtsCommandBuffer* pCommandBuffer,
-    CtsCommandType commandType,
+    size_t size,
+    size_t align,
+    CtsCmdMetadata* pMetadata,
     size_t extraDataLen
 ) {
-    const CtsCommandMetadata* metadata = ctsGetCommandMetadata(commandType);
     CtsCmdBase* cmd = ctsAllocation(
         &pCommandBuffer->allocator,
-        metadata->size + extraDataLen,
-        metadata->align,
+        size + extraDataLen,
+        align,
         VK_SYSTEM_ALLOCATION_SCOPE_COMMAND
     );
 
-    cmd->type = commandType;
     cmd->pNext = NULL;
+    cmd->pMetadata = pMetadata;
+    cmd->extraDataLen = extraDataLen;
 
     if (pCommandBuffer->root == NULL) {
         pCommandBuffer->root = cmd;

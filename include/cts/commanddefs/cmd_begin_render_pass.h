@@ -15,13 +15,15 @@ typedef struct CtsCmdBeginRenderPass {
     VkSubpassContents contents;
 } CtsCmdBeginRenderPass;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBeginRenderPass, 
     ctsCmdBeginRenderPassImpl, 
     commandBuffer, 
     pRenderPassBegin, 
     contents
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBeginRenderPass);
 
 #ifdef __cplusplus
 }

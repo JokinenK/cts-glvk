@@ -14,12 +14,14 @@ typedef struct CtsCmdSetLineWidth {
     float lineWidth;
 } CtsCmdSetLineWidth;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetLineWidth, 
     ctsCmdSetLineWidthImpl, 
     commandBuffer,
     lineWidth
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetLineWidth);
 
 #ifdef __cplusplus
 }

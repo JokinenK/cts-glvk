@@ -18,7 +18,7 @@ typedef struct CtsCmdClearColorImage {
     const VkImageSubresourceRange* pRanges;
 } CtsCmdClearColorImage;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdClearColorImage, 
     ctsCmdClearColorImageImpl, 
     commandBuffer, 
@@ -28,6 +28,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     rangeCount,
     pRanges
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdClearColorImage);
 
 #ifdef __cplusplus
 }

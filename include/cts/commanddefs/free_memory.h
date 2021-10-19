@@ -15,13 +15,15 @@ typedef struct CtsFreeMemory {
     const VkAllocationCallbacks* pAllocator;
 } CtsFreeMemory;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsFreeMemory,
     ctsFreeMemoryImpl,
     device,
     memory,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsFreeMemory);
 
 #ifdef __cplusplus
 }

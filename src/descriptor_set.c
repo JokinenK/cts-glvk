@@ -50,8 +50,8 @@ VkResult VKAPI_CALL ctsAllocateDescriptorSets(
 
     VkResult result;
     CtsAllocateDescriptorSets cmd;
-    cmd.base.type = CTS_COMMAND_ALLOCATE_DESCRIPTOR_SETS;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsAllocateDescriptorSets);
 
     cmd.device = deviceHandle;
     cmd.pAllocateInfo = pAllocateInfo;
@@ -72,8 +72,8 @@ void VKAPI_CALL ctsUpdateDescriptorSets(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsUpdateDescriptorSets cmd;
-    cmd.base.type = CTS_COMMAND_UPDATE_DESCRIPTOR_SETS;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsUpdateDescriptorSets);
 
     cmd.device = deviceHandle;
     cmd.descriptorWriteCount = descriptorWriteCount;
@@ -94,8 +94,8 @@ VkResult VKAPI_CALL ctsFreeDescriptorSets(
 
     VkResult result;
     CtsFreeDescriptorSets cmd;
-    cmd.base.type = CTS_COMMAND_FREE_DESCRIPTOR_SETS;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsFreeDescriptorSets);
 
     cmd.device = deviceHandle;
     cmd.descriptorPool = descriptorPool;

@@ -16,13 +16,15 @@ typedef struct CtsAllocateDescriptorSets {
     VkResult* pResult;
 } CtsAllocateDescriptorSets;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsAllocateDescriptorSets, 
     ctsAllocateDescriptorSetsImpl, 
     device, 
     pAllocateInfo, 
     pDescriptorSets
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsAllocateDescriptorSets);
 
 #ifdef __cplusplus
 }

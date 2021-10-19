@@ -15,13 +15,15 @@ typedef struct CtsCmdResetEvent {
     VkPipelineStageFlags stageMask;
 } CtsCmdResetEvent;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdResetEvent, 
     ctsCmdResetEventImpl, 
     commandBuffer,
     event,
     stageMask
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdResetEvent);
 
 #ifdef __cplusplus
 }

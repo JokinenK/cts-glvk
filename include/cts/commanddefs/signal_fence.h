@@ -14,12 +14,14 @@ typedef struct CtsSignalFence {
     VkFence fence;
 } CtsSignalFence;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsSignalFence,
     ctsSignalFenceImpl,
     device,
     fence
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsSignalFence);
 
 #ifdef __cplusplus
 }

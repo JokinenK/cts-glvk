@@ -23,7 +23,7 @@ typedef struct CtsCmdWaitEvents {
     const VkImageMemoryBarrier* pImageMemoryBarriers;
 } CtsCmdWaitEvents;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdWaitEvents, 
     ctsCmdWaitEventsImpl, 
     commandBuffer,
@@ -38,6 +38,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     imageMemoryBarrierCount,
     pImageMemoryBarriers
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdWaitEvents);
 
 #ifdef __cplusplus
 }

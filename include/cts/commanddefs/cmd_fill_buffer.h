@@ -17,7 +17,7 @@ typedef struct CtsCmdFillBuffer {
     uint32_t data;
 } CtsCmdFillBuffer;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdFillBuffer, 
     ctsCmdFillBufferImpl, 
     commandBuffer,
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     size,
     data
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdFillBuffer);
 
 #ifdef __cplusplus
 }

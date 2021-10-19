@@ -14,12 +14,14 @@ typedef struct CtsCmdSetDeviceMask {
     uint32_t deviceMask;
 } CtsCmdSetDeviceMask;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetDeviceMask, 
     ctsCmdSetDeviceMaskImpl, 
     commandBuffer,
     deviceMask
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetDeviceMask);
 
 #ifdef __cplusplus
 }

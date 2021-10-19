@@ -19,7 +19,7 @@ typedef struct CtsCmdCopyImage {
     const VkImageCopy* pRegions;
 } CtsCmdCopyImage;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdCopyImage, 
     ctsCmdCopyImageImpl, 
     commandBuffer, 
@@ -30,6 +30,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     regionCount,
     pRegions
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdCopyImage);
 
 #ifdef __cplusplus
 }

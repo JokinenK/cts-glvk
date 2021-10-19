@@ -40,8 +40,8 @@ VkResult VKAPI_CALL ctsCreateWin32SurfaceKHR(
 
     VkResult result;
     CtsCreateWin32SurfaceKHR cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_WIN32_SURFACE_KHR;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateWin32SurfaceKHR);
 
     cmd.instance = instanceHandle;
     cmd.pCreateInfo = pCreateInfo;
@@ -61,8 +61,8 @@ void VKAPI_CALL ctsDestroySurfaceKHR(
     struct CtsInstance* instance = CtsInstanceFromHandle(instanceHandle);
 
     CtsDestroySurfaceKHR cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_SURFACE_KHR;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroySurfaceKHR);
 
     cmd.instance = instanceHandle;
     cmd.surface = surfaceHandle;

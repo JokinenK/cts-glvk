@@ -16,7 +16,7 @@ typedef struct CtsCmdSetScissor {
     const VkRect2D* pScissors;
 } CtsCmdSetScissor;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetScissor, 
     ctsCmdSetScissorImpl, 
     commandBuffer,
@@ -24,6 +24,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     scissorCount,
     pScissors
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetScissor);
 
 #ifdef __cplusplus
 }

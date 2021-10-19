@@ -20,7 +20,7 @@ typedef struct CtsCmdBlitImage {
     VkFilter filter;
 } CtsCmdBlitImage;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBlitImage, 
     ctsCmdBlitImageImpl, 
     commandBuffer, 
@@ -32,6 +32,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     pRegions,
     filter
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBlitImage);
 
 #ifdef __cplusplus
 }

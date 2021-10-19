@@ -1,10 +1,18 @@
 #pragma once
 
 #include "cts/macros.h"
+#include "cts/util/align.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef void (*CtsCmdHandlerFn)(const struct CtsCmdBase*);
+typedef struct CtsCmdMetadata {
+    CtsCmdHandlerFn pfnHandler;
+    size_t size;
+    size_t align;
+} CtsCmdMetadata;
 
 #define EXPAND_ARG_15(First, ...) GLUE(cmd->, First) ## , EXPAND(EXPAND_ARG_14(__VA_ARGS__))
 #define EXPAND_ARG_14(First, ...) GLUE(cmd->, First) ## , EXPAND(EXPAND_ARG_13(__VA_ARGS__))
@@ -23,25 +31,37 @@ extern "C" {
 #define EXPAND_ARG_1(First, ...) GLUE(cmd->, First)
 #define EXPAND_ARG_N(NumArgs) GLUE(EXPAND_ARG_, EXPAND(NumArgs))
 
-#define CTS_TRAMPOLINE_FN(StructName) _##StructName##Trampoline
+#define CTS_COMMAND_TRAMPOLINE_NAME(StructName) _TRAMPOLINE_##StructName
+#define CTS_COMMAND_METADATA_NAME(StructName) _REFLECT_##StructName
 
-#define CTS_DEFINE_TRAMPOLINE(StructName, FuncName, ...)                       \
-    static void CTS_TRAMPOLINE_FN(StructName)(const struct CtsCmdBase* pCmd) { \
-        const struct StructName* cmd = (const struct StructName*) pCmd;        \
-        *cmd->pResult = FuncName(                                              \
-            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))              \
-        );                                                                     \
+#define CTS_COMMAND_TRAMPOLINE(StructName)                                               \
+    (CtsCmdHandlerFn)&CTS_COMMAND_TRAMPOLINE_NAME(StructName)
+
+#define CTS_COMMAND_METADATA(StructName)                                                 \
+    (CtsCmdMetadata*)&CTS_COMMAND_METADATA_NAME(StructName)
+
+#define CTS_DEFINE_COMMAND_TRAMPOLINE(StructName, FuncName, ...)                         \
+    static void CTS_COMMAND_TRAMPOLINE_NAME(StructName)(const struct CtsCmdBase* pCmd) { \
+        const struct StructName* cmd = (const struct StructName*) pCmd;                  \
+        *cmd->pResult = FuncName(                                                        \
+            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))                        \
+        );                                                                               \
     }
 
-#define CTS_DEFINE_TRAMPOLINE_VOID(StructName, FuncName, ...)                  \
-    static void CTS_TRAMPOLINE_FN(StructName)(const struct CtsCmdBase* pCmd) { \
-        const struct StructName* cmd = (const struct StructName*) pCmd;        \
-        FuncName(                                                              \
-            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))              \
-        );                                                                     \
+#define CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(StructName, FuncName, ...)                    \
+    static void CTS_COMMAND_TRAMPOLINE_NAME(StructName)(const struct CtsCmdBase* pCmd) { \
+        const struct StructName* cmd = (const struct StructName*) pCmd;                  \
+        FuncName(                                                                        \
+            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))                        \
+        );                                                                               \
     }
 
-typedef void (*CtsCmdTrampolineFn)(const struct CtsCmdBase*);
+#define CTS_DEFINE_COMMAND_METADATA(StructName)                                          \
+    static const CtsCmdMetadata CTS_COMMAND_METADATA_NAME(StructName) = {                \
+        CTS_COMMAND_TRAMPOLINE(StructName),                                              \
+        sizeof(StructName),                                                              \
+        alignof(StructName)                                                              \
+    }
 
 #ifdef __cplusplus
 }

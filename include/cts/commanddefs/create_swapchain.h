@@ -17,7 +17,7 @@ typedef struct CtsCreateSwapchainKHR {
     VkResult* pResult;
 } CtsCreateSwapchainKHR;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateSwapchainKHR,
     ctsCreateSwapchainKHRImpl,
     device,
@@ -25,6 +25,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pSwapchain
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateSwapchainKHR);
 
 #ifdef __cplusplus
 }

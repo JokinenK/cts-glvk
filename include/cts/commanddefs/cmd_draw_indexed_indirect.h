@@ -17,7 +17,7 @@ typedef struct CtsCmdDrawIndexedIndirect {
     uint32_t stride;
 } CtsCmdDrawIndexedIndirect;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdDrawIndexedIndirect, 
     ctsCmdDrawIndexedIndirectImpl,
     commandBuffer, 
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     drawCount,
     stride
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdDrawIndexedIndirect);
 
 #ifdef __cplusplus
 }

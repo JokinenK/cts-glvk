@@ -20,7 +20,7 @@ typedef struct CtsCreateGraphicsPipelines {
     VkResult* pResult;
 } CtsCreateGraphicsPipelines;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateGraphicsPipelines, 
     ctsCreateGraphicsPipelinesImpl, 
     device,
@@ -30,6 +30,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pPipelines
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateGraphicsPipelines);
 
 #ifdef __cplusplus
 }

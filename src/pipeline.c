@@ -148,8 +148,8 @@ VkResult VKAPI_CALL ctsCreateGraphicsPipelines(
 
     VkResult result;
     CtsCreateGraphicsPipelines cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_GRAPHICS_PIPELINES;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateGraphicsPipelines);
 
     cmd.device = deviceHandle;
     cmd.pipelineCache = pipelineCache;
@@ -171,8 +171,9 @@ void VKAPI_CALL ctsDestroyPipeline(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsDestroyPipeline cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_PIPELINE;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroyPipeline);
+
     cmd.device = deviceHandle;
     cmd.pipeline = pipeline;
     cmd.pAllocator = pAllocator;

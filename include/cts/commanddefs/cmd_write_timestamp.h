@@ -16,7 +16,7 @@ typedef struct CtsCmdWriteTimestamp {
     uint32_t query;
 } CtsCmdWriteTimestamp;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdWriteTimestamp, 
     ctsCmdWriteTimestampImpl, 
     commandBuffer,
@@ -24,6 +24,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     queryPool,
     query
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdWriteTimestamp);
 
 #ifdef __cplusplus
 }

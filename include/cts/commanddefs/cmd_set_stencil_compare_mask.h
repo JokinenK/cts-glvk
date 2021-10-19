@@ -15,13 +15,15 @@ typedef struct CtsCmdSetStencilCompareMask {
     uint32_t compareMask;
 } CtsCmdSetStencilCompareMask;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetStencilCompareMask, 
     ctsCmdSetStencilCompareMaskImpl, 
     commandBuffer,
     faceMask,
     compareMask
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetStencilCompareMask);
 
 #ifdef __cplusplus
 }

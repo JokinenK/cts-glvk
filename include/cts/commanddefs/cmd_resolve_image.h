@@ -19,7 +19,7 @@ typedef struct CtsCmdResolveImage {
     VkImageResolve* pRegions;
 } CtsCmdResolveImage;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdResolveImage, 
     ctsCmdResolveImageImpl, 
     commandBuffer,
@@ -30,6 +30,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     regionCount,
     pRegions
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdResolveImage);
 
 #ifdef __cplusplus
 }

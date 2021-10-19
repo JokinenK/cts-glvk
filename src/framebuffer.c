@@ -25,8 +25,8 @@ VkResult VKAPI_CALL ctsCreateFramebuffer(
 
     VkResult result;
     CtsCreateFramebuffer cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_FRAMEBUFFER;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateFramebuffer);
 
     cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
@@ -46,8 +46,8 @@ void VKAPI_CALL ctsDestroyFramebuffer(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsDestroyFramebuffer cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_FRAMEBUFFER;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroyFramebuffer);
 
     cmd.device = deviceHandle;
     cmd.framebuffer = framebuffer;

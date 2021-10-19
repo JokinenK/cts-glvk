@@ -15,12 +15,14 @@ typedef struct CtsQueuePresentKHR {
     VkResult* pResult;
 } CtsQueuePresentKHR;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsQueuePresentKHR,
     ctsQueuePresentKHRImpl,
     queue,
     pPresentInfo
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsQueuePresentKHR);
 
 #ifdef __cplusplus
 }

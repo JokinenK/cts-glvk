@@ -19,7 +19,7 @@ typedef struct CtsCmdDispatchBase {
     uint32_t groupCountZ;
 } CtsCmdDispatchBase;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdDispatchBase, 
     ctsCmdDispatchBaseImpl, 
     commandBuffer,
@@ -30,6 +30,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     groupCountY,
     groupCountZ
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdDispatchBase);
 
 #ifdef __cplusplus
 }

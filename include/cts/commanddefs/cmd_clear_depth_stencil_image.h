@@ -18,7 +18,7 @@ typedef struct CtsCmdClearDepthStencilImage {
     const VkImageSubresourceRange* pRanges;
 } CtsCmdClearDepthStencilImage;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdClearDepthStencilImage, 
     ctsCmdClearDepthStencilImageImpl, 
     commandBuffer, 
@@ -28,6 +28,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     rangeCount,
     pRanges
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdClearDepthStencilImage);
 
 #ifdef __cplusplus
 }

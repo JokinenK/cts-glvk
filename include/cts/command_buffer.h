@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include "vulkan/vk_layer.h"
 #include "vulkan/vulkan_core.h"
-#include "cts/commanddefs/command_types.h"
 #include "cts/macros.h"
 
 #ifdef __cplusplus

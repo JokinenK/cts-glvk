@@ -21,8 +21,8 @@ VkResult VKAPI_CALL ctsCreateFence(
 
     VkResult result;
     CtsCreateFence cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_FENCE;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateFence);
 
     cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
@@ -43,8 +43,8 @@ VkResult VKAPI_CALL ctsResetFences(
 
     VkResult result;
     CtsResetFences cmd;
-    cmd.base.type = CTS_COMMAND_RESET_FENCES;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsResetFences);
 
     cmd.device = deviceHandle;
     cmd.fenceCount = fenceCount;
@@ -63,8 +63,8 @@ VkResult VKAPI_CALL ctsGetFenceStatus(
 
     VkResult result;
     CtsGetFenceStatus cmd;
-    cmd.base.type = CTS_COMMAND_GET_FENCE_STATUS;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsGetFenceStatus);
 
     cmd.device = deviceHandle;
     cmd.fence = fence;
@@ -81,8 +81,8 @@ void ctsSignalFence(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsSignalFence cmd;
-    cmd.base.type = CTS_COMMAND_SIGNAL_FENCE;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsSignalFence);
 
     cmd.device = deviceHandle;
     cmd.fence = fence;
@@ -101,8 +101,8 @@ VkResult VKAPI_CALL ctsWaitForFences(
 
     VkResult result;
     CtsWaitForFences cmd;
-    cmd.base.type = CTS_COMMAND_WAIT_FOR_FENCES;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsWaitForFences);
 
     cmd.device = deviceHandle;
     cmd.fenceCount = fenceCount;
@@ -123,8 +123,8 @@ void VKAPI_CALL ctsDestroyFence(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsDestroyFence cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_FENCE;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroyFence);
 
     cmd.device = deviceHandle;
     cmd.fence = fence;

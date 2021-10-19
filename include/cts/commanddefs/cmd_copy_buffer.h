@@ -17,7 +17,7 @@ typedef struct CtsCmdCopyBuffer {
     const VkBufferCopy* pRegions;
 } CtsCmdCopyBuffer;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdCopyBuffer, 
     ctsCmdCopyBufferImpl,
     commandBuffer, 
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     regionCount,
     pRegions
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdCopyBuffer);
 
 #ifdef __cplusplus
 }

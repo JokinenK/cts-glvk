@@ -15,12 +15,14 @@ typedef struct CtsGetFenceStatus {
     VkResult* pResult;
 } CtsGetFenceStatus;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsGetFenceStatus,
     ctsGetFenceStatusImpl,
     device,
     fence
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsGetFenceStatus);
 
 #ifdef __cplusplus
 }

@@ -17,7 +17,7 @@ typedef struct CtsCmdDraw {
     uint32_t firstInstance;
 } CtsCmdDraw;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdDraw, 
     ctsCmdDrawImpl, 
     commandBuffer, 
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     firstVertex,
     firstInstance
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdDraw);
 
 #ifdef __cplusplus
 }

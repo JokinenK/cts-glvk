@@ -17,7 +17,7 @@ typedef struct CtsCmdBindVertexBuffers {
     const VkDeviceSize* pOffsets;
 } CtsCmdBindVertexBuffers;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBindVertexBuffers, 
     ctsCmdBindVertexBuffersImpl, 
     commandBuffer, 
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     pBuffers,
     pOffsets
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBindVertexBuffers);
 
 #ifdef __cplusplus
 }

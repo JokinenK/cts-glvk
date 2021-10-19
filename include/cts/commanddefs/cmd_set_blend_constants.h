@@ -14,12 +14,14 @@ typedef struct CtsCmdSetBlendConstants {
     float blendConstants[4];
 } CtsCmdSetBlendConstants;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetBlendConstants, 
     ctsCmdSetBlendConstantsImpl, 
     commandBuffer,
     blendConstants
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetBlendConstants);
 
 #ifdef __cplusplus
 }

@@ -17,7 +17,7 @@ typedef struct CtsCreateSampler {
     VkResult* pResult;
 } CtsCreateSampler;
 
-CTS_DEFINE_TRAMPOLINE(
+CTS_DEFINE_COMMAND_TRAMPOLINE(
     CtsCreateSampler,
     ctsCreateSamplerImpl,
     device,
@@ -25,6 +25,8 @@ CTS_DEFINE_TRAMPOLINE(
     pAllocator,
     pSampler
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCreateSampler);
 
 #ifdef __cplusplus
 }

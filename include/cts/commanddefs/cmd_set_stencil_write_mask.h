@@ -15,13 +15,15 @@ typedef struct CtsCmdSetStencilWriteMask {
     uint32_t writeMask;
 } CtsCmdSetStencilWriteMask;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetStencilWriteMask, 
     ctsCmdSetStencilWriteMaskImpl, 
     commandBuffer,
     faceMask,
     writeMask
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetStencilWriteMask);
 
 #ifdef __cplusplus
 }

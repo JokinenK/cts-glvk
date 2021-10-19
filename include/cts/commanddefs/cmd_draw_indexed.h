@@ -18,7 +18,7 @@ typedef struct CtsCmdDrawIndexed {
     uint32_t firstInstance;
 } CtsCmdDrawIndexed;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdDrawIndexed, 
     ctsCmdDrawIndexedImpl,
     commandBuffer, 
@@ -28,6 +28,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     vertexOffset,
     firstInstance
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdDrawIndexed);
 
 #ifdef __cplusplus
 }

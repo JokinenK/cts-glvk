@@ -16,7 +16,7 @@ typedef struct CtsCmdDispatch {
     uint32_t groupCountZ;
 } CtsCmdDispatch;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdDispatch, 
     ctsCmdDispatchImpl,
     commandBuffer, 
@@ -24,6 +24,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     groupCountY,
     groupCountZ
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdDispatch);
 
 #ifdef __cplusplus
 }

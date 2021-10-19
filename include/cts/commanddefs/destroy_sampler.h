@@ -15,13 +15,15 @@ typedef struct CtsDestroySampler {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroySampler;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroySampler,
     ctsDestroySamplerImpl,
     device,
     sampler,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroySampler);
 
 #ifdef __cplusplus
 }

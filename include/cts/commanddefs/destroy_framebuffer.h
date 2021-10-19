@@ -15,13 +15,15 @@ typedef struct CtsDestroyFramebuffer {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroyFramebuffer;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroyFramebuffer,
     ctsDestroyFramebufferImpl,
     device,
     framebuffer,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroyFramebuffer);
 
 #ifdef __cplusplus
 }

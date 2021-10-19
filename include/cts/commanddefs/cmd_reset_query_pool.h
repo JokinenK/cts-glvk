@@ -16,7 +16,7 @@ typedef struct CtsCmdResetQueryPool {
     uint32_t queryCount;
 } CtsCmdResetQueryPool;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdResetQueryPool, 
     ctsCmdResetQueryPoolImpl, 
     commandBuffer,
@@ -24,6 +24,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     firstQuery,
     queryCount
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdResetQueryPool);
 
 #ifdef __cplusplus
 }

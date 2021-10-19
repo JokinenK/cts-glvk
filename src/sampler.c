@@ -21,8 +21,8 @@ VkResult VKAPI_CALL ctsCreateSampler(
 
     VkResult result;
     CtsCreateSampler cmd;
-    cmd.base.type = CTS_COMMAND_CREATE_SAMPLER;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsCreateSampler);
 
     cmd.device = deviceHandle;
     cmd.pCreateInfo = pCreateInfo;
@@ -43,8 +43,8 @@ void VKAPI_CALL ctsDestroySampler(
     struct CtsDevice* device = CtsDeviceFromHandle(deviceHandle);
 
     CtsDestroySampler cmd;
-    cmd.base.type = CTS_COMMAND_DESTROY_SAMPLER;
     cmd.base.pNext = NULL;
+    cmd.base.pMetadata = CTS_COMMAND_METADATA(CtsDestroySampler);
 
     cmd.device = deviceHandle;
     cmd.sampler = sampler;

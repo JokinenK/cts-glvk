@@ -16,7 +16,7 @@ typedef struct CtsCmdBindIndexBuffer {
     VkIndexType indexType;
 } CtsCmdBindIndexBuffer;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdBindIndexBuffer, 
     ctsCmdBindIndexBufferImpl, 
     commandBuffer, 
@@ -24,6 +24,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     offset,
     indexType
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdBindIndexBuffer);
 
 #ifdef __cplusplus
 }

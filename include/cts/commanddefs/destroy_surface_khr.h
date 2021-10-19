@@ -15,13 +15,15 @@ typedef struct CtsDestroySurfaceKHR {
     const VkAllocationCallbacks* pAllocator;
 } CtsDestroySurfaceKHR;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsDestroySurfaceKHR,
     ctsDestroySurfaceKHRImpl,
     instance,
     surface,
     pAllocator
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsDestroySurfaceKHR);
 
 #ifdef __cplusplus
 }

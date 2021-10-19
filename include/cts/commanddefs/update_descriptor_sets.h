@@ -18,7 +18,7 @@ typedef struct CtsUpdateDescriptorSets {
     const VkCopyDescriptorSet* pDescriptorCopies;
 } CtsUpdateDescriptorSets;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsUpdateDescriptorSets,
     ctsUpdateDescriptorSetsImpl,
     device,
@@ -27,6 +27,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     descriptorCopyCount,
     pDescriptorCopies
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsUpdateDescriptorSets);
 
 #ifdef __cplusplus
 }

@@ -17,7 +17,7 @@ typedef struct CtsCmdUpdateBuffer {
     const void* pData;
 } CtsCmdUpdateBuffer;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdUpdateBuffer, 
     ctsCmdUpdateBufferImpl, 
     commandBuffer,
@@ -26,6 +26,8 @@ CTS_DEFINE_TRAMPOLINE_VOID(
     dataSize,
     pData
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdUpdateBuffer);
 
 #ifdef __cplusplus
 }

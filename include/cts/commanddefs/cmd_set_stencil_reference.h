@@ -15,13 +15,15 @@ typedef struct CtsCmdSetStencilReference {
     uint32_t reference;
 } CtsCmdSetStencilReference;
 
-CTS_DEFINE_TRAMPOLINE_VOID(
+CTS_DEFINE_COMMAND_TRAMPOLINE_VOID(
     CtsCmdSetStencilReference, 
     ctsCmdSetStencilReferenceImpl, 
     commandBuffer,
     faceMask,
     reference
 );
+
+CTS_DEFINE_COMMAND_METADATA(CtsCmdSetStencilReference);
 
 #ifdef __cplusplus
 }
