@@ -16,7 +16,8 @@ typedef struct CtsDestroySurfaceKHR {
 } CtsDestroySurfaceKHR;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroySurfaceKHR,
+    CtsDestroySurfaceKHR,
+    ctsDestroySurfaceKHRImpl,
     instance,
     surface,
     pAllocator

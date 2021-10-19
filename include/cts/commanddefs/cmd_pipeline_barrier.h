@@ -23,7 +23,8 @@ typedef struct CtsCmdPipelineBarrier {
 } CtsCmdPipelineBarrier;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdPipelineBarrier, 
+    CtsCmdPipelineBarrier, 
+    ctsCmdPipelineBarrierImpl,
     commandBuffer,
     srcStageMask,
     dstStageMask,

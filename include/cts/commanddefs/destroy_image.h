@@ -16,7 +16,8 @@ typedef struct CtsDestroyImage {
 } CtsDestroyImage;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroyImage,
+    CtsDestroyImage,
+    ctsDestroyImageImpl,
     device,
     image,
     pAllocator

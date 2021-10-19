@@ -18,7 +18,8 @@ typedef struct CtsCreateImage {
 } CtsCreateImage;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateImage,
+    CtsCreateImage,
+    ctsCreateImageImpl,
     device,
     pCreateInfo,
     pAllocator,

@@ -24,7 +24,8 @@ typedef struct CtsCmdWaitEvents {
 } CtsCmdWaitEvents;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdWaitEvents, 
+    CtsCmdWaitEvents, 
+    ctsCmdWaitEventsImpl, 
     commandBuffer,
     eventCount,
     events,

@@ -15,7 +15,8 @@ typedef struct CtsCmdSetBlendConstants {
 } CtsCmdSetBlendConstants;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetBlendConstants, 
+    CtsCmdSetBlendConstants, 
+    ctsCmdSetBlendConstantsImpl, 
     commandBuffer,
     blendConstants
 );

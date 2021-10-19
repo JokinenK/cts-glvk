@@ -17,7 +17,8 @@ typedef struct CtsCmdSetViewport {
 } CtsCmdSetViewport;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetViewport, 
+    CtsCmdSetViewport, 
+    ctsCmdSetViewportImpl, 
     commandBuffer,
     firstViewport,
     viewportCount,

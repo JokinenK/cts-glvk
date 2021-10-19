@@ -17,7 +17,8 @@ typedef struct CtsCmdWriteTimestamp {
 } CtsCmdWriteTimestamp;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdWriteTimestamp, 
+    CtsCmdWriteTimestamp, 
+    ctsCmdWriteTimestampImpl, 
     commandBuffer,
     pipelineStage,
     queryPool,

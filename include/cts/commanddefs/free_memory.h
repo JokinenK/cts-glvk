@@ -16,7 +16,8 @@ typedef struct CtsFreeMemory {
 } CtsFreeMemory;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    FreeMemory,
+    CtsFreeMemory,
+    ctsFreeMemoryImpl,
     device,
     memory,
     pAllocator

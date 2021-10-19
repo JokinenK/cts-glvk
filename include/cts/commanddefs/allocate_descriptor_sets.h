@@ -17,7 +17,8 @@ typedef struct CtsAllocateDescriptorSets {
 } CtsAllocateDescriptorSets;
 
 CTS_DEFINE_TRAMPOLINE(
-    AllocateDescriptorSets, 
+    CtsAllocateDescriptorSets, 
+    ctsAllocateDescriptorSetsImpl, 
     device, 
     pAllocateInfo, 
     pDescriptorSets

@@ -21,7 +21,8 @@ typedef struct CtsMapMemory {
 } CtsMapMemory;
 
 CTS_DEFINE_TRAMPOLINE(
-    MapMemory,
+    CtsMapMemory,
+    ctsMapMemoryImpl,
     device,
     memory,
     offset,

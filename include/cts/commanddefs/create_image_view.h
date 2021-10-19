@@ -18,7 +18,8 @@ typedef struct CtsCreateImageView {
 } CtsCreateImageView;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateImageView, 
+    CtsCreateImageView, 
+    ctsCreateImageViewImpl, 
     device,
     pCreateInfo,
     pAllocator,

@@ -19,7 +19,8 @@ typedef struct CtsCmdDrawIndexed {
 } CtsCmdDrawIndexed;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdDrawIndexed, 
+    CtsCmdDrawIndexed, 
+    ctsCmdDrawIndexedImpl,
     commandBuffer, 
     indexCount, 
     instanceCount,

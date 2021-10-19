@@ -17,7 +17,8 @@ typedef struct CtsResetFences {
 } CtsResetFences;
 
 CTS_DEFINE_TRAMPOLINE(
-    ResetFences,
+    CtsResetFences,
+    ctsResetFencesImpl,
     device,
     fenceCount,
     pFences

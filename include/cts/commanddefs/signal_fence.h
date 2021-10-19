@@ -15,7 +15,8 @@ typedef struct CtsSignalFence {
 } CtsSignalFence;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    SignalFence,
+    CtsSignalFence,
+    ctsSignalFenceImpl,
     device,
     fence
 );

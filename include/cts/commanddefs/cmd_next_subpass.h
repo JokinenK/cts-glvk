@@ -15,7 +15,8 @@ typedef struct CtsCmdNextSubpass {
 } CtsCmdNextSubpass;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdNextSubpass, 
+    CtsCmdNextSubpass, 
+    ctsCmdNextSubpassImpl, 
     commandBuffer,
     contents
 );

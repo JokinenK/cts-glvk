@@ -16,7 +16,8 @@ typedef struct CtsDestroySwapchainKHR {
 } CtsDestroySwapchainKHR;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroySwapchainKHR,
+    CtsDestroySwapchainKHR,
+    ctsDestroySwapchainKHRImpl,
     device,
     swapchain,
     pAllocator

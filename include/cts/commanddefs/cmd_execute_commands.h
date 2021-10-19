@@ -16,7 +16,8 @@ typedef struct CtsCmdExecuteCommands {
 } CtsCmdExecuteCommands;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdExecuteCommands, 
+    CtsCmdExecuteCommands, 
+    ctsCmdExecuteCommandsImpl, 
     commandBuffer,
     commandBufferCount,
     pCommandBuffers

@@ -19,7 +19,8 @@ typedef struct CtsWaitForFences {
 } CtsWaitForFences;
 
 CTS_DEFINE_TRAMPOLINE(
-    WaitForFences,
+    CtsWaitForFences,
+    ctsWaitForFencesImpl,
     device,
     fenceCount,
     pFences,

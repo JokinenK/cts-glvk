@@ -19,7 +19,8 @@ typedef struct CtsAllocateMemory {
 } CtsAllocateMemory;
 
 CTS_DEFINE_TRAMPOLINE(
-    AllocateMemory, 
+    CtsAllocateMemory, 
+    ctsAllocateMemoryImpl, 
     device, 
     pAllocateInfo, 
     pAllocator,

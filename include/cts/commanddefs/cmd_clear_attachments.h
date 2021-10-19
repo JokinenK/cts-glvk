@@ -18,7 +18,8 @@ typedef struct CtsCmdClearAttachments {
 } CtsCmdClearAttachments;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdClearAttachments, 
+    CtsCmdClearAttachments, 
+    ctsCmdClearAttachmentsImpl, 
     commandBuffer, 
     attachmentCount, 
     pAttachments,

@@ -21,7 +21,8 @@ typedef struct CtsCmdBindDescriptorSets {
 } CtsCmdBindDescriptorSets;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBindDescriptorSets, 
+    CtsCmdBindDescriptorSets, 
+    ctsCmdBindDescriptorSetsImpl, 
     commandBuffer, 
     pipelineBindPoint, 
     pipelineLayout,

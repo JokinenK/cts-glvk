@@ -16,7 +16,8 @@ typedef struct CtsCmdBindPipeline {
 } CtsCmdBindPipeline;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBindPipeline, 
+    CtsCmdBindPipeline, 
+    ctsCmdBindPipelineImpl, 
     commandBuffer, 
     pipelineBindPoint, 
     pipeline

@@ -18,7 +18,8 @@ typedef struct CtsCreateFramebuffer {
 } CtsCreateFramebuffer;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateFramebuffer, 
+    CtsCreateFramebuffer, 
+    ctsCreateFramebufferImpl,
     device,
     pCreateInfo,
     pAllocator,

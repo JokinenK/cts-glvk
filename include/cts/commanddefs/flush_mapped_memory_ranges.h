@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "vulkan/vulkan_core.h"
 #include "cts/commanddefs/cmd_base.h"
+#include "cts/device_memory_private.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +18,8 @@ typedef struct CtsFlushMappedMemoryRanges {
 } CtsFlushMappedMemoryRanges;
 
 CTS_DEFINE_TRAMPOLINE(
-    FlushMappedMemoryRanges,
+    CtsFlushMappedMemoryRanges,
+    ctsFlushMappedMemoryRangesImpl,
     device,
     memoryRangeCount,
     pMemoryRanges

@@ -17,7 +17,8 @@ typedef struct CtsCmdBeginQuery {
 } CtsCmdBeginQuery;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBeginQuery, 
+    CtsCmdBeginQuery, 
+    ctsCmdBeginQueryImpl, 
     commandBuffer, 
     queryPool, 
     query,

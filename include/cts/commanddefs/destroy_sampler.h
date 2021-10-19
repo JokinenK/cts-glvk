@@ -16,7 +16,8 @@ typedef struct CtsDestroySampler {
 } CtsDestroySampler;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroySampler,
+    CtsDestroySampler,
+    ctsDestroySamplerImpl,
     device,
     sampler,
     pAllocator

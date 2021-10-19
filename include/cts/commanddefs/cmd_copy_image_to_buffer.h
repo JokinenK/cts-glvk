@@ -19,7 +19,8 @@ typedef struct CtsCmdCopyImageToBuffer {
 } CtsCmdCopyImageToBuffer;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdCopyImageToBuffer, 
+    CtsCmdCopyImageToBuffer, 
+    ctsCmdCopyImageToBufferImpl, 
     commandBuffer, 
     srcImage, 
     srcImageLayout,

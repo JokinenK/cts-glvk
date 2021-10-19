@@ -16,7 +16,8 @@ typedef struct CtsCmdDispatchIndirect {
 } CtsCmdDispatchIndirect;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdDispatchIndirect, 
+    CtsCmdDispatchIndirect, 
+    ctsCmdDispatchIndirectImpl,
     commandBuffer, 
     buffer, 
     offset

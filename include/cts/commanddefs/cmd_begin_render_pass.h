@@ -16,7 +16,8 @@ typedef struct CtsCmdBeginRenderPass {
 } CtsCmdBeginRenderPass;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBeginRenderPass, 
+    CtsCmdBeginRenderPass, 
+    ctsCmdBeginRenderPassImpl, 
     commandBuffer, 
     pRenderPassBegin, 
     contents

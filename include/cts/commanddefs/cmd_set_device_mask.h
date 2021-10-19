@@ -15,7 +15,8 @@ typedef struct CtsCmdSetDeviceMask {
 } CtsCmdSetDeviceMask;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetDeviceMask, 
+    CtsCmdSetDeviceMask, 
+    ctsCmdSetDeviceMaskImpl, 
     commandBuffer,
     deviceMask
 );

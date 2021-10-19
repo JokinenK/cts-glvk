@@ -16,7 +16,8 @@ typedef struct CtsCmdEndQuery {
 } CtsCmdEndQuery;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdEndQuery, 
+    CtsCmdEndQuery, 
+    ctsCmdEndQueryImpl, 
     commandBuffer, 
     queryPool, 
     query

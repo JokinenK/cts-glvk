@@ -19,7 +19,8 @@ typedef struct CtsCmdPushConstants {
 } CtsCmdPushConstants;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdPushConstants, 
+    CtsCmdPushConstants, 
+    ctsCmdPushConstantsImpl, 
     commandBuffer,
     layout,
     stageFlags,

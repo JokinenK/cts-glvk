@@ -17,7 +17,8 @@ typedef struct CtsCmdResetQueryPool {
 } CtsCmdResetQueryPool;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdResetQueryPool, 
+    CtsCmdResetQueryPool, 
+    ctsCmdResetQueryPoolImpl, 
     commandBuffer,
     queryPool,
     firstQuery,

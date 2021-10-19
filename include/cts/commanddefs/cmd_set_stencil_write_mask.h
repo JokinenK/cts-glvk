@@ -16,7 +16,8 @@ typedef struct CtsCmdSetStencilWriteMask {
 } CtsCmdSetStencilWriteMask;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetStencilWriteMask, 
+    CtsCmdSetStencilWriteMask, 
+    ctsCmdSetStencilWriteMaskImpl, 
     commandBuffer,
     faceMask,
     writeMask

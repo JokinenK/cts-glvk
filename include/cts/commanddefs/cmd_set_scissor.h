@@ -17,7 +17,8 @@ typedef struct CtsCmdSetScissor {
 } CtsCmdSetScissor;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetScissor, 
+    CtsCmdSetScissor, 
+    ctsCmdSetScissorImpl, 
     commandBuffer,
     firstScissor,
     scissorCount,

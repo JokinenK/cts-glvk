@@ -21,7 +21,8 @@ typedef struct CtsCmdCopyQueryPoolResults {
 } CtsCmdCopyQueryPoolResults;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdCopyQueryPoolResults, 
+    CtsCmdCopyQueryPoolResults, 
+    ctsCmdCopyQueryPoolResultsImpl, 
     commandBuffer, 
     queryPool, 
     firstQuery,

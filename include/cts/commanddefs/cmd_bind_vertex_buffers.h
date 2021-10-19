@@ -18,7 +18,8 @@ typedef struct CtsCmdBindVertexBuffers {
 } CtsCmdBindVertexBuffers;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBindVertexBuffers, 
+    CtsCmdBindVertexBuffers, 
+    ctsCmdBindVertexBuffersImpl, 
     commandBuffer, 
     firstBinding, 
     bindingCount,

@@ -1809,7 +1809,7 @@ void ctsCmdDispatchBaseImpl(
     uint32_t groupCountY,
     uint32_t groupCountZ
 ) {
-    fprintf(stderr, "ctsCmdDispatchBaseImpl - not implemented");
+    fprintf(stderr, "ctsCmdDispatchBase - not implemented");
     abort();
 }
 

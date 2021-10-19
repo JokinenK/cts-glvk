@@ -16,7 +16,8 @@ typedef struct CtsCmdSetStencilCompareMask {
 } CtsCmdSetStencilCompareMask;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetStencilCompareMask, 
+    CtsCmdSetStencilCompareMask, 
+    ctsCmdSetStencilCompareMaskImpl, 
     commandBuffer,
     faceMask,
     compareMask

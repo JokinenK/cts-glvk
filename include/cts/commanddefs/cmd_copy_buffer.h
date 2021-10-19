@@ -18,7 +18,8 @@ typedef struct CtsCmdCopyBuffer {
 } CtsCmdCopyBuffer;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdCopyBuffer, 
+    CtsCmdCopyBuffer, 
+    ctsCmdCopyBufferImpl,
     commandBuffer, 
     srcBuffer, 
     dstBuffer,

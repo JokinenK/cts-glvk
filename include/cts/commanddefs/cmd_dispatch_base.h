@@ -20,7 +20,8 @@ typedef struct CtsCmdDispatchBase {
 } CtsCmdDispatchBase;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdDispatchBase, 
+    CtsCmdDispatchBase, 
+    ctsCmdDispatchBaseImpl, 
     commandBuffer,
     baseGroupX,
     baseGroupY,

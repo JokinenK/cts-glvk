@@ -18,7 +18,8 @@ typedef struct CtsCreateSampler {
 } CtsCreateSampler;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateSampler,
+    CtsCreateSampler,
+    ctsCreateSamplerImpl,
     device,
     pCreateInfo,
     pAllocator,

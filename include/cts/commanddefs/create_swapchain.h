@@ -18,7 +18,8 @@ typedef struct CtsCreateSwapchainKHR {
 } CtsCreateSwapchainKHR;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateSwapchainKHR,
+    CtsCreateSwapchainKHR,
+    ctsCreateSwapchainKHRImpl,
     device,
     pCreateInfo,
     pAllocator,

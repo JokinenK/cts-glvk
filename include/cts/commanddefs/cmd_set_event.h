@@ -16,7 +16,8 @@ typedef struct CtsCmdSetEvent {
 } CtsCmdSetEvent;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetEvent, 
+    CtsCmdSetEvent, 
+    ctsCmdSetEventImpl, 
     commandBuffer,
     event,
     stageMask

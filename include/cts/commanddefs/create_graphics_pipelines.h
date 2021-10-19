@@ -21,7 +21,8 @@ typedef struct CtsCreateGraphicsPipelines {
 } CtsCreateGraphicsPipelines;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateGraphicsPipelines, 
+    CtsCreateGraphicsPipelines, 
+    ctsCreateGraphicsPipelinesImpl, 
     device,
     pipelineCache,
     createInfoCount,

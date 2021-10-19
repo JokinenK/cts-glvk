@@ -14,7 +14,8 @@ typedef struct CtsCmdEndRenderPass {
 } CtsCmdEndRenderPass;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdEndRenderPass, 
+    CtsCmdEndRenderPass, 
+    ctsCmdEndRenderPassImpl, 
     commandBuffer
 );
 

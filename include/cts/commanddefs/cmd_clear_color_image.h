@@ -19,7 +19,8 @@ typedef struct CtsCmdClearColorImage {
 } CtsCmdClearColorImage;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdClearColorImage, 
+    CtsCmdClearColorImage, 
+    ctsCmdClearColorImageImpl, 
     commandBuffer, 
     image, 
     imageLayout,

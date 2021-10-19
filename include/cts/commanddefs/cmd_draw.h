@@ -18,7 +18,8 @@ typedef struct CtsCmdDraw {
 } CtsCmdDraw;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdDraw, 
+    CtsCmdDraw, 
+    ctsCmdDrawImpl, 
     commandBuffer, 
     vertexCount, 
     instanceCount,

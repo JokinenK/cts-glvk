@@ -20,7 +20,8 @@ typedef struct CtsCreateWin32SurfaceKHR {
 } CtsCreateWin32SurfaceKHR;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateWin32SurfaceKHR,
+    CtsCreateWin32SurfaceKHR,
+    ctsCreateWin32SurfaceKHRImpl,
     instance,
     pCreateInfo,
     pAllocator,

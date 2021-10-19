@@ -16,7 +16,8 @@ typedef struct CtsGetFenceStatus {
 } CtsGetFenceStatus;
 
 CTS_DEFINE_TRAMPOLINE(
-    GetFenceStatus,
+    CtsGetFenceStatus,
+    ctsGetFenceStatusImpl,
     device,
     fence
 );

@@ -15,7 +15,8 @@ typedef struct CtsCmdSetLineWidth {
 } CtsCmdSetLineWidth;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetLineWidth, 
+    CtsCmdSetLineWidth, 
+    ctsCmdSetLineWidthImpl, 
     commandBuffer,
     lineWidth
 );

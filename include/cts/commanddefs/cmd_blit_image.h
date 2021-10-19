@@ -21,7 +21,8 @@ typedef struct CtsCmdBlitImage {
 } CtsCmdBlitImage;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBlitImage, 
+    CtsCmdBlitImage, 
+    ctsCmdBlitImageImpl, 
     commandBuffer, 
     srcImage, 
     srcImageLayout,

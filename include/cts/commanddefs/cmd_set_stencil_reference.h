@@ -16,7 +16,8 @@ typedef struct CtsCmdSetStencilReference {
 } CtsCmdSetStencilReference;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetStencilReference, 
+    CtsCmdSetStencilReference, 
+    ctsCmdSetStencilReferenceImpl, 
     commandBuffer,
     faceMask,
     reference

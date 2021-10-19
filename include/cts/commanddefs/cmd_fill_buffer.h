@@ -18,7 +18,8 @@ typedef struct CtsCmdFillBuffer {
 } CtsCmdFillBuffer;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdFillBuffer, 
+    CtsCmdFillBuffer, 
+    ctsCmdFillBufferImpl, 
     commandBuffer,
     dstBuffer,
     dstOffset,

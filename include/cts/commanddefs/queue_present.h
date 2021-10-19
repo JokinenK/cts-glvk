@@ -16,7 +16,8 @@ typedef struct CtsQueuePresentKHR {
 } CtsQueuePresentKHR;
 
 CTS_DEFINE_TRAMPOLINE(
-    QueuePresentKHR,
+    CtsQueuePresentKHR,
+    ctsQueuePresentKHRImpl,
     queue,
     pPresentInfo
 );

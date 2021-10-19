@@ -18,7 +18,8 @@ typedef struct CtsCmdDrawIndexedIndirect {
 } CtsCmdDrawIndexedIndirect;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdDrawIndexedIndirect, 
+    CtsCmdDrawIndexedIndirect, 
+    ctsCmdDrawIndexedIndirectImpl,
     commandBuffer, 
     buffer, 
     offset,

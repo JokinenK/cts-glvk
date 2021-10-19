@@ -19,7 +19,8 @@ typedef struct CtsFreeDescriptorSets {
 } CtsFreeDescriptorSets;
 
 CTS_DEFINE_TRAMPOLINE(
-    FreeDescriptorSets,
+    CtsFreeDescriptorSets,
+    ctsFreeDescriptorSetsImpl,
     device,
     descriptorPool,
     descriptorSetCount,

@@ -17,7 +17,8 @@ typedef struct CtsCmdBindIndexBuffer {
 } CtsCmdBindIndexBuffer;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdBindIndexBuffer, 
+    CtsCmdBindIndexBuffer, 
+    ctsCmdBindIndexBufferImpl, 
     commandBuffer, 
     buffer, 
     offset,

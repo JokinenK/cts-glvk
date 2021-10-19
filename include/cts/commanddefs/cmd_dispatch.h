@@ -17,7 +17,8 @@ typedef struct CtsCmdDispatch {
 } CtsCmdDispatch;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdDispatch, 
+    CtsCmdDispatch, 
+    ctsCmdDispatchImpl,
     commandBuffer, 
     groupCountX, 
     groupCountY,

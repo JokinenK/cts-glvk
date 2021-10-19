@@ -16,7 +16,8 @@ typedef struct CtsUnmapMemory {
 } CtsUnmapMemory;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    UnmapMemory,
+    CtsUnmapMemory,
+    ctsUnmapMemoryImpl,
     device,
     memory
 );

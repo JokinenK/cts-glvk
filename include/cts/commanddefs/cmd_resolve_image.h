@@ -20,7 +20,8 @@ typedef struct CtsCmdResolveImage {
 } CtsCmdResolveImage;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdResolveImage, 
+    CtsCmdResolveImage, 
+    ctsCmdResolveImageImpl, 
     commandBuffer,
     srcImage,
     srcImageLayout,

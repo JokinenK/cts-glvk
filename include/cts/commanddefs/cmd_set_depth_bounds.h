@@ -16,7 +16,8 @@ typedef struct CtsCmdSetDepthBounds {
 } CtsCmdSetDepthBounds;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetDepthBounds, 
+    CtsCmdSetDepthBounds, 
+    ctsCmdSetDepthBoundsImpl, 
     commandBuffer,
     minDepthBounds,
     maxDepthBounds

@@ -18,7 +18,8 @@ typedef struct CtsCreateFence {
 } CtsCreateFence;
 
 CTS_DEFINE_TRAMPOLINE(
-    CreateFence, 
+    CtsCreateFence, 
+    ctsCreateFenceImpl, 
     device,
     pCreateInfo,
     pAllocator,

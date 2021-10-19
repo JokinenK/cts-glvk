@@ -16,7 +16,8 @@ typedef struct CtsDestroyFramebuffer {
 } CtsDestroyFramebuffer;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroyFramebuffer,
+    CtsDestroyFramebuffer,
+    ctsDestroyFramebufferImpl,
     device,
     framebuffer,
     pAllocator

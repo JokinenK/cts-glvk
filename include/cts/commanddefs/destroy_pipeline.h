@@ -16,7 +16,8 @@ typedef struct CtsDestroyPipeline {
 } CtsDestroyPipeline;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroyPipeline,
+    CtsDestroyPipeline,
+    ctsDestroyPipelineImpl,
     device,
     pipeline,
     pAllocator

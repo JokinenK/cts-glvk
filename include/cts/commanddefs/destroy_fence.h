@@ -16,7 +16,8 @@ typedef struct CtsDestroyFence {
 } CtsDestroyFence;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    DestroyFence,
+    CtsDestroyFence,
+    ctsDestroyFenceImpl,
     device,
     fence,
     pAllocator

@@ -23,20 +23,22 @@ extern "C" {
 #define EXPAND_ARG_1(First, ...) GLUE(cmd->, First)
 #define EXPAND_ARG_N(NumArgs) GLUE(EXPAND_ARG_, EXPAND(NumArgs))
 
-#define CTS_DEFINE_TRAMPOLINE(BaseName, ...)                                    \
-    static void cts##BaseName##Trampoline(const struct CtsCmdBase* pCmd) {      \
-        const struct Cts##BaseName* cmd = (const struct Cts##BaseName##*) pCmd; \
-        *cmd->pResult = cts##BaseName##Impl(                                    \
-            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))               \
-        );                                                                      \
+#define CTS_TRAMPOLINE_FN(StructName) _##StructName##Trampoline
+
+#define CTS_DEFINE_TRAMPOLINE(StructName, FuncName, ...)                       \
+    static void CTS_TRAMPOLINE_FN(StructName)(const struct CtsCmdBase* pCmd) { \
+        const struct StructName* cmd = (const struct StructName*) pCmd;        \
+        *cmd->pResult = FuncName(                                              \
+            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))              \
+        );                                                                     \
     }
 
-#define CTS_DEFINE_TRAMPOLINE_VOID(BaseName, ...)                               \
-    static void cts##BaseName##Trampoline(const struct CtsCmdBase* pCmd) {      \
-        const struct Cts##BaseName* cmd = (const struct Cts##BaseName##*) pCmd; \
-        cts##BaseName##Impl(                                                    \
-            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))               \
-        );                                                                      \
+#define CTS_DEFINE_TRAMPOLINE_VOID(StructName, FuncName, ...)                  \
+    static void CTS_TRAMPOLINE_FN(StructName)(const struct CtsCmdBase* pCmd) { \
+        const struct StructName* cmd = (const struct StructName*) pCmd;        \
+        FuncName(                                                              \
+            EXPAND(EXPAND_ARG_N(NARGS(__VA_ARGS__))(__VA_ARGS__))              \
+        );                                                                     \
     }
 
 typedef void (*CtsCmdTrampolineFn)(const struct CtsCmdBase*);

@@ -19,7 +19,8 @@ typedef struct CtsCmdClearDepthStencilImage {
 } CtsCmdClearDepthStencilImage;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdClearDepthStencilImage, 
+    CtsCmdClearDepthStencilImage, 
+    ctsCmdClearDepthStencilImageImpl, 
     commandBuffer, 
     image, 
     imageLayout,

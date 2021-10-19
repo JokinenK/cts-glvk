@@ -19,7 +19,8 @@ typedef struct CtsUpdateDescriptorSets {
 } CtsUpdateDescriptorSets;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    UpdateDescriptorSets,
+    CtsUpdateDescriptorSets,
+    ctsUpdateDescriptorSetsImpl,
     device,
     descriptorWriteCount,
     pDescriptorWrites,

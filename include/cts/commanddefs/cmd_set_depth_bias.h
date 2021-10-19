@@ -17,7 +17,8 @@ typedef struct CtsCmdSetDepthBias {
 } CtsCmdSetDepthBias;
 
 CTS_DEFINE_TRAMPOLINE_VOID(
-    CmdSetDepthBias, 
+    CtsCmdSetDepthBias, 
+    ctsCmdSetDepthBiasImpl, 
     commandBuffer,
     depthBiasConstantFactor,
     depthBiasClamp,
