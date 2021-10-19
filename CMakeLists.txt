@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
-project(cts-renderer)
+project(cts-glvk)
 
 option(CTS_BUILD_SAMPLES "Build samples" ON)
 

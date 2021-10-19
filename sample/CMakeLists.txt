@@ -25,7 +25,7 @@ list(APPEND SAMPLE_INCLUDE_PATHS
 
 list(APPEND SAMPLE_LIBRARIES
     glm
-    cts-renderer
+    cts-glvk
     Vulkan::Vulkan
 )
 
@@ -73,7 +73,7 @@ endforeach()
 
 add_custom_target(
     ICD_BINARY ALL
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:cts-renderer> $<TARGET_FILE_DIR:${PROJECT_NAME}>/$<TARGET_FILE_NAME:cts-renderer>
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:cts-glvk> $<TARGET_FILE_DIR:${PROJECT_NAME}>/$<TARGET_FILE_NAME:cts-glvk>
 ) 
 
 add_custom_target(
