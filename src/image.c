@@ -315,7 +315,7 @@ uintptr_t ctsBufferToImage(struct CtsImage* image, uintptr_t offset) {
         } break;
 
         case GL_TEXTURE_2D_ARRAY:
-        case GL_TEXTURE_CUBE_MAP_ARRAY_ARB: {
+        case GL_TEXTURE_CUBE_MAP_ARRAY: {
             for (GLint level = 0; level < image->mipLevels; ++level) {
                 glTexSubImage3D(image->target, level, 0, 0, 0, width, height, image->arrayLayers, image->format, image->type, (GLvoid*)offset);
                 offset += width * height * image->arrayLayers * image->numComponents;

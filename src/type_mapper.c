@@ -113,7 +113,7 @@ static GLenum sImageViewTypes[] = {
     GL_TEXTURE_CUBE_MAP,
     GL_TEXTURE_1D_ARRAY,
     GL_TEXTURE_2D_ARRAY,
-    GL_TEXTURE_CUBE_MAP_ARRAY_ARB
+    GL_TEXTURE_CUBE_MAP_ARRAY
 };
 
 static GLenum sMultisampleImageViewTypes[] = {

@@ -2535,8 +2535,8 @@ static void bindMultisampleState(
     struct CtsDevice* device,
     CtsGlPipelineMultisampleState* pState)
 {
-    enableFeature(GL_SAMPLE_SHADING_ARB, pState->sampleShadingEnable);
-    glMinSampleShadingARB(pState->minSampleShading);
+    enableFeature(GL_SAMPLE_SHADING, pState->sampleShadingEnable);
+    glMinSampleShading(pState->minSampleShading);
 }
 
 static void bindDepthStencilState(
@@ -2652,7 +2652,7 @@ static void bindColorBlendState(
             (attachmentState->colorWriteMask & VK_COLOR_COMPONENT_A_BIT) == VK_COLOR_COMPONENT_A_BIT
         );
 
-        glBlendFuncSeparateiARB(
+        glBlendFuncSeparatei(
             i,
             attachmentState->srcColorBlendFactor,
             attachmentState->dstColorBlendFactor,
@@ -2660,7 +2660,7 @@ static void bindColorBlendState(
             attachmentState->dstAlphaBlendFactor
         );
 
-        glBlendEquationSeparateiARB(
+        glBlendEquationSeparatei(
             i,
             attachmentState->colorBlendOp,
             attachmentState->alphaBlendOp

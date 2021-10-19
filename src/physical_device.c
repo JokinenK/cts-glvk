@@ -374,15 +374,15 @@ const VkMemoryType* ctsGetMemoryType(uint32_t memoryTypeIndex)
 static void parseDeviceFeatures(VkPhysicalDeviceFeatures* pFeatures) {
     pFeatures->robustBufferAccess                       = VK_FALSE;
     pFeatures->fullDrawIndexUint32                      = VK_TRUE;
-    pFeatures->imageCubeArray                           = GLAD_GL_ARB_texture_cube_map_array;
-    pFeatures->independentBlend                         = GLAD_GL_ARB_draw_buffers_blend;
+    pFeatures->imageCubeArray                           = VK_TRUE;
+    pFeatures->independentBlend                         = VK_TRUE;
     pFeatures->geometryShader                           = VK_TRUE;
-    pFeatures->tessellationShader                       = GLAD_GL_ARB_tessellation_shader;
-    pFeatures->sampleRateShading                        = GLAD_GL_ARB_sample_shading;
+    pFeatures->tessellationShader                       = VK_TRUE;
+    pFeatures->sampleRateShading                        = VK_TRUE;
     pFeatures->dualSrcBlend                             = VK_TRUE;
     pFeatures->logicOp                                  = VK_TRUE;
     pFeatures->multiDrawIndirect                        = GLAD_GL_ARB_multi_draw_indirect;
-    pFeatures->drawIndirectFirstInstance                = GLAD_GL_ARB_base_instance;
+    pFeatures->drawIndirectFirstInstance                = VK_TRUE;
     pFeatures->depthClamp                               = VK_TRUE;
     pFeatures->depthBiasClamp                           = VK_FALSE;
     pFeatures->fillModeNonSolid                         = VK_TRUE;
@@ -390,7 +390,7 @@ static void parseDeviceFeatures(VkPhysicalDeviceFeatures* pFeatures) {
     pFeatures->wideLines                                = gPhysicalDeviceProperties.limits.lineWidthRange[1] > 1.0f;
     pFeatures->largePoints                              = VK_FALSE;
     pFeatures->alphaToOne                               = VK_FALSE;
-    pFeatures->multiViewport                            = GLAD_GL_ARB_viewport_array;
+    pFeatures->multiViewport                            = VK_TRUE;
     pFeatures->samplerAnisotropy                        = GLAD_GL_ARB_texture_filter_anisotropic;
     pFeatures->textureCompressionETC2                   = VK_FALSE;
     pFeatures->textureCompressionASTC_LDR               = VK_FALSE;
@@ -534,7 +534,7 @@ static void parseDeviceLimits(VkPhysicalDeviceLimits* pLimits) {
     glGetIntegerv(GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS, &i32);
     pLimits->maxTessellationEvaluationOutputComponents = i32;
 
-    i32 = 1; // glGetIntegerv(GL_MAX_GEOMETRY_SHADER_INVOCATIONS, &i32); // https://www.khronos.org/opengl/wiki/Geometry_Shader
+    glGetIntegerv(GL_MAX_GEOMETRY_SHADER_INVOCATIONS, &i32);
     pLimits->maxGeometryShaderInvocations = i32;
     
     glGetIntegerv(GL_MAX_GEOMETRY_INPUT_COMPONENTS, &i32);
